@@ -11,103 +11,94 @@ columns:
 schema_hash: bf4a477045a44380b9aad17fb9704f18c0cb62fcc40daa98f11a37894927e341
 
 ---
-# Table Summary: compass-bigquery-demo.github_dataset.license_language_correlation
+# Comprehensive Table Analysis Summary: compass-bigquery-demo.github_dataset.license_language_correlation
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 1,502
-- **Data Quality**: Excellent - no null values in any column
-- **Dataset Purpose**: This table appears to analyze the correlation between software licenses and programming languages, along with various project metrics in GitHub repositories
-- **Key Pattern**: The data is structured around license-language combinations with associated project characteristics measured in categorical buckets
+- **Total Rows**: 1,502 records
+- **Data Quality**: Excellent - all columns have 0% null values, indicating complete data coverage
+- **Dataset Focus**: This table appears to analyze the correlation between software licenses and programming languages in GitHub repositories, with additional metrics around project characteristics
+- **Distribution Pattern**: The data shows a diverse range of programming languages (259 unique values) paired with a smaller set of common open-source licenses (15 unique values)
 
 ## Column Details
 
 ### license (STRING)
-- **Data Type**: String, categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 15 distinct license types
-- **Common Licenses**: MIT, GPL-3.0, Apache-2.0, GPL-2.0, BSD variants
-- **Value Pattern**: Standard open-source license identifiers (SPDX format)
-- **Query Use**: Primary filtering and grouping column for license analysis
+- **Data Type**: Categorical string
+- **Completeness**: 100% (0% nulls)
+- **Unique Values**: 15 distinct licenses
+- **Common Licenses**: Includes major open-source licenses like MIT, Apache-2.0, GPL variants, BSD variants, and others
+- **Pattern**: Standard SPDX license identifiers (lowercase with hyphens)
 
-### primary_language (STRING)
-- **Data Type**: String, categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 259 distinct programming languages
-- **Diversity**: High variety including mainstream (HTML, JavaScript) and niche languages (EmberScript, QML, Smarty)
-- **Query Use**: Primary filtering and grouping column for language-based analysis
+### popularity_bucket (STRING) 
+- **Data Type**: Categorical string with numeric ranges
+- **Completeness**: 100% (0% nulls)
+- **Categories**: 4 ordinal buckets from "Minimal (<10)" to "Popular (1K-9.9K)"
+- **Distribution Pattern**: Likely skewed toward lower popularity ranges based on typical GitHub repository distributions
 
 ### adoption_level_bucket (STRING)
-- **Data Type**: String, ordinal categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 5 buckets ranging from "Low (10-49)" to "Very High (10K+)"
-- **Pattern**: Measures project adoption with clear numeric ranges
-- **Query Use**: Good for filtering by adoption levels and trend analysis
+- **Data Type**: Categorical string with numeric ranges  
+- **Completeness**: 100% (0% nulls)
+- **Categories**: 5 ordinal buckets from "Low (10-49)" to "Very High (10K+)"
+- **Range**: Broader range than popularity, suggesting different measurement criteria
 
-### popularity_bucket (STRING)
-- **Data Type**: String, ordinal categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 4 buckets from "Minimal (<10)" to "Popular (1K-9.9K)"
-- **Pattern**: Measures popularity with ascending numeric thresholds
-- **Query Use**: Filtering and comparison of popularity levels
+### primary_language (STRING)
+- **Data Type**: Categorical string
+- **Completeness**: 100% (0% nulls) 
+- **Diversity**: 259 unique programming languages - very high diversity
+- **Examples**: Includes both common (Ruby, CSS) and specialized languages (MATLAB, Stata, VimL, Cap'n Proto)
 
 ### activity_bucket (STRING)
-- **Data Type**: String, ordinal categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 5 buckets from "Low (<50)" to "Very High (10K+)"
-- **Pattern**: Similar structure to adoption_level_bucket
-- **Query Use**: Analysis of project activity levels
+- **Data Type**: Categorical string with numeric ranges
+- **Completeness**: 100% (0% nulls)
+- **Categories**: 5 ordinal buckets from "Low (<50)" to "Very High (10K+)"
+- **Pattern**: Similar structure to adoption_level_bucket but measuring different activity metrics
 
 ### team_size_bucket (STRING)
-- **Data Type**: String, ordinal categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 5 buckets from "Individual (1)" to "Large Team (100+)"
-- **Pattern**: Clear progression of team sizes
-- **Query Use**: Team size analysis and correlation studies
+- **Data Type**: Categorical string with descriptive labels
+- **Completeness**: 100% (0% nulls)
+- **Categories**: 5 buckets from "Individual (1)" to "Large Team (100+)"
+- **Pattern**: Uses both descriptive names and numeric ranges
 
 ### diversity_bucket (STRING)
-- **Data Type**: String, ordinal categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 5 buckets from "Single (1)" to "Very Diverse (10+)"
-- **Pattern**: Appears to measure contributor diversity
-- **Query Use**: Diversity analysis and team composition studies
+- **Data Type**: Categorical string with descriptive labels
+- **Completeness**: 100% (0% nulls)
+- **Categories**: 5 buckets from "Single (1)" to "Very Diverse (10+)"
+- **Interpretation**: Likely measures contributor or technology diversity
 
 ### license_share_bucket (STRING)
-- **Data Type**: String, ordinal categorical
-- **Null Values**: 0.00% (complete data)
-- **Unique Values**: 4 buckets from "Minimal (<5%)" to "Major (25-49%)"
-- **Pattern**: Percentage-based buckets measuring license adoption within languages
-- **Query Use**: License market share analysis
+- **Data Type**: Categorical string with percentage ranges
+- **Completeness**: 100% (0% nulls)
+- **Categories**: 4 percentage-based buckets from "Minimal (<5%)" to "Major (25-49%)"
+- **Pattern**: Measures relative license adoption within some reference group
 
 ## Query Considerations
 
-### Excellent Filtering Columns
-- `license`: 15 distinct values, perfect for license-specific analysis
-- `primary_language`: High cardinality (259 values) for language-specific queries
-- All bucket columns: Pre-categorized for easy range filtering
+### Filtering Columns
+- **license**: Excellent for filtering by specific open-source licenses
+- **primary_language**: Good for language-specific analysis despite high cardinality
+- All bucket columns are ideal for range-based filtering
 
-### Ideal Grouping/Aggregation Columns
-- `license` and `primary_language`: Primary dimensions for correlation analysis
-- All bucket columns: Pre-aggregated categories perfect for summary statistics
-- Combinations like license-language pairs for cross-tabulation
+### Grouping/Aggregation Columns
+- **license**: Perfect for license adoption analysis (15 distinct values)
+- **popularity_bucket, adoption_level_bucket, activity_bucket**: Excellent for trend analysis across ordinal categories
+- **team_size_bucket, diversity_bucket**: Good for organizational pattern analysis
+- **primary_language**: Can be grouped but may need LIMIT clauses due to high cardinality (259 values)
 
 ### Potential Relationships
-- **Primary Key**: Likely combination of license + primary_language
-- **No Foreign Keys**: Appears to be a denormalized analytical table
-- **Correlation Focus**: Designed to analyze relationships between licenses and languages
+- Strong correlation potential between all bucket metrics (popularity, adoption, activity, team size)
+- License and language combinations for ecosystem analysis
+- Team characteristics (size, diversity) correlation with project metrics
 
 ### Data Quality Considerations
-- **Perfect Completeness**: No missing data concerns
-- **Consistent Categorization**: All bucket columns use consistent naming patterns
-- **Ordinal Nature**: Bucket columns have inherent ordering that should be preserved in analysis
-- **Sample Bias**: Data represents GitHub repositories, may not reflect all software development
+- **Excellent data quality**: No null handling required
+- **Consistent bucketing**: All bucket columns use clear, non-overlapping ranges
+- **High language diversity**: May need aggregation strategies for language analysis
+- **Ordinal nature**: Bucket columns have natural ordering for trend analysis
 
 ## Keywords
 
-license analysis, programming languages, GitHub data, open source licenses, software development metrics, project characteristics, adoption levels, team size analysis, diversity metrics, license correlation, software analytics, repository data, SPDX licenses, development activity, project popularity
+license analysis, programming languages, GitHub repositories, open source, software metrics, team collaboration, project popularity, adoption patterns, diversity metrics, SPDX licenses, repository statistics, software development, code analysis, programming language correlation
 
-## Table and Column Documentation
+## Table and Column Docs
 
-**Table Comment**: Not provided
-
-**Column Comments**: No individual column comments provided in the analysis report.
+No table comment or column comments were provided in the analysis report.

@@ -49,83 +49,86 @@ columns:
 schema_hash: 36323ae9a667a5738e82100dbb5c34f146458c57608d7261989108d26ec763ee
 
 ---
-# Table Analysis Summary: compass-bigquery-demo.us_real_estate_data.inventory_core_metrics_state
+# Table Analysis Summary: US Real Estate Data - State-Level Inventory Core Metrics
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 5,661 records
-- **Data Quality**: Generally good with most columns having no null values. However, several columns have consistent null patterns (~10.81% missing values)
-- **Time Series Nature**: Contains month-over-month (mm) and year-over-year (yy) change metrics, indicating this is time-series real estate data
-- **Geographic Coverage**: Covers all 51 US states and territories (including DC)
-- **Data Pattern**: Appears to be monthly real estate inventory metrics aggregated at the state level
+- **Geographic Coverage**: 51 US states including District of Columbia
+- **Data Quality**: Generally good with most core metrics having complete data
+- **Missing Data Pattern**: Approximately 10.81% of rows have missing values for year-over-year and month-over-month comparison metrics, suggesting these may be newer records or periods without historical comparisons
+- **One Column Completely Empty**: `month_date_yyyymm` has 100% null values
 
 ## Column Details
 
-### Identifier Columns
-- **state** (STRING): State names, no nulls, 51 unique values (all US states + DC)
-- **state_id** (STRING): State abbreviations, no nulls, 51 unique values (standardized state codes)
-- **month_date_yyyymm** (STRING): **100% null values** - appears to be unused/placeholder column
+### Geographic Identifiers
+- **state** (STRING): Complete data for all 51 US states and DC
+- **state_id** (STRING): Two-letter state abbreviations, complete data
 
-### Core Inventory Metrics
-- **total_listing_count** (INT64): Complete data, range 803-231,347 listings
-- **active_listing_count** (INT64): Complete data, range 720-182,589 listings  
-- **new_listing_count** (INT64): Complete data, range 290-53,332 listings
-- **pending_listing_count** (FLOAT64): 0.48% nulls, range 0-82,071 listings
+### Core Listing Metrics (Complete Data)
+- **total_listing_count** (INT64): Range 803-231,347, represents total active listings
+- **active_listing_count** (INT64): Range 720-182,589, subset of total listings
+- **new_listing_count** (INT64): Range 290-53,332, new listings added
+- **pending_listing_count** (FLOAT64): Range 0-82,071, listings under contract
 
-### Price Metrics
-- **average_listing_price** (FLOAT64): Complete data, range $206K-$1.73M
-- **median_listing_price** (FLOAT64): Complete data, range $130K-$887K
-- **median_listing_price_per_square_foot** (FLOAT64): Complete data, range $79-$737/sq ft
+### Price Metrics (Complete Data)
+- **average_listing_price** (FLOAT64): Range $206,417-$1,730,505
+- **median_listing_price** (FLOAT64): Range $129,913-$886,500
+- **median_listing_price_per_square_foot** (FLOAT64): Range $79-$737 per sq ft
 
-### Property Size Metrics
-- **median_square_feet** (FLOAT64): Complete data, range 987-2,798 sq ft
+### Property Characteristics (Complete Data)
+- **median_square_feet** (FLOAT64): Range 987-2,798 sq ft
+- **median_days_on_market** (INT64): Range 13-157 days
 
-### Market Activity Metrics
-- **pending_ratio** (FLOAT64): 0.48% nulls, range 0-3.212
-- **median_days_on_market** (INT64): Complete data, range 13-157 days
-- **price_reduced_count** (FLOAT64): Complete data, range 72-71,888 reductions
-- **price_reduced_share** (FLOAT64): Complete data, range 2.54%-40.89%
-- **price_increased_count** (INT64): Complete data, range 0-9,466 increases
-- **price_increased_share** (FLOAT64): Complete data, range 0%-13.02%
+### Market Activity Metrics (Complete Data)
+- **pending_ratio** (FLOAT64): Range 0-3.212, ratio of pending to active listings
+- **price_reduced_count** (FLOAT64): Range 72-71,888 listings with price reductions
+- **price_reduced_share** (FLOAT64): Range 0.0254-0.4089, percentage of listings with price reductions
+- **price_increased_count** (INT64): Range 0-9,466 listings with price increases
+- **price_increased_share** (FLOAT64): Range 0-0.1302, percentage of listings with price increases
 
-### Change Metrics (Time Comparisons)
-**Month-over-Month Changes** (10.81%-11.25% nulls):
-- Various *_mm columns showing percentage changes
-- Range typically -100% to +100% for most metrics
-
-**Year-over-Year Changes** (10.81%-11.43% nulls):
-- Various *_yy columns showing percentage changes  
-- Wider ranges indicating more volatility over annual periods
+### Change Metrics (10.81% Missing)
+All metrics ending in `_yy` (year-over-year) and `_mm` (month-over-month) have consistent missing data:
+- **Values represent percentage changes** from previous periods
+- **YoY changes** generally show larger ranges than MoM changes
+- **Missing pattern** suggests these are calculated fields unavailable for certain time periods
 
 ### Data Quality Indicator
-- **quality_flag** (FLOAT64): 10.81% nulls, binary values (0.0, 1.0) indicating data quality status
+- **quality_flag** (FLOAT64): Binary indicator (0.0 or 1.0) with 10.81% missing values
+
+### Completely Missing Column
+- **month_date_yyyymm** (STRING): 100% null values, likely unused date field
 
 ## Query Considerations
 
 ### Good for Filtering
 - **state/state_id**: Geographic filtering by state
-- **quality_flag**: Filter for data quality (when not null)
-- **median_days_on_market**: Market speed filtering
-- Date-related filtering would require the month_date_yyyymm column to be populated
+- **median_days_on_market**: Market speed filtering (hot/cold markets)
+- **quality_flag**: Data quality filtering when not null
+- **Price ranges**: Filter by price tiers using median_listing_price
 
 ### Good for Grouping/Aggregation
 - **state/state_id**: Geographic grouping
-- Price ranges (can create buckets from price columns)
-- Market activity levels (using days on market, pending ratios)
+- **Price ranges**: Create price tier buckets
+- **Market activity levels**: Group by pending_ratio or days_on_market ranges
 
-### Potential Join Keys
-- **state_id**: Standard for joining with other state-level datasets
-- **state**: Alternative join key for state-level data
-- Missing viable time dimension due to null month_date_yyyymm
+### Potential Relationships
+- **State identifiers**: Could join with other geographic datasets
+- **No obvious temporal keys**: month_date_yyyymm is empty
+- **Price metrics**: Strong relationships between different price measures
 
 ### Data Quality Considerations
-- Consistent ~10.81% null pattern across change metrics suggests systematic data collection issues for certain time periods/states
-- **month_date_yyyymm** being 100% null limits time-based analysis
-- **pending_listing_count** and **pending_ratio** have slightly different null patterns (0.48% vs 11.25%/11.43%)
-- All core inventory counts are complete (no nulls)
+- **~10.81% missing data** for comparison metrics should be handled in queries
+- **month_date_yyyymm should be excluded** from queries (100% null)
+- **quality_flag** could be used to filter for higher quality records
+- **Wide value ranges** in some metrics may require outlier handling
 
 ## Keywords
-real estate, inventory, listings, housing market, state-level data, property prices, market metrics, days on market, pending sales, price changes, square footage, monthly data, yearly data, market trends
+
+Real estate, housing market, inventory metrics, state data, listing prices, market activity, pending sales, price changes, days on market, square footage, geographic analysis, housing statistics, property metrics, market trends
 
 ## Table and Column Documentation
-No table comments or column comments are present in the provided schema.
+
+**Table Comment**: Not provided
+
+**Column Comments**: No individual column comments were provided in the source data.

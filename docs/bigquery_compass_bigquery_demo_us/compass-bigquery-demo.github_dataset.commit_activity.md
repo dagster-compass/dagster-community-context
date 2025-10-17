@@ -3,100 +3,97 @@ columns:
 - activity_level_bucket (STRING)
 - commit_week_encoded (INT64)
 - message_length_bucket (STRING)
-- repo_id (STRING)
+- repo_name (STRING)
 - team_size_bucket (STRING)
-schema_hash: 94068f4b0849c05f32bdb7aa5d3132d90b16f5b82a1cf9668dce380ed14f9161
+schema_hash: 5cc8b69686ba84828655499a6f002a4281f674d929e2a45aade2288f198a3ff7
 
 ---
-# Table Summary: compass-bigquery-demo.github_dataset.commit_activity
+# Summary: compass-bigquery-demo.github_dataset.commit_activity
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 33,513,854
-- **Data Quality**: Excellent - no null values in any column (0.00% null percentage across all fields)
-- **Dataset Scale**: Large-scale GitHub repository commit activity data spanning multiple years
-- **Time Range**: Covers approximately 25 years of commit activity (2014 week 52 through 2024 week 7 based on encoded weeks)
-- **Repository Coverage**: 1.56 million unique repositories represented
+- **Total Rows**: 33,513,854 (33.5M records)
+- **Data Quality**: Excellent - 0% null values across all columns
+- **Time Period**: Covers approximately 10 years of commit activity (2014-2024 based on encoded weeks)
+- **Repository Coverage**: Over 1.5M unique GitHub repositories
+- **Data Granularity**: Weekly aggregated commit activity data with behavioral categorizations
 
 ## Column Details
 
-### repo_id (STRING)
-- **Type**: String identifier (appears to be SHA-256 hash)
-- **Format**: 64-character hexadecimal strings
-- **Nulls**: None (0.00%)
-- **Uniqueness**: 1,558,196 unique repositories
-- **Purpose**: Primary identifier for GitHub repositories
-- **Pattern**: Consistent 64-character lowercase hexadecimal format
-
-### activity_level_bucket (STRING)
-- **Type**: Categorical string with structured format
-- **Nulls**: None (0.00%)
-- **Categories**: 5 distinct buckets
-  - "Minimal (<10)" - lowest activity
-  - "Low (10-19)" 
-  - "Medium (20-49)"
-  - "High (50-99)"
-  - "Very High (100+)" - highest activity
-- **Purpose**: Categorizes commit volume per time period
-- **Distribution**: Likely skewed toward lower activity levels (common in software projects)
+### repo_name (STRING)
+- **Data Type**: String identifier for GitHub repositories
+- **Format**: `owner/repository` pattern (e.g., "apache/uima-uimafit")
+- **Completeness**: 100% populated (0% nulls)
+- **Cardinality**: 1,558,196 unique repositories
+- **Usage**: Primary identifier for repositories, excellent for filtering and grouping by project
 
 ### commit_week_encoded (INT64)
-- **Type**: Integer representing year-week encoding
-- **Format**: YYYYWW format (year + week number)
-- **Nulls**: None (0.00%)
-- **Range**: 201452 to 224507 (December 2014 to February 2024)
-- **Uniqueness**: 1,273 distinct weeks
-- **Purpose**: Time dimension for temporal analysis
-- **Pattern**: Sequential weekly intervals over ~9.5 years
+- **Data Type**: Integer representing year-week combinations
+- **Format**: YYYYWW (e.g., 201505 = 2015 week 5, 224507 = 2024 week 45)
+- **Range**: 201452 to 224507 (late 2014 to late 2024)
+- **Cardinality**: 1,273 unique weeks
+- **Completeness**: 100% populated
+- **Usage**: Ideal for time-series analysis, temporal filtering, and trend analysis
+
+### activity_level_bucket (STRING)
+- **Data Type**: Categorical string representing commit frequency
+- **Categories**: 
+  - "Minimal (<10)" - Low activity repositories
+  - "Low (10-19)" - Light development activity
+  - "Medium (20-49)" - Moderate development activity
+  - "High (50-99)" - Active development
+  - "Very High (100+)" - Highly active repositories
+- **Completeness**: 100% populated
+- **Usage**: Excellent for segmentation analysis and filtering by development intensity
 
 ### team_size_bucket (STRING)
-- **Type**: Categorical string with structured format
-- **Nulls**: None (0.00%)
-- **Categories**: 5 distinct buckets
-  - "Individual (1)" - solo developer
-  - "Pair (2-4)" - small collaboration
-  - "Small Team (5-9)"
-  - "Medium Team (10-19)"
-  - "Large Team (20+)" - enterprise-scale teams
-- **Purpose**: Categorizes development team size
-- **Distribution**: Likely skewed toward individual and pair development
+- **Data Type**: Categorical string representing contributor count
+- **Categories**:
+  - "Individual (1)" - Solo developers
+  - "Pair (2-4)" - Small collaborative teams
+  - "Small Team (5-9)" - Small development teams
+  - "Medium Team (10-19)" - Medium-sized teams
+  - "Large Team (20+)" - Large development organizations
+- **Completeness**: 100% populated
+- **Usage**: Perfect for analyzing collaboration patterns and team dynamics
 
 ### message_length_bucket (STRING)
-- **Type**: Categorical string with structured format
-- **Nulls**: None (0.00%)
-- **Categories**: 4 distinct buckets
-  - "Very Short (<50)" - minimal commit messages
-  - "Short (50-99)"
-  - "Medium (100-199)"
-  - "Long (200+)" - detailed commit messages
-- **Purpose**: Categorizes commit message verbosity
-- **Distribution**: Sample suggests preference for shorter messages
+- **Data Type**: Categorical string representing commit message verbosity
+- **Categories**:
+  - "Very Short (<50)" - Terse commit messages
+  - "Short (50-99)" - Brief descriptions
+  - "Medium (100-199)" - Detailed descriptions
+  - "Long (200+)" - Verbose commit messages
+- **Completeness**: 100% populated
+- **Usage**: Useful for analyzing documentation practices and commit message quality
 
 ## Potential Query Considerations
 
-### Excellent for Filtering
-- **commit_week_encoded**: Ideal for time-based filtering and date ranges
-- **activity_level_bucket**: Perfect for analyzing repositories by commit volume
-- **team_size_bucket**: Great for comparing development patterns by team size
-- **repo_id**: Precise repository-specific analysis
+### Filtering Opportunities
+- **Time-based filtering**: Use `commit_week_encoded` for date range queries
+- **Repository filtering**: Use `repo_name` for specific projects or pattern matching
+- **Behavioral filtering**: All bucket columns are excellent for segmentation
 
-### Excellent for Grouping/Aggregation
-- **All categorical columns**: activity_level_bucket, team_size_bucket, message_length_bucket
-- **Time-based grouping**: commit_week_encoded (can extract year, quarter, month patterns)
-- **Repository-level aggregation**: repo_id for per-repository metrics
+### Grouping/Aggregation Possibilities
+- **Temporal analysis**: Group by `commit_week_encoded` for time-series trends
+- **Repository analysis**: Group by `repo_name` for per-project metrics
+- **Cross-dimensional analysis**: Combine any bucket columns for multi-dimensional insights
 
-### Join Key Potential
-- **repo_id**: Primary key for joining with other GitHub repository tables
-- **commit_week_encoded**: Could join with calendar/date dimension tables
+### Potential Relationships
+- **Primary Key**: Likely combination of `repo_name` and `commit_week_encoded`
+- **Foreign Keys**: `repo_name` could join with other GitHub repository tables
+- **Hierarchical relationships**: Week encoding allows for roll-up to months/years
 
 ### Data Quality Considerations
-- **No missing data**: All queries can assume complete data coverage
-- **Consistent encoding**: Week encoding follows standard format
-- **Stable categories**: Bucket definitions are explicit and consistent
-- **Large dataset**: Queries should consider performance optimization and may benefit from partitioning by time or sampling for exploration
+- **No missing data**: All columns are 100% populated, enabling reliable aggregations
+- **Consistent categorization**: All bucket columns use standardized categorical values
+- **Time continuity**: Some repositories may have gaps in weekly data (normal for inactive periods)
+- **Encoded dates**: May need decoding logic for human-readable date operations
 
 ## Keywords
-GitHub, repositories, commit activity, software development, version control, git commits, developer productivity, team collaboration, time series analysis, software metrics, open source, code development patterns, commit frequency, team size analysis, commit message analysis, software engineering analytics
 
-## Table and Column Docs
-No table comment or column comments were provided in the source data.
+GitHub, repositories, commit activity, time series, team collaboration, development patterns, software engineering metrics, weekly aggregation, activity levels, team size, commit messages, repository analytics, version control, development velocity, collaboration analysis, temporal analysis
+
+## Table and Column Documentation
+
+No table comment or column comments were provided in the analysis.

@@ -6,70 +6,68 @@ columns:
 schema_hash: 4ec24a365c9a3456a129cb767dfa91c019b0ce2f0616e25f58b04bc0bf5e7f13
 
 ---
-# Dataset Summary: people_labs_data.companies_employee_distribution_by_class
+# Data Summary: people_labs_data.companies_employee_distribution_by_class
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 17,813,054
-- **Data Quality**: Excellent - no null values in any column
-- **Structure**: Employee distribution data by job classification across companies
-- **Scale**: Large dataset covering over 10 million unique companies
-- **Pattern**: Each row represents a company-job_class combination with employee count
+- **Data Quality**: Excellent - no null values detected across all columns
+- **Dataset Purpose**: This table captures employee distribution across different job classifications for companies
+- **Key Pattern**: Each row represents a specific company's employee count within a particular job class category
+- **Scale**: Covers over 10 million unique companies with employee counts ranging from small (1 employee) to very large organizations (306,179 employees)
 
 ## Column Details
 
-### company_id (STRING)
-- **Data Type**: String identifier
-- **Completeness**: 100% populated (0% null)
-- **Uniqueness**: 10,078,178 unique values (~57% of total rows)
-- **Format**: Alphanumeric hash-like identifiers (28 characters)
-- **Pattern**: Each company can appear multiple times with different job classes
-- **Sample**: `hFlP2MxUpC5BcAWEdH3uzwfOMyz3`
-
 ### job_class (STRING)
-- **Data Type**: Categorical string
-- **Completeness**: 100% populated (0% null)
+- **Data Type**: String/categorical
+- **Null Values**: 0.00% (perfect data quality)
 - **Categories**: 5 distinct job classifications
   - `general_and_administrative`
   - `other_uncategorized` 
   - `research_and_development`
   - `sales_and_marketing`
   - `services`
-- **Usage**: Primary grouping dimension for employee distribution analysis
+- **Usage**: Primary dimension for analyzing workforce composition by functional area
 
 ### employee_count (INT64)
 - **Data Type**: Integer
-- **Completeness**: 100% populated (0% null)
+- **Null Values**: 0.00% (perfect data quality)
 - **Range**: 1 to 306,179 employees
-- **Distribution**: 5,880 unique values, heavily skewed toward lower counts
-- **Pattern**: Represents number of employees in each job class per company
+- **Distribution**: 5,880 unique values indicating wide variety in company sizes
+- **Pattern**: Likely right-skewed distribution with many small companies (1-10 employees) and fewer large enterprises
+- **Usage**: Quantitative measure for aggregations and size-based analysis
+
+### company_id (STRING)
+- **Data Type**: String identifier
+- **Null Values**: 0.00% (perfect data quality)
+- **Uniqueness**: 10,078,178 unique companies
+- **Format**: Alphanumeric strings (appears to be base64-like encoding)
+- **Usage**: Primary key for company identification and potential joins
 
 ## Potential Query Considerations
 
 ### Filtering Opportunities
-- **company_id**: Excellent for company-specific analysis
-- **job_class**: Perfect for functional area analysis (5 clear categories)
+- **job_class**: Excellent for filtering by specific workforce categories
 - **employee_count**: Good for size-based filtering (small/medium/large companies)
+- **company_id**: For specific company lookups
 
 ### Grouping/Aggregation Potential
-- **Primary grouping**: job_class for functional distribution analysis
-- **Secondary grouping**: company_id for per-company summaries
-- **Aggregation metrics**: SUM(employee_count) for total workforce, AVG(employee_count) for typical department sizes
+- **Primary Grouping**: `job_class` for workforce composition analysis
+- **Secondary Grouping**: Employee count ranges (e.g., 1-10, 11-50, 51-200, 200+)
+- **Aggregations**: SUM(employee_count) for total workforce, COUNT(*) for company counts, AVG(employee_count) for size metrics
 
-### Relationship Considerations
-- **Fact table structure**: This appears to be a fact table with company_id as potential foreign key
-- **One-to-many**: Each company_id can have multiple job_class entries
-- **Complete representation**: Not all companies necessarily have all 5 job classes
+### Join Considerations
+- **company_id**: Likely foreign key for joining with other company-related tables
+- **Potential Relationships**: Company details, industry classifications, geographic data, financial metrics
 
 ### Data Quality Considerations
-- **No missing data**: All columns are fully populated
-- **Referential integrity**: company_id values should be validated against master company table
-- **Business logic**: Employee counts should be positive integers (current data shows minimum of 1)
-- **Aggregation accuracy**: Total company workforce = SUM of all job_class employee_counts per company
+- **Strengths**: No missing data, consistent formatting
+- **Query Reliability**: High - all aggregations and calculations will be accurate
+- **Performance**: Large dataset (17M+ rows) may require indexed queries for optimal performance
 
 ## Keywords
 
-employee distribution, workforce analysis, job classification, company staffing, organizational structure, headcount, functional roles, business intelligence, HR analytics, company size analysis, departmental distribution
+company workforce, employee distribution, job classification, organizational structure, company size analysis, workforce composition, employee count, business functions, company analytics, HR data, organizational analysis, company demographics
 
 ## Table and Column Documentation
 

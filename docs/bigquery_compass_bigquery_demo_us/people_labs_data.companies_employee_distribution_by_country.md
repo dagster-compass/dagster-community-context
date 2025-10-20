@@ -12,67 +12,68 @@ schema_hash: 84b585c7c99900f31105ce68bb168b946b200165fe6977c111e050edd4528030
 
 - **Total Rows**: 15,495,627 records
 - **Data Quality**: Excellent - 0% null values across all columns
-- **Dataset Purpose**: This table tracks the distribution of employees by country for companies, representing a many-to-many relationship between companies and countries
-- **Scale**: Large enterprise dataset with over 10 million unique companies across 250 countries
-- **Distribution Pattern**: Each row represents a company's employee presence in a specific country, allowing companies to have multiple entries (one per country where they have employees)
+- **Dataset Purpose**: This appears to be a comprehensive mapping of companies to countries with their respective employee counts, likely representing the distribution of company workforces across different geographical locations
+- **Scale**: Large-scale dataset with over 10 million unique companies across 250 countries
+- **Data Completeness**: 100% complete with no missing values
 
 ## Column Details
 
-### company_id (STRING)
-- **Data Type**: String identifier
-- **Completeness**: 100% populated (0% nulls)
-- **Cardinality**: 10,075,624 unique companies
-- **Format**: Alphanumeric hash-like identifiers (e.g., "ifPO1TY9q97ZKkBGf1LCOgcQ48bj")
-- **Pattern**: Consistent 28-character string format
-- **Usage**: Primary identifier for companies, serves as foreign key for joins
-
 ### country (STRING)
-- **Data Type**: String
-- **Completeness**: 100% populated (0% nulls)
-- **Cardinality**: 250 unique countries
-- **Format**: Lowercase country names with spaces and special characters
-- **Common Patterns**: Includes full country names, territories, and dependencies
-- **Notable Values**: "united states", "united kingdom", "netherlands", "germany", "france"
-- **Geographic Coverage**: Global coverage including small territories and dependencies
+- **Data Type**: String, standardized lowercase format
+- **Null Values**: 0% (complete data)
+- **Distribution**: 250 unique countries represented
+- **Format Pattern**: Lowercase, full country names (e.g., "united states", "united kingdom")
+- **Notable Values**: Includes major economies like India, Netherlands, United States, as well as smaller territories like American Samoa, Anguilla
+- **Geographic Coverage**: Global dataset including countries, territories, and dependencies
 
 ### employee_count (INT64)
 - **Data Type**: Integer
-- **Completeness**: 100% populated (0% nulls)
+- **Null Values**: 0% (complete data)
 - **Range**: 1 to 248,710 employees
-- **Distribution**: Heavily skewed toward smaller counts (many companies with 1-10 employees per country)
-- **Maximum**: 248,710 suggests very large multinational corporations
-- **Pattern**: Positive integers only, no zero values
+- **Distribution**: 5,964 unique employee count values
+- **Patterns**: 
+  - Heavily skewed toward smaller companies (many companies with 1 employee)
+  - Large range suggests presence of both small startups and major corporations
+  - Maximum of 248,710 suggests very large multinational companies
+
+### company_id (STRING)
+- **Data Type**: String identifier
+- **Null Values**: 0% (complete data)
+- **Uniqueness**: 10,075,624 unique company IDs
+- **Format**: Alphanumeric strings (appears to be encoded/hashed identifiers)
+- **Pattern**: Consistent length format, likely system-generated
+- **Key Characteristic**: Primary identifier for companies in the dataset
 
 ## Potential Query Considerations
 
 ### Filtering Opportunities
-- **Country-based filtering**: Excellent for geographic analysis and regional queries
-- **Employee count ranges**: Good for segmenting companies by size (small, medium, large)
-- **Company-specific lookups**: Direct filtering by company_id for specific company analysis
+- **country**: Excellent for geographical analysis and filtering by specific regions or countries
+- **employee_count**: Good for size-based company segmentation (small/medium/large enterprises)
+- **company_id**: Perfect for individual company lookups
 
 ### Grouping/Aggregation Potential
-- **By country**: Aggregate employee counts, company counts per country
-- **By company**: Sum total global employees, count countries of operation
-- **By employee size bands**: Group companies into size categories
-- **Geographic regions**: Can be enhanced by mapping countries to regions/continents
+- **country**: Primary grouping dimension for geographical analysis
+- **employee_count ranges**: Can be binned for company size analysis
+- **Aggregate functions**: SUM(employee_count) by country, COUNT(*) for company counts per country
 
-### Join Key Relationships
-- **company_id**: Primary join key to other company-related tables
-- **country**: Can join to country reference tables for additional geographic data
-- **Potential relationships**: Company details, industry classifications, financial data
+### Join Key Potential
+- **company_id**: Primary key for joining with other company-related tables
+- **country**: Can be joined with geographical/economic data tables
 
 ### Data Quality Considerations
-- **Excellent data completeness**: No missing values to handle in queries
-- **Case sensitivity**: Country names are lowercase, ensure consistent casing in joins
-- **Aggregation accuracy**: Multiple rows per company require SUM() for total employee counts
-- **Time dimension**: No date fields present - this appears to be point-in-time data
+- **No null handling required**: All columns are complete
+- **Case sensitivity**: Country names are in lowercase, may need standardization when joining with other datasets
+- **Employee count validation**: Consider filtering out unrealistic values if needed (though range appears reasonable)
+- **Country name standardization**: May need mapping if joining with datasets using different country naming conventions
+
+## Query Performance Considerations
+- **Large dataset**: 15M+ rows require efficient indexing strategies
+- **Country filtering**: Likely benefits from indexing on country column
+- **Company lookups**: company_id should be indexed for individual company queries
+- **Aggregation queries**: Consider partitioning by country for large analytical queries
 
 ## Keywords
-
-employee distribution, company employees, international presence, geographic distribution, multinational companies, workforce analytics, company size, country analysis, global companies, employee count, business intelligence, company demographics, international business, workforce segmentation
+employee distribution, company workforce, geographical analysis, business intelligence, company size, international business, workforce analytics, company demographics, global companies, employee count by country, business presence, multinational corporations, startup analysis, SME analysis, geographic distribution
 
 ## Table and Column Documentation
-
-**Table Comment**: Not provided
-
-**Column Comments**: Not provided
+*No table comment or column comments were provided in the source data.*

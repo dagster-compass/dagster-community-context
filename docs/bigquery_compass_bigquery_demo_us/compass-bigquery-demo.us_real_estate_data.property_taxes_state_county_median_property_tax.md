@@ -6,67 +6,72 @@ columns:
 schema_hash: ff4c4d9126f8ac82b4a56d344f64cdefa61b08063949cfbe8f312bd99b8c0a9c
 
 ---
-# Table Summary: Property Taxes by State and County
+# Property Taxes State County Dataset Summary
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 3,221 records
-- **Data Quality**: Excellent overall data quality with minimal missing values (only 0.56% nulls in the tax amount column)
-- **Geographic Coverage**: Comprehensive coverage of US counties across 52 states/territories (including District of Columbia and Puerto Rico)
-- **Data Source**: 2021 5-year estimate data, suggesting this is American Community Survey (ACS) data
+- **Data Quality**: High quality dataset with minimal missing data (only 0.56% null values in the tax amount column)
+- **Geographic Coverage**: Comprehensive coverage of US counties across all 50 states plus District of Columbia (52 total state/territory entities)
+- **Data Source**: 2021 5-year estimate data, indicating this is likely American Community Survey (ACS) data
 - **Notable Patterns**: 
-  - Wide range in property tax amounts ($200 to $10,000)
-  - More counties than states indicates multiple counties per state
-  - Some counties appear multiple times across different states (e.g., "Platte County" exists in multiple states)
+  - Wide range of property tax values ($200 to $10,000) reflecting significant geographic variation
+  - Nearly complete geographic coverage with 1,955 unique counties represented
+  - Clean, standardized naming conventions for states and counties
 
 ## Column Details
 
-### county (STRING)
-- **Data Type**: String/text field
-- **Completeness**: 100% complete (no null values)
-- **Uniqueness**: 1,955 unique county names out of 3,221 records
-- **Format**: Standard county naming format with "County" suffix (e.g., "New York County", "Platte County")
-- **Special Cases**: Puerto Rico uses "Municipio" instead of "County" (e.g., "Hatillo Municipio")
-
 ### state (STRING)
-- **Data Type**: String/text field
-- **Completeness**: 100% complete (no null values)
-- **Coverage**: 52 unique states/territories including all 50 US states plus District of Columbia and Puerto Rico
-- **Format**: Full state names (not abbreviations)
-- **Distribution**: Varies by state size - larger states likely have more county records
+- **Data Type**: String with full state names
+- **Completeness**: 100% complete (0% null values)
+- **Distribution**: 52 unique values covering all US states plus DC
+- **Format**: Full state names (e.g., "Michigan", "South Carolina", "Alabama")
+- **Query Considerations**: Excellent for geographic filtering and grouping by state
+
+### county (STRING)
+- **Data Type**: String with county names including "County" suffix
+- **Completeness**: 100% complete (0% null values)
+- **Distribution**: 1,955 unique counties (high cardinality)
+- **Format**: Standardized format with "County" suffix (e.g., "Hand County", "Carroll County")
+- **Query Considerations**: Good for specific county lookups; note that county names may repeat across states
 
 ### median_property_taxes_paid_by_county_2021_5_year_estimate (INT64)
-- **Data Type**: Integer (whole dollar amounts)
-- **Completeness**: 99.44% complete (18 null values out of 3,221 records)
-- **Range**: $200 to $10,000 annually
-- **Uniqueness**: 1,946 unique values, indicating some counties have identical median property tax amounts
-- **Distribution**: Likely right-skewed with most counties having moderate tax amounts and fewer counties with very high taxes
+- **Data Type**: Integer representing dollar amounts
+- **Completeness**: 99.44% complete (0.56% null values - 18 missing records)
+- **Distribution**: 1,946 unique values ranging from $200 to $10,000
+- **Sample Values**: $541, $2,831, $856, $1,094, $1,518
+- **Query Considerations**: Primary metric for analysis, aggregation, and comparison
 
 ## Potential Query Considerations
 
-### Filtering Columns
-- **state**: Excellent for filtering by geographic region or specific states
-- **median_property_taxes_paid_by_county_2021_5_year_estimate**: Good for filtering by tax amount ranges (e.g., high-tax vs low-tax areas)
-- **county**: Useful for finding specific counties, though county names may repeat across states
+### Filtering Opportunities
+- **Geographic filtering**: Filter by specific states or regions
+- **Tax range filtering**: Filter counties by property tax brackets (low, medium, high)
+- **Data completeness**: May want to exclude records with null tax values
 
-### Grouping/Aggregation Columns
-- **state**: Primary grouping column for state-level analysis
-- **Tax amount ranges**: Can be binned for distribution analysis
-- **Geographic regions**: States could be grouped into regions for broader analysis
+### Grouping/Aggregation Opportunities
+- **State-level analysis**: GROUP BY state for state comparisons
+- **Regional analysis**: Can group states into regions for broader geographic analysis
+- **Tax bracket analysis**: Create buckets/ranges of tax amounts for distribution analysis
+- **Statistical aggregations**: Calculate state averages, medians, min/max values
 
 ### Join Considerations
-- **Primary Key**: Combination of state + county would create a unique identifier
-- **Join Keys**: State and county columns can join with other geographic datasets
-- **Relationship**: Many counties to one state relationship
+- **Primary Keys**: Combination of (state, county) forms a natural composite key
+- **Potential Joins**: Can join with other county-level demographic or economic datasets
+- **Geographic Relationships**: Can join with state-level data using the state column
 
 ### Data Quality Considerations
-- **Handle Nulls**: 18 records have null tax amounts - decide whether to exclude or impute
-- **County Name Consistency**: Be aware that county names alone are not unique (need state context)
-- **Puerto Rico Handling**: Special consideration for "Municipio" vs "County" naming convention
-- **Data Currency**: This is 2021 5-year estimate data, so consider temporal relevance for current analysis
+- **Missing Values**: 18 records (0.56%) have null property tax values - consider how to handle in aggregations
+- **County Name Standardization**: County names include "County" suffix consistently
+- **State Name Format**: Uses full state names rather than abbreviations - may need conversion for joins with other datasets
+- **Currency Format**: Tax values are in whole dollars (no cents), suitable for most financial analyses
 
 ## Keywords
-property taxes, county taxes, state taxes, median property tax, real estate taxes, ACS data, American Community Survey, geographic analysis, tax burden, county-level data, state-level data
+
+Property taxes, county data, state data, real estate, tax assessment, geographic analysis, ACS data, American Community Survey, median taxes, county-level statistics, US counties, state comparison, tax burden, real estate taxation
 
 ## Table and Column Documentation
-*No table comment or column comments were provided in the source data.*
+
+**Table Comment**: Not provided in the analysis
+
+**Column Comments**: No column comments were provided in the analysis

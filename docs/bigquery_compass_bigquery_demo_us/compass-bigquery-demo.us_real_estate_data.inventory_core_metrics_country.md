@@ -52,72 +52,81 @@ schema_hash: e657215716a559308360810f9c2b29a688e8a830a64b7fd25300c324e416e4f2
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 111
-- **Data Quality**: Generally good data quality with consistent null patterns (10.81% nulls for derived metrics, 0% nulls for base counts and prices)
-- **Geographic Scope**: Country-level data exclusively for the United States
-- **Time Series Nature**: Contains month-over-month (mm) and year-over-year (yy) percentage change metrics
-- **Data Completeness**: One column (`month_date_yyyymm`) is entirely null (100%), suggesting it may be unused or deprecated
+- **Total rows**: 111 records
+- **Geographic scope**: Country-level data (United States only)
+- **Data quality**: Generally high with consistent non-null values for core metrics, but 10.81% null values for month-over-month and year-over-year comparison metrics
+- **Time series nature**: Contains current values and percentage changes (month-over-month "_mm" and year-over-year "_yy" suffixes)
+- **Notable patterns**: 
+  - One completely null column (`month_date_yyyymm`)
+  - Quality flag column with only zeros where not null
+  - Single country dataset (all records are "United States")
 
 ## Column Details
 
-### Base Count Metrics (No Nulls)
-- **total_listing_count** (INT64): Total property listings (815K-1.87M range)
-- **pending_listing_count** (INT64): Properties under contract (257K-659K range) 
-- **active_listing_count** (INT64): Currently available listings (346K-1.46M range)
-- **new_listing_count** (INT64): New market entries (215K-584K range)
-- **price_increased_count** (INT64): Properties with price increases (12K-61K range)
-- **price_reduced_count** (FLOAT64): Properties with price reductions (64K-458K range)
+### Core Inventory Metrics
+- **total_listing_count** (INT64): Total property listings, ranging from 815,253 to 1,873,209
+- **active_listing_count** (INT64): Active listings, ranging from 346,514 to 1,463,025
+- **pending_listing_count** (INT64): Pending listings, ranging from 257,571 to 659,596
+- **new_listing_count** (INT64): New listings, ranging from 215,940 to 584,354
 
-### Price and Property Metrics (No Nulls)
-- **average_listing_price** (FLOAT64): Mean listing price ($439K-$791K range)
-- **median_listing_price** (FLOAT64): Median listing price ($249K-$449K range)
-- **median_listing_price_per_square_foot** (FLOAT64): Price per sq ft ($125-$234 range)
-- **median_square_feet** (FLOAT64): Property sizes (1,776-1,997 sq ft range)
-- **median_days_on_market** (INT64): Time to sell (30-88 days range)
+### Price Metrics
+- **average_listing_price** (FLOAT64): Average price from $439,191 to $791,655
+- **median_listing_price** (FLOAT64): Median price from $249,900 to $449,000
+- **median_listing_price_per_square_foot** (FLOAT64): Price per sq ft from $125 to $234
 
-### Market Share Metrics (No Nulls)
-- **price_reduced_share** (FLOAT64): Proportion of price reductions (5.37%-21.68%)
-- **price_increased_share** (FLOAT64): Proportion of price increases (0.86%-3.47%)
-- **pending_ratio** (FLOAT64): Pending to total listing ratio (0.23-1.48)
+### Property Characteristics
+- **median_square_feet** (FLOAT64): Property sizes from 1,776 to 1,997 sq ft
+- **median_days_on_market** (INT64): Market time from 30 to 88 days
 
-### Change Metrics (10.81% Nulls)
-All month-over-month (mm) and year-over-year (yy) percentage change columns have consistent null patterns:
-- Price change metrics (average_listing_price_mm/yy, median_listing_price_mm/yy)
-- Count change metrics (total_listing_count_mm/yy, pending_listing_count_mm/yy, etc.)
-- Market metrics changes (pending_ratio_mm/yy, price_reduced_share_mm/yy, etc.)
-- Property characteristic changes (median_square_feet_mm/yy, median_days_on_market_mm/yy)
+### Price Change Metrics
+- **price_reduced_count** (FLOAT64): Properties with price reductions, 64,958 to 458,240
+- **price_reduced_share** (FLOAT64): Share of price reductions, 5.37% to 21.68%
+- **price_increased_count** (INT64): Properties with price increases, 12,220 to 61,028
+- **price_increased_share** (FLOAT64): Share of price increases, 0.86% to 3.47%
 
-### Metadata Columns
-- **country** (STRING): Geographic identifier (always "United States")
-- **quality_flag** (FLOAT64): Data quality indicator (always 0.0 when present)
-- **month_date_yyyymm** (STRING): Time identifier (100% null - potentially unused)
+### Market Ratios
+- **pending_ratio** (FLOAT64): Pending to active listings ratio, 0.23 to 1.48
 
-## Query Considerations
+### Temporal Comparison Metrics (10.81% null)
+All "_mm" (month-over-month) and "_yy" (year-over-year) columns show percentage changes with varying ranges, typically between -50% to +50% for most metrics.
 
-### Filtering Opportunities
-- **country**: Single value filter (United States only)
-- **quality_flag**: Data quality filtering (though values appear consistent)
-- **Date ranges**: Would require time-based filtering if month_date_yyyymm were populated
-- **Null handling**: 10.81% of rows lack change metrics, important for trend analysis
+### Data Quality and Geographic Identifiers
+- **country** (STRING): Single value "United States"
+- **quality_flag** (FLOAT64): Only contains 0.0 where not null
+- **month_date_yyyymm** (STRING): Completely null column
 
-### Aggregation Potential
-- **Time-based grouping**: Limited without populated date column
-- **Market segment analysis**: Could group by price ranges, property sizes, or market activity levels
-- **Regional analysis**: Not possible at country level (single value)
+## Potential Query Considerations
 
-### Join Considerations
-- **Primary key**: No obvious single primary key; likely time-series data
-- **Geographic joins**: Country field could join to other geographic datasets
-- **Time-based joins**: Limited without proper date column
+### Good for Filtering
+- **country**: Though single-valued in this dataset
+- **median_days_on_market**: Discrete ranges for market speed analysis
+- **quality_flag**: Data quality filtering (though limited utility here)
+
+### Good for Grouping/Aggregation
+- **median_days_on_market**: Market speed categories
+- Value ranges of price metrics for bucketing analysis
+- Time-based groupings if temporal data were available
+
+### Key Analytical Columns
+- Core inventory counts for supply analysis
+- Price metrics for market valuation trends
+- Ratio metrics for market dynamics
+- Change metrics for trend analysis
 
 ### Data Quality Considerations
-- **Consistent null patterns**: 10.81% null rate suggests systematic data collection gaps
-- **Price validation**: Wide price ranges may indicate different market segments or time periods
-- **Change metric reliability**: Null values in change metrics may indicate calculation limitations
-- **Temporal consistency**: Missing date column limits time-series analysis capabilities
+- **Missing temporal data**: 10.81% of records lack comparison metrics
+- **Single geographic scope**: All data is US-level
+- **Null month_date_yyyymm**: Completely missing temporal identifier
+- **Quality flag uniformity**: May indicate data preprocessing or quality standards
+
+### Potential Relationships
+- Strong correlations likely between listing counts and market activity
+- Price metrics should correlate with market conditions
+- Pending ratios indicate market velocity
+- Change metrics provide trend context
 
 ## Keywords
-real estate, housing market, property listings, inventory metrics, price trends, market analysis, United States housing, property values, days on market, listing counts, pending sales, price changes, square footage, market share, time series
+real estate, inventory, listings, housing market, property prices, market metrics, pending sales, active listings, price changes, days on market, square footage, United States housing data, real estate analytics, market trends
 
 ## Table and Column Documentation
-No table comment or column comments were provided in the source data.
+No table comment or column comments are present in the provided analysis.

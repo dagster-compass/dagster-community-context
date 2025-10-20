@@ -6,105 +6,94 @@ columns:
 - popularity_bucket (STRING)
 - primary_language (STRING)
 - primary_language_size_bucket (STRING)
-- repo_id (STRING)
+- repo_name (STRING)
 - team_size_bucket (STRING)
-schema_hash: 4d505ee05317b2b1b61697ed72e894bda1322381b4e868971fb5ba624d10b41b
+schema_hash: c2aadb686f159e86814deb0799aad621fe4a3583cbee2e5cc96cab3fe0a011c2
 
 ---
 # Table Analysis Summary: compass-bigquery-demo.github_dataset.multi_language_projects
 
 ## Overall Dataset Characteristics
 
-- **Total Records**: 1,753,925 rows
-- **Data Quality**: Excellent - 0% null values across all columns
-- **Dataset Focus**: GitHub repositories with multi-language codebases, categorized by various project characteristics
-- **Unique Repositories**: Each row represents a unique repository (repo_id is 100% unique)
-- **Data Structure**: All columns use categorical bucket classifications for easy analysis and filtering
+- **Total Rows:** 1,753,925 repositories
+- **Data Quality:** Excellent - no null values detected across all columns (0.00% null rate)
+- **Dataset Focus:** Multi-language GitHub repositories with comprehensive metadata about project characteristics
+- **Distribution Pattern:** Heavily skewed toward smaller, less popular projects (most repos have "Minimal" popularity and individual contributors)
+- **Unique Repository Names:** All 1,753,925 repositories have unique names, indicating this is a deduplicated dataset
 
 ## Column Details
 
-### repo_id (STRING)
-- **Type**: Unique identifier (hash-based)
-- **Completeness**: 100% populated
-- **Uniqueness**: 1,753,925 unique values (one per row)
-- **Format**: 64-character hexadecimal hash
-- **Usage**: Primary key for individual repository identification
+### Repository Identification
+- **repo_name (STRING):** Unique identifier for each repository
+  - Format: owner/repository-name pattern
+  - 100% unique values (1,753,925 distinct entries)
+  - Primary key candidate for joins
 
-### language_diversity_bucket (STRING)
-- **Type**: Categorical classification of programming language variety
-- **Categories**: 5 buckets ranging from "Dual (2)" to "Very Diverse (20+)"
-- **Distribution**: Includes Dual, Multi (3-4), Mixed (5-9), Diverse (10-19), Very Diverse (20+)
-- **Usage**: Ideal for filtering and grouping by language complexity
+### Programming Languages
+- **primary_language (STRING):** Main programming language of the repository
+  - 372 distinct languages represented
+  - Common languages: CSS, C, Arduino, CoffeeScript
+  - Wide diversity from enterprise languages (1C Enterprise, ABAP) to modern web technologies
 
-### primary_language (STRING)
-- **Type**: Programming language identifier
-- **Variety**: 372 distinct languages
-- **Examples**: Objective-C, C, CSS, HTML, Perl, JavaScript, Python, etc.
-- **Range**: From common languages (JavaScript, Python) to specialized ones (1C Enterprise, AIDL, APL)
-- **Usage**: Primary grouping dimension for language-based analysis
+### Size and Scope Metrics
+- **primary_language_size_bucket (STRING):** Categorizes codebase size
+  - 5 ordinal categories: Tiny (<1K) → Very Large (1M+)
+  - Most common: Small (1K-9.9K) and Large (100K-999K)
+  - Useful for filtering by project scale
 
-### primary_language_size_bucket (STRING)
-- **Type**: Categorical size classification of primary language codebase
-- **Categories**: 5 buckets from "Tiny (<1K)" to "Very Large (1M+)"
-- **Progression**: Tiny → Small (1K-9.9K) → Medium (10K-99K) → Large (100K-999K) → Very Large (1M+)
-- **Usage**: Filtering by project scale and complexity
+- **language_diversity_bucket (STRING):** Number of programming languages used
+  - 5 ordinal categories: Dual (2) → Very Diverse (20+)
+  - Most repositories are "Dual" language projects
+  - Indicates multi-language project complexity
 
-### popularity_bucket (STRING)
-- **Type**: Repository popularity/engagement metric
-- **Categories**: 5 levels from "Minimal (<10)" to "Very Popular (10K+)"
-- **Scale**: Minimal → Low (10-99) → Moderate (100-999) → Popular (1K-9.9K) → Very Popular (10K+)
-- **Distribution**: Heavy concentration in "Minimal (<10)" category
-- **Usage**: Analyzing project visibility and community engagement
+### Community and Engagement
+- **popularity_bucket (STRING):** Repository popularity/stars
+  - 5 ordinal categories: Minimal (<10) → Very Popular (10K+)
+  - Heavily skewed toward "Minimal" popularity
+  - Key metric for identifying trending/successful projects
 
-### activity_bucket (STRING)
-- **Type**: Development activity level classification
-- **Categories**: 5 levels from "Low (10-49)" to "Very High (10K+)"
-- **Range**: Low → Low-Medium (50-99) → Medium (100-999) → High (1K-9.9K) → Very High (10K+)
-- **Pattern**: Most repositories show lower activity levels
-- **Usage**: Filtering by project maintenance and development intensity
+- **team_size_bucket (STRING):** Number of contributors
+  - 5 ordinal categories: Individual (1) → Large Team (100+)
+  - Most projects are individual or small team efforts
+  - Important for collaboration analysis
 
-### license (STRING)
-- **Type**: Open source license classification
-- **Variety**: 15 distinct license types
-- **Common Licenses**: MIT, GPL-2.0, GPL-3.0, Apache-2.0, BSD variants
-- **Coverage**: Includes permissive (MIT, BSD) and copyleft (GPL, AGPL) licenses
-- **Usage**: Legal and licensing analysis, compliance filtering
+- **activity_bucket (STRING):** Development activity level
+  - 5 ordinal categories: Low (10-49) → Very High (10K+)
+  - Distribution varies across Low to High activity levels
+  - Indicates project maintenance and development velocity
 
-### team_size_bucket (STRING)
-- **Type**: Development team size classification
-- **Categories**: 5 buckets from "Individual (1)" to "Large Team (100+)"
-- **Scale**: Individual → Pair (2-4) → Small Team (5-19) → Medium Team (20-99) → Large Team (100+)
-- **Pattern**: Strong representation across all team sizes
-- **Usage**: Analyzing collaboration patterns and project management approaches
+### Legal and Licensing
+- **license (STRING):** Open source license type
+  - 15 distinct license types
+  - Common licenses: MIT, GPL variants, Apache 2.0, BSD variants
+  - Critical for compliance and usage analysis
 
-## Query Considerations
+## Potential Query Considerations
 
-### Excellent Filtering Columns
-- **language_diversity_bucket**: Multi-language project complexity analysis
-- **primary_language**: Language-specific repository analysis
-- **popularity_bucket**: Community engagement filtering
-- **license**: Legal compliance and license distribution studies
-- **team_size_bucket**: Collaboration scale analysis
+### Excellent for Filtering:
+- **primary_language:** Filter by specific programming languages or technology stacks
+- **license:** Filter by license compatibility or open source requirements
+- All bucket columns provide meaningful categorical filtering options
 
-### Strong Grouping/Aggregation Dimensions
-- **primary_language**: Language popularity and ecosystem analysis
-- **license**: License adoption patterns
-- **Combination analysis**: Cross-tabulation of language diversity × team size, popularity × activity, etc.
+### Ideal for Grouping/Aggregation:
+- **primary_language:** Analyze trends by programming language
+- All bucket columns: Perfect for statistical analysis and trend identification
+- **license:** License adoption patterns and compliance analysis
 
-### Key Relationships
-- **Size correlations**: primary_language_size_bucket vs. team_size_bucket vs. activity_bucket
-- **Popularity patterns**: popularity_bucket vs. activity_bucket relationships
-- **Language ecosystems**: primary_language vs. language_diversity_bucket analysis
+### Analysis Opportunities:
+- **Correlation Analysis:** Relationship between team size, activity, and popularity
+- **Technology Trends:** Primary language popularity across different project sizes
+- **Open Source Patterns:** License preferences by programming language or team size
 
-### Data Quality Advantages
-- **No missing data**: All columns 100% populated, eliminating need for null handling
-- **Consistent categorization**: All metrics use standardized bucket ranges
-- **Unique identification**: repo_id provides perfect granularity for detailed analysis
+### Data Quality Considerations:
+- **No Missing Data:** All columns are complete, enabling reliable statistical analysis
+- **Consistent Bucketing:** All size/popularity metrics use consistent ordinal scales
+- **Standardized Naming:** Repository names follow GitHub's owner/repo convention
 
 ## Keywords
 
-GitHub repositories, multi-language projects, programming languages, open source licenses, software development, team collaboration, project metrics, repository analysis, language diversity, code size analysis, popularity metrics, development activity, MIT license, GPL license, Apache license, software engineering analytics
+GitHub repositories, multi-language projects, programming languages, open source licenses, project analytics, repository metrics, team collaboration, software development, code statistics, project popularity, development activity, language diversity, project size analysis, contributor analysis, license compliance
 
 ## Table and Column Documentation
 
-No table comment or column comments are present in this dataset.
+No table comment or column comments were provided in the source data.

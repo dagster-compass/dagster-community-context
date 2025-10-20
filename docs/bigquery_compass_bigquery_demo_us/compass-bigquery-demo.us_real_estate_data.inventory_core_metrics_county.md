@@ -49,83 +49,83 @@ columns:
 schema_hash: 2ffe0feeb9432a86eef025e95a2af54c425d26745c0615ff163e6f8e4fb86e68
 
 ---
-# Data Summary: US Real Estate Inventory Core Metrics by County
+# Table Summary: compass-bigquery-demo.us_real_estate_data.inventory_core_metrics_county
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 344,538 records
-- **Geographic Coverage**: 3,141 unique counties across the United States (identified by FIPS codes)
-- **Data Quality**: Generally good with most core metrics having very low null rates (<1%), though some derived metrics show higher null percentages
-- **Key Data Issue**: The `month_date_yyyymm` field is 100% null, indicating missing temporal data that would typically identify the reporting period
-- **Data Type**: Time-series real estate market data with month-over-month (mm) and year-over-year (yy) change indicators
+- **Data Quality**: Generally good with most columns having very low null percentages (0-1%), though some month-over-month and year-over-year columns have higher null rates (10-25%)
+- **Geographic Coverage**: Covers 3,141 counties across the United States (based on FIPS codes)
+- **Time Series Nature**: Contains comparative metrics with month-over-month (mm) and year-over-year (yy) calculations
+- **Notable Issues**: The `month_date_yyyymm` column is completely null (100%), indicating missing temporal reference data
 
 ## Column Details
 
 ### Geographic Identifiers
-- **county_fips** (INT64): Complete data (0% null), 3,141 unique values ranging from 1001 to 56045. Primary geographic identifier following standard FIPS county codes.
-- **county_name** (STRING): Complete data (0% null), 3,135 unique values. County names formatted as "county_name, state_abbreviation" (e.g., "cloud, ks").
+- **county_fips** (INT64): County FIPS codes ranging from 1001 to 56045, no nulls, 3,141 unique values
+- **county_name** (STRING): County names with state abbreviations (e.g., "cass, nd"), no nulls, 3,135 unique values
 
-### Temporal Data
-- **month_date_yyyymm** (STRING): Critical data quality issue - 100% null values. This field should contain the reporting period but is completely missing.
-
-### Price Metrics
-- **median_listing_price** (FLOAT64): Nearly complete (0.02% null), wide range from $1,311 to $13M, indicating diverse market conditions.
-- **median_listing_price_mm** (FLOAT64): 10.89% null, month-over-month changes ranging from -99.71% to +570%.
-- **median_listing_price_yy** (FLOAT64): 11.27% null, year-over-year changes ranging from -99.68% to +222%.
-- **average_listing_price** (FLOAT64): Nearly complete (0.02% null), extreme range up to $142M suggesting some luxury markets.
-- **median_listing_price_per_square_foot** (FLOAT64): 0.10% null, ranges from $0 to $56,250 per sq ft.
+### Core Pricing Metrics
+- **median_listing_price** (FLOAT64): Property prices from $1,311 to $13M, minimal nulls (0.02%)
+- **average_listing_price** (FLOAT64): Average prices from $5K to $142M, minimal nulls (0.02%)
+- **median_listing_price_per_square_foot** (FLOAT64): Price per sqft from $0 to $56,250, minimal nulls (0.10%)
 
 ### Inventory Metrics
-- **active_listing_count** (FLOAT64): Nearly complete (0.01% null), ranges from 0 to 23,258 listings.
-- **new_listing_count** (FLOAT64): Nearly complete (0.01% null), ranges from 0 to 9,888 listings.
-- **total_listing_count** (FLOAT64): Nearly complete (0.01% null), ranges from 0 to 33,580 listings.
-- **pending_listing_count** (FLOAT64): 7.28% null, ranges from 0 to 14,211 listings.
+- **active_listing_count** (FLOAT64): Active listings from 0 to 23,258, minimal nulls (0.01%)
+- **new_listing_count** (FLOAT64): New listings from 0 to 9,888, minimal nulls (0.01%)
+- **pending_listing_count** (FLOAT64): Pending sales from 0 to 14,211, moderate nulls (7.28%)
+- **total_listing_count** (FLOAT64): Total listings from 0 to 33,580, minimal nulls (0.01%)
 
-### Market Activity Metrics
-- **median_days_on_market** (FLOAT64): 0.11% null, ranges from 1 to 365 days.
-- **price_increased_count** (FLOAT64): Nearly complete (0.01% null), ranges from 0 to 1,666 listings.
-- **price_reduced_count** (FLOAT64): Nearly complete (0.01% null), ranges from 0 to 12,596 listings.
+### Market Timing Metrics
+- **median_days_on_market** (FLOAT64): Days on market from 1 to 365, minimal nulls (0.11%)
+- **pending_ratio** (FLOAT64): Ratio of pending to active listings from 0 to 11.5, moderate nulls (7.32%)
 
-### Share/Ratio Metrics
-- **price_increased_share** (FLOAT64): 0.04% null, ranges from 0.0 to 4.0 (likely as decimal percentages).
-- **price_reduced_share** (FLOAT64): 0.04% null, ranges from 0.0 to 4.0.
-- **pending_ratio** (FLOAT64): 7.32% null, ranges from 0.0 to 11.5.
+### Price Change Metrics
+- **price_increased_count** (FLOAT64): Count of price increases, minimal nulls (0.01%)
+- **price_reduced_count** (FLOAT64): Count of price reductions, minimal nulls (0.01%)
+- **price_increased_share** (FLOAT64): Share of listings with price increases (0-4.0), minimal nulls (0.04%)
+- **price_reduced_share** (FLOAT64): Share of listings with price reductions (0-4.0), minimal nulls (0.04%)
 
 ### Property Characteristics
-- **median_square_feet** (FLOAT64): 0.10% null, ranges from 4 to 30,902 sq ft.
+- **median_square_feet** (FLOAT64): Property sizes from 4 to 30,902 sqft, minimal nulls (0.10%)
 
-### Data Quality Indicator
-- **quality_flag** (FLOAT64): 10.72% null, binary values (0.0, 1.0) indicating data quality assessment.
+### Comparative Metrics (Month-over-Month)
+All `_mm` suffixed columns show month-over-month changes with higher null rates (10-25%):
+- Values typically range from -1.0 to positive values indicating percentage changes
+- Negative values suggest decreases, positive values suggest increases
 
-## Potential Query Considerations
+### Comparative Metrics (Year-over-Year)
+All `_yy` suffixed columns show year-over-year changes with similar null patterns to mm columns:
+- Generally wider ranges than mm columns, reflecting longer-term trends
+
+### Quality Indicator
+- **quality_flag** (FLOAT64): Binary flag (0.0 or 1.0) with 10.72% nulls, likely indicating data quality issues
+
+## Query Considerations
 
 ### Good for Filtering
-- **county_fips**: Excellent for geographic filtering
-- **county_name**: Good for state-level or specific county analysis
-- **quality_flag**: Important for filtering reliable data
-- **Price ranges**: Various price metrics for market segment analysis
+- `county_fips` and `county_name`: Geographic filtering
+- `quality_flag`: Data quality filtering
+- Price ranges on `median_listing_price` and `average_listing_price`
+- `active_listing_count` for market activity levels
 
 ### Good for Grouping/Aggregation
-- **county_name**: State-level aggregations (extract state from county_name)
-- **Price tiers**: Create buckets based on median_listing_price
-- **Market size**: Group by active_listing_count ranges
-- **Geographic regions**: Group counties by FIPS code patterns
+- `county_fips` and `county_name`: Geographic grouping
+- Price tiers based on `median_listing_price`
+- Market size categories based on `total_listing_count`
 
 ### Potential Join Keys
-- **county_fips**: Primary key for joining with other county-level datasets
-- **county_name**: Alternative join key (with careful handling of format)
+- `county_fips`: Standard geographic identifier for joining with other county-level datasets
+- `county_name`: Alternative geographic join key (though less reliable due to formatting)
 
 ### Data Quality Considerations
-1. **Missing temporal data**: `month_date_yyyymm` is completely null - queries cannot filter by time period
-2. **Higher null rates**: Price change metrics (mm/yy) have 10-25% null rates
-3. **Extreme values**: Some price metrics show very high maximums that may need outlier handling
-4. **Quality flag**: Use `quality_flag = 1.0` to ensure reliable data
-5. **Derived metrics**: Month-over-month and year-over-year changes have higher null rates, especially for smaller markets
+- **Missing temporal data**: `month_date_yyyymm` is completely null, limiting time-based analysis
+- **Moderate nulls**: Pending listing metrics and comparative metrics have 7-25% null rates
+- **Extreme values**: Some outliers in pricing data (e.g., $142M average price) may need investigation
+- **Price change metrics**: High null percentages (70%+) in some price change count metrics suggest data sparsity
 
 ## Keywords
-real estate, housing market, county data, inventory metrics, listing prices, market activity, days on market, price changes, pending sales, property characteristics, FIPS codes, geographic analysis, time series, market trends
+real estate, housing, inventory, county, FIPS, median price, listing count, days on market, price changes, pending sales, square footage, market metrics, geographic data, time series, month-over-month, year-over-year
 
 ## Table and Column Documentation
-**Table Comment**: Not provided
-
-**Column Comments**: Not provided
+No table comment or column comments were provided in the source data.

@@ -50,95 +50,78 @@ columns:
 schema_hash: 6270d365685bef4b40bf9d4f9061148c6ee6c0642b9d6a5bf4f5860252556ccf
 
 ---
-# Table Summary: compass-bigquery-demo.us_real_estate_data.inventory_core_metrics_metro
+# Dataset Summary: US Real Estate Inventory Core Metrics (Metro Level)
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 102,675
-- **Data Quality**: The dataset has significant data quality issues with the primary date field (`month_date_yyyymm`) being 100% null, making temporal analysis challenging
-- **Notable Patterns**: 
-  - Approximately 10.81% null values in most month-over-month and year-over-year comparison fields
-  - Higher null percentages (50%+) in price increase metrics
-  - Contains real estate inventory metrics for 925 unique metro areas (CBSAs)
-- **Distribution**: Data appears to cover a comprehensive range of US metropolitan areas with varying market sizes and characteristics
+- **Geographic Coverage**: 925 unique metropolitan statistical areas (CBSA codes)
+- **Data Quality**: High completeness for core metrics, with some planned missingness in month-over-month and year-over-year comparison fields
+- **Time Series Nature**: Contains current values plus monthly (mm) and yearly (yy) percentage change calculations
+- **Notable Patterns**: The `month_date_yyyymm` field is completely null, suggesting this may be a snapshot or the date information is stored elsewhere
 
 ## Column Details
 
-### Geographic and Temporal Identifiers
-- **`month_date_yyyymm` (STRING)**: Completely null (100%), making temporal filtering impossible
-- **`cbsa_code` (INT64)**: Core-Based Statistical Area codes (10100-49820), no nulls, 925 unique values - primary geographic identifier
-- **`cbsa_title` (STRING)**: Metropolitan area names, no nulls, 925 unique values - human-readable geographic identifier
-- **`householdrank` (INT64)**: Metro area ranking by households (1-925), no nulls - useful for market size analysis
+### Geographic Identifiers
+- **`cbsa_code`** (INT64): Core-based statistical area codes, range 10100-49820, no nulls, 925 unique metros
+- **`cbsa_title`** (STRING): Metro area names (e.g., "Aberdeen, SD", "Akron, OH"), no nulls, 925 unique values
+- **`householdrank`** (INT64): Ranking from 1-925, likely by household count or market size, no nulls
 
-### Pricing Metrics
-- **`median_listing_price` (FLOAT64)**: Current median price ($19,900-$5.5M), no nulls
-- **`median_listing_price_mm` (FLOAT64)**: Month-over-month price change (-55% to +299%), 10.81% nulls
-- **`median_listing_price_yy` (FLOAT64)**: Year-over-year price change (-78% to +498%), 10.81% nulls
-- **`median_listing_price_per_square_foot` (FLOAT64)**: Price per sq ft ($22-$1,778), no nulls
-- **`median_listing_price_per_square_foot_mm/yy` (FLOAT64)**: Respective change metrics, 10.81% nulls
-- **`average_listing_price` (FLOAT64)**: Mean listing price ($44K-$23.5M), no nulls
-- **`average_listing_price_mm/yy` (FLOAT64)**: Respective change metrics, 10.81% nulls
+### Price Metrics
+- **`median_listing_price`** (FLOAT64): Current median price ($19,900 to $5.5M), no nulls, 25,318 unique values
+- **`median_listing_price_mm/yy`** (FLOAT64): Monthly/yearly % changes, 10.81% nulls, ranges ±50-500%
+- **`average_listing_price`** (FLOAT64): Current average price ($44K to $23.5M), no nulls, highly granular
+- **`average_listing_price_mm/yy`** (FLOAT64): Monthly/yearly % changes, 10.81% nulls
 
 ### Inventory Counts
-- **`active_listing_count` (INT64)**: Current active listings (0-69,796), no nulls
-- **`active_listing_count_mm/yy` (FLOAT64)**: Change metrics, 10.81% nulls
-- **`new_listing_count` (INT64)**: New listings (0-27,262), no nulls
-- **`new_listing_count_mm/yy` (FLOAT64)**: Change metrics, ~11% nulls
-- **`total_listing_count` (INT64)**: Total listings (1-83,125), no nulls
-- **`total_listing_count_mm/yy` (FLOAT64)**: Change metrics, 10.81% nulls
+- **`active_listing_count`** (INT64): Current active listings (0-69,796), no nulls
+- **`new_listing_count`** (INT64): New listings (0-27,262), no nulls
+- **`total_listing_count`** (INT64): Total listings (1-83,125), no nulls
+- **`pending_listing_count`** (FLOAT64): Pending listings, 2.70% nulls (likely metros with no pending data)
 
-### Market Activity Metrics
-- **`median_days_on_market` (FLOAT64)**: Days on market (3-322), minimal nulls (0.01%)
-- **`median_days_on_market_mm/yy` (FLOAT64)**: Change metrics, ~10.8% nulls
-- **`pending_listing_count` (FLOAT64)**: Pending sales (0-28,578), 2.70% nulls
-- **`pending_listing_count_mm/yy` (FLOAT64)**: Change metrics, 13-14% nulls
-- **`pending_ratio` (FLOAT64)**: Pending to active ratio (0-8.0), 2.70% nulls
-- **`pending_ratio_mm/yy` (FLOAT64)**: Change metrics, 13-14% nulls
-
-### Price Change Behavior
-- **`price_increased_count` (INT64)**: Listings with price increases (0-4,978), no nulls
-- **`price_increased_count_mm/yy` (FLOAT64)**: Change metrics, 54-55% nulls (high missingness)
-- **`price_increased_share` (FLOAT64)**: Share of listings with price increases (0-38%), no nulls
-- **`price_increased_share_mm/yy` (FLOAT64)**: Change metrics, 10.81% nulls
-- **`price_reduced_count` (FLOAT64)**: Listings with price reductions (0-22,456), no nulls
-- **`price_reduced_count_mm/yy` (FLOAT64)**: Change metrics, ~11.5% nulls
-- **`price_reduced_share` (FLOAT64)**: Share of listings with price reductions (0-67%), no nulls
-- **`price_reduced_share_mm/yy` (FLOAT64)**: Change metrics, 10.81% nulls
+### Market Dynamics
+- **`median_days_on_market`** (FLOAT64): Time to sell (3-322 days), minimal nulls (0.01%)
+- **`price_increased_count`** (INT64): Properties with price increases (0-4,978), no nulls
+- **`price_reduced_count`** (FLOAT64): Properties with price reductions (0-22,456), no nulls
+- **`price_increased_share/price_reduced_share`** (FLOAT64): Proportions of price changes, no nulls
 
 ### Property Characteristics
-- **`median_square_feet` (FLOAT64)**: Median home size (892-6,000 sq ft), no nulls
-- **`median_square_feet_mm/yy` (FLOAT64)**: Change metrics, 10.81% nulls
+- **`median_listing_price_per_square_foot`** (FLOAT64): Price per sq ft ($22-$1,778), no nulls
+- **`median_square_feet`** (FLOAT64): Property sizes (892-6,000 sq ft), no nulls
 
-### Data Quality
-- **`quality_flag` (FLOAT64)**: Binary quality indicator (0.0 or 1.0), 10.81% nulls
+### Calculated Ratios
+- **`pending_ratio`** (FLOAT64): Pending to active ratio (0-8.0), 2.70% nulls
+- **`quality_flag`** (FLOAT64): Data quality indicator (0 or 1), 10.81% nulls
+
+### Change Metrics Pattern
+All `_mm` and `_yy` fields show ~10.81% nulls, suggesting these represent periods where comparison data wasn't available (likely the first month/year of data collection for newer metros).
 
 ## Query Considerations
 
-### Filtering Columns
-- **`cbsa_code`** and **`cbsa_title`**: Primary geographic filters
-- **`householdrank`**: Market size filtering (top/bottom markets)
-- **`quality_flag`**: Data quality filtering when not null
-- Price ranges using **`median_listing_price`** or **`average_listing_price`**
+### Good for Filtering
+- **`cbsa_code`** and **`cbsa_title`**: Geographic filtering
+- **`householdrank`**: Market size segmentation (1-50 for largest metros)
+- **`quality_flag`**: Data quality filtering (0 = good quality)
+- Price ranges on **`median_listing_price`** and **`average_listing_price`**
 
-### Grouping/Aggregation Opportunities
-- **Geographic analysis**: Group by `cbsa_title` or `cbsa_code`
-- **Market size analysis**: Group by `householdrank` ranges
-- **Price tier analysis**: Create buckets from `median_listing_price`
-- **Regional patterns**: Extract state/region from `cbsa_title`
+### Good for Grouping/Aggregation
+- **`cbsa_code`** / **`cbsa_title`**: Geographic grouping
+- **`householdrank`** ranges: Market size tiers
+- Calculated fields like **`price_increased_share`** and **`price_reduced_share`**: Market condition analysis
 
 ### Potential Join Keys
-- **`cbsa_code`**: Standard identifier for joining with other CBSA-level datasets
-- **`cbsa_title`**: Human-readable identifier for geographic matching
+- **`cbsa_code`**: Primary key for joining with other metro-level datasets
+- **`cbsa_title`**: Human-readable identifier for geographic joins
 
 ### Data Quality Considerations
-- **Critical Issue**: `month_date_yyyymm` is completely null, preventing time series analysis
-- **Missing Data**: ~10.81% nulls in most comparative metrics (_mm, _yy fields)
-- **High Missingness**: Price increase count changes have 50%+ null rates
-- **Data Validation**: Use `quality_flag` to filter for reliable records when available
-- **Outliers**: Extreme values in price ranges and percentage changes should be validated
+- **Missing Month/Year Data**: ~10.81% null rate for all comparison fields suggests newer markets or data gaps
+- **Pending Data**: 2.70% null rate may indicate markets where pending sales aren't tracked
+- **Quality Flag**: Use `quality_flag = 0` for highest quality data
+- **Extreme Values**: Some very high prices and counts may need outlier handling
+- **Date Field**: `month_date_yyyymm` is completely null - date context must come from elsewhere
 
 ## Keywords
-real estate, housing market, inventory metrics, CBSA, metropolitan areas, listing prices, market activity, days on market, pending sales, price changes, square footage, housing supply, market trends
+real estate, housing market, inventory metrics, CBSA, metropolitan areas, listing prices, days on market, price changes, housing supply, market dynamics, pending sales, price per square foot, home sizes
 
-## Table and Column Docs
-No table comment or column comments are present in this dataset.
+## Table and Column Documentation
+No table comment or column comments are present in the provided analysis.

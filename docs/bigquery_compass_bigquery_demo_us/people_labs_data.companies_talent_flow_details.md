@@ -21,64 +21,68 @@ schema_hash: b9dbf0184a2fdfd7c008fc452bdb7ceb7d815fce9ed2dc32ca634a0d07e1f9c6
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 211,892 records
-- **Data Quality**: Generally good with no null values in key identifier columns
-- **Core Purpose**: Tracks talent movement between companies, capturing both hiring and departure events
-- **Time Period**: Limited to 5 months in 2025 (May through August, plus November)
+- **Data Quality**: Good overall data quality with no null values in core identifier columns (company_id, person_id, job_title, event_date, record_type)
 - **Notable Patterns**: 
-  - High diversity in job titles (78,750 unique values)
-  - Significant null values in job classification fields (21-87% depending on column)
-  - Approximately 60% of records have "other company" information populated
+  - Dataset covers talent movement events (hires and departures) across 5 months in 2025
+  - High variability in job titles (78,750 unique values) suggesting detailed, specific role descriptions
+  - Significant null percentages in "other_company" fields indicate many internal moves or incomplete data
+  - Strong hierarchical structure with job title classifications at multiple levels
 
 ## Column Details
 
-### Identifier Columns
-- **person_id** (STRING): Unique person identifier with 179,589 unique values across 211,892 records, indicating some people have multiple job events. No null values. Format appears to be hash-based.
-- **company_id** (STRING): Company identifier with 113,007 unique companies represented. No null values. Hash-based format similar to person_id.
+### **Core Identifiers**
+- **company_id** (STRING): No nulls, 113,007 unique companies represented
+- **person_id** (STRING): No nulls, 179,589 unique individuals tracked
+- **record_type** (STRING): No nulls, binary classification (hire/departure)
 
-### Event Information
-- **event_date** (STRING): Month-level granularity in YYYY-MM format. Only 5 possible values: 2025-05, 2025-06, 2025-07, 2025-08, 2025-11. No null values.
-- **record_type** (STRING): Binary classification of talent movement - "departure" or "hire". No null values. Critical for understanding direction of talent flow.
+### **Temporal Data**
+- **event_date** (STRING): No nulls, 5 distinct months (2025-05 through 2025-11, with gaps)
+- Format: YYYY-MM, suitable for time-series analysis
 
-### Current Company Job Information
-- **job_title** (STRING): Highly diverse with 78,750 unique values. No null values. Ranges from simple titles like "vice president" to complex descriptions.
-- **job_title_role** (STRING): Categorized role type with 23 possible values (21.86% null). Includes categories like engineering, finance, operations, etc.
-- **job_title_sub_role** (STRING): More granular role classification with 103 values (40.13% null). Examples include executive, product_management, software.
-- **job_title_class** (STRING): High-level business function with only 4 values (21.86% null): general_and_administrative, research_and_development, sales_and_marketing, services.
+### **Job Classification Hierarchy**
+- **job_title** (STRING): No nulls, highly granular with 78,750 unique titles
+- **job_title_class** (STRING): 21.86% nulls, 4 categories (general_and_administrative, research_and_development, sales_and_marketing, services)
+- **job_title_role** (STRING): 21.86% nulls, 23 categories (operations, marketing, finance, etc.)
+- **job_title_sub_role** (STRING): 40.13% nulls, 103 subcategories (executive, product_management, etc.)
 
-### Previous/Other Company Information
-- **other_company_id** (STRING): Previous or destination company ID (39.86% null). 75,125 unique values when populated.
-- **other_company_job_title** (STRING): Job title at other company (39.86% null). 69,232 unique values.
-- **other_company_job_title_role** (STRING): Role classification at other company (53.80% null). Same 23 categories as main job_title_role.
-- **other_company_job_title_sub_role** (STRING): Sub-role at other company (64.73% null). 105 unique values.
-- **other_company_job_title_class** (STRING): Business function at other company (87.16% null). Same 4 categories as main classification.
+### **Previous/Other Company Data**
+- **other_company_id** (STRING): 39.86% nulls, 75,125 unique companies
+- **other_company_job_title** (STRING): 39.86% nulls, 69,232 unique titles
+- **other_company_job_title_class** (STRING): 87.16% nulls, same 4 categories as main job
+- **other_company_job_title_role** (STRING): 53.80% nulls, same 23 categories
+- **other_company_job_title_sub_role** (STRING): 64.73% nulls, 105 subcategories
 
 ## Potential Query Considerations
 
-### Good for Filtering
-- **event_date**: Limited values make it excellent for time-based filtering
-- **record_type**: Perfect for separating hires vs departures
-- **job_title_role** and **job_title_class**: Good for role-based analysis when not null
-- **company_id**: For company-specific analysis
+### **Good for Filtering**
+- `record_type`: Binary classification for hire/departure analysis
+- `event_date`: Time-based filtering for trend analysis
+- `job_title_class`: High-level departmental filtering
+- `job_title_role`: Mid-level functional filtering
+- `company_id`: Company-specific analysis
 
-### Good for Grouping/Aggregation
-- **event_date**: Time-based trend analysis
-- **job_title_role/sub_role/class**: Role distribution analysis
-- **company_id**: Company-level metrics
-- **record_type**: Hire vs departure metrics
+### **Good for Grouping/Aggregation**
+- `event_date`: Monthly talent flow trends
+- `job_title_class`: Departmental hiring/departure patterns
+- `job_title_role`: Functional area analysis
+- `record_type`: Hire vs departure metrics
+- `company_id`: Company-level talent metrics
 
-### Potential Join Keys
-- **person_id**: Could join with other person-related tables
-- **company_id** and **other_company_id**: Could join with company information tables
-- Consider that **other_company_id** could match **company_id** in other records to trace talent flows
+### **Potential Join Keys**
+- `company_id` and `other_company_id`: Company master table joins
+- `person_id`: Person/employee master table joins
+- Job classification fields: Role hierarchy or compensation tables
 
-### Data Quality Considerations
-- High null percentages in job classification fields may require careful handling in aggregations
-- **other_company_*** fields are only populated for ~60% of records - queries involving these should account for nulls
-- Job title fields are highly varied and may need text processing for meaningful analysis
-- Event dates are limited to 2025 months - this appears to be recent/projected data
+### **Data Quality Considerations**
+- High null percentage in `other_company_job_title_class` (87.16%) limits cross-company role comparison analysis
+- Inconsistent null patterns between related fields may require careful handling in queries
+- Job title variations are extremely high - consider using classification fields for consistent grouping
+- Some `other_company_job_title` values appear to be personal status rather than job titles ("retired and going back to school", "man")
 
 ## Keywords
-talent flow, employee movement, hiring, departures, job titles, company transitions, workforce analytics, people data, career progression, talent acquisition, employee turnover, job roles, business functions, organizational changes
 
-## Table and Column Docs
-*No table comments or column comments were provided in the source analysis.*
+talent flow, employee movement, hiring data, departure data, job titles, company transitions, workforce analytics, talent acquisition, employee turnover, organizational structure, job classifications, career transitions, HR analytics, people data, employment history
+
+## Table and Column Documentation
+
+No table or column comments were provided in the analysis report.

@@ -69,97 +69,112 @@ schema_hash: c94c9391acc98ca6b96da846bde73f8bcd396a71e1ffe6849c50ef44934cc6f5
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 48,628,328 companies
-- **Data Quality**: High-quality structured company data with consistent formatting across core fields
-- **Notable Patterns**: 
-  - Heavy skew toward small companies (majority are 1-10 employees)
-  - Most companies lack detailed financial/funding information (99%+ null for funding fields)
-  - Geographic diversity with global company coverage
-  - Strong LinkedIn integration with complete LinkedIn data for all companies
-- **Dataset Version**: 31.2 (consistent across all records)
+**Total Rows:** 48,628,328 companies
+
+**General Data Quality:**
+- Very large-scale business directory dataset with nearly 49 million company records
+- High data completeness for core identifiers (company_id, company_name, linkedin_id all 100% populated)
+- Significant sparsity in optional fields like funding data (99.61% null), social media URLs (96-97% null), and financial metrics
+- Mixed data quality with some fields having structured data (arrays, nested objects) while others are free text
+- Contains both individual professionals and traditional companies based on naming patterns
+
+**Notable Patterns:**
+- Predominantly small companies (1-10 employees is most common size)
+- Private companies vastly outnumber public ones
+- Most companies are unfunded (funding_status = "Not funded/Unknown")
+- Geographic data heavily weighted toward certain regions
+- Single dataset version (31.2) indicates versioned data management
 
 ## Column Details
 
 ### Core Identifiers
-- **company_id** (STRING): Unique identifier, 0% null, 48M+ unique values
-- **linkedin_id** (STRING): LinkedIn company ID, 0% null, always populated
-- **linkedin_url** (STRING): Complete LinkedIn URLs, 0% null
-- **linkedin_slug** (STRING): URL-friendly company names, 0% null
+- **company_id** (STRING): Unique identifier, 100% populated, appears to be encoded hash
+- **company_name** (STRING): Company names, 100% populated, includes individual names and business entities
+- **linkedin_id** (STRING): LinkedIn company ID, 100% populated, numeric values
+- **linkedin_url/linkedin_slug** (STRING): LinkedIn profile information, 100% populated
 
 ### Basic Company Information
-- **company_name** (STRING): Primary company names, 0% null, mostly unique (48M+ values)
-- **display_name** (STRING): Formatted display names, 0% null
-- **company_summary** (STRING): Brief company descriptions with size info, 0% null
-- **company_description_full** (STRING): Extended descriptions, 0% null
-- **website** (STRING): Company websites, 56% null (21M+ unique domains when present)
+- **display_name** (STRING): Formatted company name, 100% populated
+- **website** (STRING): Company websites, 56.14% null - significant missing data
+- **company_summary/company_description_full** (STRING): Descriptive text, 100% populated but varying quality
+- **headline** (STRING): Short company tagline, 86.10% null
 
-### Company Classification
-- **company_type** (STRING): 6 categories - private (dominant), public, nonprofit, educational, government, public_subsidiary
-- **company_size** (STRING): 8 size brackets from "1-10" to "10001+", most companies are "1-10"
-- **industry** (STRING): 147 industry categories, 25% null
-- **industry_v2** (STRING): More granular 434 industry categories, 28% null
-- **company_maturity** (STRING): 5 stages - Unknown (dominant), Startup, Early stage, Growth stage, Established
+### Classification & Industry
+- **industry** (STRING): 147 categories, 25.41% null - older classification system
+- **industry_v2** (STRING): 434 categories, 28.49% null - newer, more granular classification
+- **company_type** (STRING): 6 types (private, public, nonprofit, etc.), 100% populated
+- **company_size** (STRING): 8 standardized ranges from "1-10" to "10001+", 100% populated
+- **company_maturity** (STRING): 5 stages from Startup to Established, 100% populated
 
-### Financial & Funding Data (Highly Sparse)
-- **founded_year** (INT64): Year founded, 81% null, range 1001-2025
-- **current_employee_count** (INT64): Employee count, 67% null, range 0-503,423
-- **inferred_revenue** (STRING): Revenue brackets, 67% null, 10 categories from "$0-$1M" to "$10B+"
-- **total_funding_raised** (FLOAT64): Funding amounts, 99.6% null
-- **funding_status** (STRING): "Funded" vs "Not funded/Unknown" (dominant)
-- **latest_funding_stage**, **last_funding_date**, **count_funding_rounds**: All 99.6% null
+### Financial & Business Metrics
+- **founded_year** (INT64): Range 1001-2025, 80.89% null
+- **current_employee_count** (INT64): Range 0-503,423, 67.06% null
+- **average_employee_tenure** (FLOAT64): Range 0.0-95.667 years, 67.06% null
+- **linkedin_followers** (INT64): Range 1-35,128,123, 61.14% null
+- **inferred_revenue** (STRING): 10 revenue bands, 67.06% null
 
-### Social Media & Online Presence
-- **facebook_url** (STRING): 97% null when present
-- **twitter_url** (STRING): 97% null when present
-- **linkedin_followers** (INT64): 61% null, range 1-35M+ when present
+### Funding Information (Very Sparse)
+- **total_funding_raised** (FLOAT64): 99.61% null, when present ranges to $74B+
+- **latest_funding_stage** (STRING): 27 stages, 99.61% null
+- **last_funding_date** (STRING): Date strings, 99.61% null
+- **count_funding_rounds** (INT64): 1-50 rounds, 99.61% null
+- **funding_status** (STRING): Binary classification, 100% populated
 
-### Corporate Structure (Very Sparse)
-- **ticker** (STRING): Stock symbols, 99.98% null
-- **immediate_parent**, **ultimate_parent**: Parent company IDs, 99.78% null
-- **mic_exchange**, **ultimate_parent_mic_exchange**: Stock exchanges, 99.9%+ null
+### Corporate Structure
+- **immediate_parent/ultimate_parent** (STRING): Parent company IDs, 99.78% null
+- **ticker/ultimate_parent_ticker** (STRING): Stock symbols, 99.93-99.98% null
+- **mic_exchange** (STRING): Exchange codes, 99.98% null
 
-### Geographic & Structured Data
-- **locations** (ARRAY): Geographic data with address components, always populated (1-10 locations)
-- **naics_codes**, **sic_codes** (ARRAYS): Industry classification codes, structured but often null values within
-- **tags** (ARRAY): Company tags, 88% have no tags
-- **alternative_names**, **alternative_domains**: Additional identifiers, mostly empty
+### Social Media & Web Presence
+- **facebook_url** (STRING): 96.84% null
+- **twitter_url** (STRING): 97.26% null
 
-### Count Fields
-- Multiple "_count" fields tracking array sizes (locations_count, naics_codes_count, etc.)
-- Most count fields are heavily null except locations_count and classification code counts
+### Structured Data Arrays
+- **locations** (ARRAY): Geographic information with address components, 100% populated
+- **naics_codes/sic_codes** (ARRAY): Industry classification codes with hierarchical structure
+- **tags** (ARRAY): Keyword tags, mostly empty arrays
+- **alternative_names/alternative_domains** (ARRAY): Aliases and additional domains
+- **subsidiaries** (ARRAY): Corporate relationship data
+- **funding_stages** (ARRAY): Historical funding information
+
+### Metadata
+- **dataset_version** (STRING): Version "31.2", 100% populated
 
 ## Query Considerations
 
 ### Good for Filtering
-- **company_type**: Well-distributed categorical values
-- **company_size**: Clear size brackets for filtering
-- **industry/industry_v2**: Industry-based filtering (when not null)
-- **company_maturity**: Maturity stage filtering
-- **funding_status**: Funded vs non-funded companies
-- **founded_year**: Date range filtering (when not null)
+- **company_size**: Well-structured categorical data
+- **company_type**: Limited, clean categories
+- **industry/industry_v2**: Industry-based filtering
+- **company_maturity**: Business stage filtering
+- **funding_status**: Funded vs unfunded companies
+- **locations**: Geographic filtering via nested location data
+- **founded_year**: Time-based filtering (where not null)
 
 ### Good for Grouping/Aggregation
 - **company_size**: Size distribution analysis
 - **industry/industry_v2**: Industry analysis
-- **company_type**: Organizational type analysis
-- **locations.country/region**: Geographic analysis
+- **company_type**: Organizational type breakdowns
+- **company_maturity**: Maturity stage analysis
+- **locations.country/region**: Geographic aggregations
 - **founded_year**: Temporal analysis
 
 ### Potential Join Keys
-- **company_id**: Primary key for joining with other company tables
-- **linkedin_id**: Alternative join key for LinkedIn-based datasets
-- **ticker**: For joining with financial/stock data (very limited coverage)
-- **website**: For web-based company matching
+- **company_id**: Primary key for joins
+- **immediate_parent/ultimate_parent**: Corporate hierarchy joins
+- **linkedin_id**: LinkedIn data integration
 
 ### Data Quality Considerations
-- High null percentages in financial/funding fields limit financial analysis
-- Website field has 56% nulls, limiting web presence analysis
-- Industry classification has 25-28% nulls
-- Founded year has 81% nulls, limiting age-based analysis
-- Most valuable for basic company profiling and size/type distribution analysis
+- High null rates in financial/funding data limit analysis scope
+- Website field has 56% nulls, affecting web presence analysis
+- Founded year has 81% nulls, limiting historical analysis
+- Employee metrics have 67% nulls
+- Social media URLs are largely missing
+- Location data is nested and requires UNNEST operations
+- Industry classifications have significant nulls requiring careful handling
 
 ## Keywords
-company data, business intelligence, LinkedIn companies, company profiles, industry classification, company size, funding data, geographic business data, corporate structure, NAICS codes, SIC codes, business directory
+company data, business directory, LinkedIn companies, startup funding, corporate structure, industry classification, employee data, geographic business data, company size, business maturity, NAICS codes, SIC codes, venture capital, private equity, corporate hierarchy, business intelligence
 
 ## Table and Column Docs
 No table comment or column comments were provided in the analysis.

@@ -15,92 +15,94 @@ schema_hash: 9e14690fd77c715f5a541fe91e99d1d212128c14fe00d8073697a4bf4bd9f1e2
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 15
-- **Data Quality**: Excellent - no null values in any column
-- **General Pattern**: This appears to be an aggregated analysis table containing bucketed metrics for different open-source software licenses
-- **Distribution**: Each row represents a unique license with associated project characteristics grouped into categorical buckets
-- **Table Comment**: Not provided
+- **Data Quality**: Excellent - no null values across any columns
+- **Dataset Purpose**: Analysis of software licenses with associated project metrics bucketed into categorical ranges
+- **Notable Patterns**: 
+  - All projects fall into "Low (10-99)" popularity bucket, suggesting this dataset focuses on smaller/niche projects
+  - Most projects (majority) have "Very High (10K+)" adoption levels despite low popularity
+  - Data appears to be aggregated/summarized with metric buckets rather than raw values
 
 ## Column Details
 
 ### license (STRING)
-- **Data Type**: String
-- **Null Values**: None (0.00%)
-- **Uniqueness**: 15 unique values (one per row)
-- **Format**: Standard open-source license identifiers (SPDX format)
-- **Common Values**: Includes popular licenses like apache-2.0, gpl-3.0, bsd-3-clause, mit, etc.
-- **Column Comment**: Not provided
+- **Data Type**: String identifier for software licenses
+- **Null Values**: 0% (complete data)
+- **Unique Values**: 15 distinct licenses
+- **Key Values**: apache-2.0, gpl-2.0, gpl-3.0, bsd-2-clause, bsd-3-clause, mit, mpl-2.0, agpl-3.0, cc0-1.0, epl-1.0, isc, artistic-2.0
+- **Pattern**: Standard SPDX license identifiers (lowercase, hyphenated format)
 
 ### popularity_bucket (STRING)
-- **Data Type**: String (categorical)
-- **Null Values**: None (0.00%)
-- **Distribution**: Only one bucket present - "Low (10-99)"
-- **Pattern**: Indicates all licenses in this dataset fall within the low popularity range
-- **Column Comment**: Not provided
-
-### activity_bucket (STRING)
-- **Data Type**: String (categorical)
-- **Null Values**: None (0.00%)
-- **Distribution**: 2 categories - "High (1K-9.9K)" and "Medium (100-999)"
-- **Pattern**: Most licenses show medium activity levels
-- **Column Comment**: Not provided
+- **Data Type**: Categorical bucket for popularity metrics
+- **Null Values**: 0%
+- **Unique Values**: 1 (all records have same value)
+- **Value**: "Low (10-99)" - all projects fall in this range
+- **Pattern**: Consistent low popularity across all licenses in dataset
 
 ### adoption_level_bucket (STRING)
-- **Data Type**: String (categorical)
-- **Null Values**: None (0.00%)
-- **Distribution**: 2 categories - "High (1K-9.9K)" and "Very High (10K+)"
-- **Pattern**: Strong adoption levels across all licenses
-- **Column Comment**: Not provided
+- **Data Type**: Categorical bucket for adoption metrics  
+- **Null Values**: 0%
+- **Unique Values**: 2
+- **Values**: "Very High (10K+)", "High (1K-9.9K)"
+- **Distribution**: Majority are "Very High (10K+)"
+
+### activity_bucket (STRING)
+- **Data Type**: Categorical bucket for project activity
+- **Null Values**: 0%
+- **Unique Values**: 2
+- **Values**: "High (1K-9.9K)", "Medium (100-999)"
+- **Distribution**: Mix of High and Medium activity levels
 
 ### team_size_bucket (STRING)
-- **Data Type**: String (categorical)
-- **Null Values**: None (0.00%)
-- **Distribution**: 3 categories - "Large Team (100+)", "Medium Team (20-99)", "Small Team (5-19)"
-- **Pattern**: Varied team sizes with small teams being common
-- **Column Comment**: Not provided
-
-### message_length_bucket (STRING)
-- **Data Type**: String (categorical)
-- **Null Values**: None (0.00%)
-- **Distribution**: 2 categories - "Short (50-99)" and "Very Short (<50)"
-- **Pattern**: Generally concise commit messages across all licenses
-- **Column Comment**: Not provided
+- **Data Type**: Categorical bucket for team size
+- **Null Values**: 0%
+- **Unique Values**: 3
+- **Values**: "Large Team (100+)", "Medium Team (20-99)", "Small Team (5-19)"
+- **Distribution**: Spans all team size categories
 
 ### project_size_bucket (STRING)
-- **Data Type**: String (categorical)
-- **Null Values**: None (0.00%)
-- **Distribution**: 2 categories - "Medium (1K-9.9K)" and "Small (100-999)"
-- **Pattern**: Predominantly small projects with some medium-sized ones
-- **Column Comment**: Not provided
+- **Data Type**: Categorical bucket for project size
+- **Null Values**: 0%
+- **Unique Values**: 2
+- **Values**: "Medium (1K-9.9K)", "Small (100-999)"
+- **Distribution**: Mostly small projects with some medium-sized
 
-## Potential Query Considerations
+### message_length_bucket (STRING)
+- **Data Type**: Categorical bucket for commit message length
+- **Null Values**: 0%
+- **Unique Values**: 2
+- **Values**: "Short (50-99)", "Very Short (<50)"
+- **Distribution**: Predominantly short commit messages
 
-### Good Filtering Columns
-- **license**: Perfect for filtering by specific open-source licenses
-- **adoption_level_bucket**: Useful for filtering by adoption levels (High vs Very High)
-- **activity_bucket**: Good for filtering by project activity levels
-- **team_size_bucket**: Useful for analyzing by team size categories
+## Query Considerations
 
-### Good Grouping/Aggregation Columns
-- **license**: Primary grouping key for license-based analysis
-- **team_size_bucket**: Good for team size distribution analysis
-- **adoption_level_bucket**: Useful for adoption level comparisons
-- **activity_bucket**: Good for activity-based groupings
+### Good for Filtering:
+- **license**: Primary dimension for license-specific analysis
+- **adoption_level_bucket**: Filter for high vs very high adoption projects
+- **activity_bucket**: Filter by project activity levels
+- **team_size_bucket**: Analyze by organizational size
+- **project_size_bucket**: Filter by codebase size
 
-### Potential Join Keys
-- **license**: Could join with other license-related tables using standard SPDX identifiers
+### Good for Grouping/Aggregation:
+- **license**: Group by license type for comparative analysis
+- **team_size_bucket**: Aggregate metrics by team size
+- **adoption_level_bucket**: Group by adoption levels
+- **activity_bucket**: Aggregate by activity levels
 
-### Data Quality Considerations
-- All data is clean with no null values
-- Categorical buckets are pre-defined and consistent
-- Small dataset size (15 rows) means aggregations will have limited statistical significance
-- All popularity values are in the same bucket, limiting analysis potential for this dimension
+### Potential Relationships:
+- **license** as primary key for license characteristics
+- Cross-tabulation opportunities between license types and project metrics
+- No obvious foreign key relationships (appears to be a summary/analytics table)
+
+### Data Quality Considerations:
+- All bucket columns use consistent range notation with parentheses
+- No missing data concerns
+- Categorical nature means exact values are not available
+- Limited variability in popularity_bucket may reduce analytical value for that dimension
 
 ## Keywords
 
-open-source, licenses, software, github, project analysis, team size, activity metrics, adoption levels, commit messages, project size, bucketed data, categorical analysis, SPDX, license analysis, repository metrics
+license analysis, software licenses, github projects, project metrics, team size, adoption levels, activity buckets, project size, commit messages, open source, SPDX licenses, categorical data, bucketed metrics
 
 ## Table and Column Documentation
 
-**Table Comment**: Not provided
-
-**Column Comments**: No column comments are present in the schema.
+No table comment or column comments were provided in the source data.

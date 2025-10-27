@@ -50,78 +50,91 @@ columns:
 schema_hash: 6270d365685bef4b40bf9d4f9061148c6ee6c0642b9d6a5bf4f5860252556ccf
 
 ---
-# Dataset Summary: US Real Estate Inventory Core Metrics (Metro Level)
+# Table Summary: inventory_core_metrics_metro
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 102,675
-- **Geographic Coverage**: 925 unique metropolitan statistical areas (CBSA codes)
-- **Data Quality**: High completeness for core metrics, with some planned missingness in month-over-month and year-over-year comparison fields
-- **Time Series Nature**: Contains current values plus monthly (mm) and yearly (yy) percentage change calculations
-- **Notable Patterns**: The `month_date_yyyymm` field is completely null, suggesting this may be a snapshot or the date information is stored elsewhere
+- **Data Quality**: The dataset has significant data quality issues with the `month_date_yyyymm` column being 100% null, indicating missing temporal information. Additionally, many month-over-month and year-over-year comparison metrics have ~10-11% null values, likely representing the first month/year of data for each metro area.
+- **Geographic Coverage**: Contains data for 925 unique metropolitan statistical areas (CBSAs) across the United States
+- **Data Structure**: Appears to be real estate inventory metrics aggregated at the metro level, with both absolute values and percentage change metrics
 
 ## Column Details
 
-### Geographic Identifiers
-- **`cbsa_code`** (INT64): Core-based statistical area codes, range 10100-49820, no nulls, 925 unique metros
-- **`cbsa_title`** (STRING): Metro area names (e.g., "Aberdeen, SD", "Akron, OH"), no nulls, 925 unique values
-- **`householdrank`** (INT64): Ranking from 1-925, likely by household count or market size, no nulls
+### Geographic and Ranking Columns
+- **`cbsa_title`** (STRING): Metropolitan area names (0% null, 925 unique values)
+  - Examples: "Walla Walla, WA", "Ketchikan, AK", "Jacksonville, TX"
+- **`cbsa_code`** (INT64): CBSA identification codes (0% null, 925 unique values, range: 10100-49820)
+- **`householdrank`** (INT64): Ranking metric for metros (0% null, 925 unique values, range: 1-925)
+
+### Temporal Column (Data Quality Issue)
+- **`month_date_yyyymm`** (STRING): **100% null - major data quality issue**
+  - This appears intended to store month/year information but contains no data
 
 ### Price Metrics
-- **`median_listing_price`** (FLOAT64): Current median price ($19,900 to $5.5M), no nulls, 25,318 unique values
-- **`median_listing_price_mm/yy`** (FLOAT64): Monthly/yearly % changes, 10.81% nulls, ranges ±50-500%
-- **`average_listing_price`** (FLOAT64): Current average price ($44K to $23.5M), no nulls, highly granular
-- **`average_listing_price_mm/yy`** (FLOAT64): Monthly/yearly % changes, 10.81% nulls
+- **`median_listing_price`** (FLOAT64): Core price metric (0% null, range: $19,900 - $5,508,750)
+- **`median_listing_price_mm`** (FLOAT64): Month-over-month price change (10.81% null, range: -55% to +298%)
+- **`median_listing_price_yy`** (FLOAT64): Year-over-year price change (10.81% null, range: -78% to +498%)
+- **`median_listing_price_per_square_foot`** (FLOAT64): Price per sq ft (0% null, range: $22-$1,778)
+- **`average_listing_price`** (FLOAT64): Mean price (0% null, range: $44,444 - $23,524,874)
 
-### Inventory Counts
-- **`active_listing_count`** (INT64): Current active listings (0-69,796), no nulls
-- **`new_listing_count`** (INT64): New listings (0-27,262), no nulls
-- **`total_listing_count`** (INT64): Total listings (1-83,125), no nulls
-- **`pending_listing_count`** (FLOAT64): Pending listings, 2.70% nulls (likely metros with no pending data)
+### Inventory Metrics
+- **`active_listing_count`** (INT64): Current active listings (0% null, range: 0-69,796)
+- **`new_listing_count`** (INT64): New listings added (0% null, range: 0-27,262)
+- **`total_listing_count`** (INT64): Total listings (0% null, range: 1-83,125)
+- **`pending_listing_count`** (FLOAT64): Pending sales (2.70% null, range: 0-28,578)
 
-### Market Dynamics
-- **`median_days_on_market`** (FLOAT64): Time to sell (3-322 days), minimal nulls (0.01%)
-- **`price_increased_count`** (INT64): Properties with price increases (0-4,978), no nulls
-- **`price_reduced_count`** (FLOAT64): Properties with price reductions (0-22,456), no nulls
-- **`price_increased_share/price_reduced_share`** (FLOAT64): Proportions of price changes, no nulls
+### Market Activity Metrics
+- **`median_days_on_market`** (FLOAT64): Days listings stay active (0.01% null, range: 3-322 days)
+- **`price_increased_count`** (INT64): Listings with price increases (0% null, range: 0-4,978)
+- **`price_reduced_count`** (FLOAT64): Listings with price reductions (0% null, range: 0-22,456)
+- **`pending_ratio`** (FLOAT64): Ratio of pending to active listings (2.70% null, range: 0-8.01)
+
+### Share/Percentage Metrics
+- **`price_increased_share`** (FLOAT64): % of listings with price increases (0% null, range: 0-38.15%)
+- **`price_reduced_share`** (FLOAT64): % of listings with price reductions (0% null, range: 0-66.67%)
 
 ### Property Characteristics
-- **`median_listing_price_per_square_foot`** (FLOAT64): Price per sq ft ($22-$1,778), no nulls
-- **`median_square_feet`** (FLOAT64): Property sizes (892-6,000 sq ft), no nulls
+- **`median_square_feet`** (FLOAT64): Median home size (0% null, range: 892-6,000 sq ft)
 
-### Calculated Ratios
-- **`pending_ratio`** (FLOAT64): Pending to active ratio (0-8.0), 2.70% nulls
-- **`quality_flag`** (FLOAT64): Data quality indicator (0 or 1), 10.81% nulls
+### Data Quality Flag
+- **`quality_flag`** (FLOAT64): Data quality indicator (10.81% null, values: 0.0 or 1.0)
 
 ### Change Metrics Pattern
-All `_mm` and `_yy` fields show ~10.81% nulls, suggesting these represent periods where comparison data wasn't available (likely the first month/year of data collection for newer metros).
+Most metrics have corresponding `_mm` (month-over-month) and `_yy` (year-over-year) change columns with ~10-11% null values, indicating these represent percentage changes that cannot be calculated for initial time periods.
 
 ## Query Considerations
 
 ### Good for Filtering
-- **`cbsa_code`** and **`cbsa_title`**: Geographic filtering
-- **`householdrank`**: Market size segmentation (1-50 for largest metros)
-- **`quality_flag`**: Data quality filtering (0 = good quality)
-- Price ranges on **`median_listing_price`** and **`average_listing_price`**
+- `cbsa_title` and `cbsa_code` for geographic filtering
+- `householdrank` for metro size filtering
+- `quality_flag` for data quality filtering
+- Price and inventory ranges for market segment analysis
 
 ### Good for Grouping/Aggregation
-- **`cbsa_code`** / **`cbsa_title`**: Geographic grouping
-- **`householdrank`** ranges: Market size tiers
-- Calculated fields like **`price_increased_share`** and **`price_reduced_share`**: Market condition analysis
+- Geographic grouping by `cbsa_title` or `cbsa_code`
+- Market size grouping by `householdrank` ranges
+- Quality-based grouping using `quality_flag`
 
 ### Potential Join Keys
-- **`cbsa_code`**: Primary key for joining with other metro-level datasets
-- **`cbsa_title`**: Human-readable identifier for geographic joins
+- `cbsa_code` - standard identifier for joining with other metro-level datasets
+- `cbsa_title` - human-readable metro identifier
 
 ### Data Quality Considerations
-- **Missing Month/Year Data**: ~10.81% null rate for all comparison fields suggests newer markets or data gaps
-- **Pending Data**: 2.70% null rate may indicate markets where pending sales aren't tracked
-- **Quality Flag**: Use `quality_flag = 0` for highest quality data
-- **Extreme Values**: Some very high prices and counts may need outlier handling
-- **Date Field**: `month_date_yyyymm` is completely null - date context must come from elsewhere
+- **Critical Issue**: `month_date_yyyymm` is completely null - temporal analysis not possible without external date context
+- ~10-11% null values in change metrics likely represent first-period observations
+- High null percentages (54-55%) in price increase count change metrics suggest data sparsity
+- 2.70% nulls in pending metrics may indicate reporting gaps
+- `quality_flag` should be considered when filtering for reliable data
+
+### Recommended Query Patterns
+- Filter by `quality_flag = 1.0` or exclude nulls for higher quality data
+- Use absolute metrics (without `_mm` or `_yy` suffixes) for cross-sectional analysis
+- Be cautious with time-series analysis due to missing date information
+- Consider `householdrank` for market size stratification
 
 ## Keywords
-real estate, housing market, inventory metrics, CBSA, metropolitan areas, listing prices, days on market, price changes, housing supply, market dynamics, pending sales, price per square foot, home sizes
+real estate, housing market, inventory, metro areas, CBSA, listing prices, market metrics, days on market, pending sales, price changes, square footage, metropolitan statistical areas, housing data, real estate analytics
 
 ## Table and Column Documentation
-No table comment or column comments are present in the provided analysis.
+No table comment or column comments are present in the provided schema information.

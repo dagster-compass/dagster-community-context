@@ -7,85 +7,79 @@ columns:
 schema_hash: daa30e882102489651ee9c4f9b7f58e49ff75a6d55d403eddea5c32d7c360bc4
 
 ---
-# Dataset Summary: people_labs_data.companies_employee_timeseries_by_role
+# Table Analysis Summary: people_labs_data.companies_employee_timeseries_by_role
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 42,969,808,368 (approximately 43 billion records)
+- **Total Rows**: 42,969,808,368 (approximately 43 billion rows)
 - **Data Quality**: Excellent - 0% null values across all columns
-- **Time Span**: Data spans from 2010-01 to 2024-05 (188 months, ~14.4 years)
-- **Scale**: Massive timeseries dataset tracking employee counts by role across ~16 million companies
-- **Notable Patterns**: 
-  - Many records show 0 employee counts, suggesting comprehensive tracking even for roles not present at companies
-  - Wide range of employee counts (0 to 304,921) indicating coverage from startups to large enterprises
-  - Consistent monthly granularity for temporal analysis
+- **Time Range**: Spans from 2010-01 to at least 2025-03 (188 unique months, ~15+ years)
+- **Scale**: Massive enterprise-level dataset tracking employee counts by role across millions of companies
+- **Structure**: Time series data with monthly granularity for company workforce composition
 
 ## Column Details
 
-### role (STRING)
-- **Data Type**: Categorical string
-- **Completeness**: 100% (no nulls)
-- **Cardinality**: 24 distinct roles
-- **Coverage**: Spans major business functions including engineering, sales, marketing, finance, HR, etc.
-- **Sample Roles**: advisory, analyst, creative, education, engineering, finance, fulfillment, health, hospitality, human_resources, manufacturing, marketing, partnerships, sales_engineering, support
-- **Query Considerations**: Excellent for grouping and filtering by business function
+### company_id (STRING)
+- **Type**: String identifier (likely UUID format)
+- **Nulls**: 0.00%
+- **Unique Values**: 16,020,211 companies
+- **Format**: Alphanumeric identifiers (e.g., "bGfbFRHHOObpJQMuPSCM3wQHbWjb")
+- **Usage**: Primary entity identifier for joining with company master data
 
-### month_date (STRING)
-- **Data Type**: String in YYYY-MM format
-- **Completeness**: 100% (no nulls)
-- **Temporal Range**: 2010-01 to 2024-05 (188 unique months)
-- **Format**: Consistent YYYY-MM pattern
-- **Query Considerations**: 
-  - Primary dimension for time-series analysis
-  - Can be converted to DATE type for temporal operations
-  - Suitable for trend analysis and time-based filtering
+### month_date (STRING) 
+- **Type**: String in YYYY-MM format
+- **Nulls**: 0.00%
+- **Unique Values**: 188 months
+- **Range**: 2010-01 through 2025-03 (includes future dates)
+- **Pattern**: Consistent monthly time series data
+- **Usage**: Time dimension for trend analysis and filtering
+
+### role (STRING)
+- **Type**: Categorical string
+- **Nulls**: 0.00%
+- **Unique Values**: 24 distinct roles
+- **Categories**: advisory, analyst, creative, education, engineering, finance, fulfillment, health, hospitality, human_resources, legal, public_service, other_uncategorized, etc.
+- **Usage**: Primary dimension for workforce composition analysis
 
 ### employee_count (INT64)
-- **Data Type**: Integer
-- **Completeness**: 100% (no nulls)
+- **Type**: Integer
+- **Nulls**: 0.00%
 - **Range**: 0 to 304,921 employees
-- **Distribution**: 39,377 unique values, with many zero values indicating roles not present at companies
-- **Query Considerations**: 
-  - Primary metric for aggregation (SUM, AVG, MAX, MIN)
-  - Zero values may need special handling depending on analysis needs
-  - Wide range suggests need for appropriate aggregation strategies
-
-### company_id (STRING)
-- **Data Type**: Alphanumeric identifier string
-- **Completeness**: 100% (no nulls)
-- **Cardinality**: 16,020,211 unique companies
-- **Format**: Consistent alphanumeric string format (~32 characters)
-- **Query Considerations**: 
-  - Primary key for company-level analysis
-  - Essential for joins with other company datasets
-  - High cardinality requires efficient indexing strategies
+- **Unique Values**: 39,377 distinct counts
+- **Distribution**: Heavy concentration at 0 (many company-role-month combinations have no employees)
+- **Usage**: Primary metric for aggregations and analysis
 
 ## Potential Query Considerations
 
-### Filtering Columns
-- **month_date**: Excellent for time-based filtering (e.g., recent years, specific quarters)
-- **role**: Perfect for analyzing specific business functions
-- **company_id**: For company-specific analysis
-- **employee_count**: For filtering by company size thresholds
+### Excellent for Filtering:
+- **month_date**: Time-based filtering (quarters, years, date ranges)
+- **role**: Specific job function analysis
+- **company_id**: Company-specific workforce tracking
+- **employee_count**: Size-based filtering (>0 for active roles, specific thresholds)
 
-### Grouping/Aggregation Opportunities
-- **Time-series analysis**: GROUP BY month_date for trend analysis
-- **Role analysis**: GROUP BY role for workforce composition insights
-- **Company segmentation**: Aggregate by company_id for company-level metrics
-- **Combined dimensions**: Multi-dimensional analysis (role + time, company size categories)
+### Excellent for Grouping/Aggregation:
+- **role**: Workforce composition analysis across industries
+- **month_date**: Time series aggregations, trend analysis
+- **company_id**: Company-level summaries
+- Combined grouping for multi-dimensional analysis
 
-### Potential Join Keys
-- **company_id**: Primary key for joining with other company datasets (financials, industry, location, etc.)
-- **month_date**: Can join with economic indicators, market data, or other time-series datasets
+### Join Considerations:
+- **company_id**: Primary key for joining with company metadata (industry, location, size)
+- May relate to other employee or company dimension tables
 
-### Data Quality Considerations
-- **Zero Values**: Many employee_count = 0 records may need filtering depending on analysis goals
-- **Scale**: 43B+ rows require careful query optimization and potentially sampling for exploratory analysis
-- **Time Consistency**: Monthly granularity is consistent, enabling reliable time-series analysis
-- **Company Coverage**: Massive company coverage suggests comprehensive market representation
+### Data Quality Considerations:
+- **Zero Values**: Many records show 0 employees - these may represent:
+  - Companies without that specific role
+  - Seasonal variations
+  - Data collection periods before/after company activity
+- **Future Dates**: Data includes 2025 dates, suggesting projections or data pipeline testing
+- **Scale**: Query performance considerations due to 43B+ row volume
+- **Partitioning**: Likely partitioned by month_date for optimal query performance
 
 ## Keywords
-employee timeseries, workforce analytics, company staffing, role-based employment, monthly employee data, business function staffing, company growth tracking, headcount analysis, organizational structure, people analytics, employment trends, company size metrics, staff composition, workforce planning data
+
+time series, employee tracking, workforce analytics, company staffing, role-based employment, monthly data, people analytics, human resources data, company growth tracking, organizational structure, job functions, employment trends, workforce composition, staff count, headcount analysis
 
 ## Table and Column Documentation
-*No table comment or column comments provided in the source data.*
+
+No table comment or column comments were provided in the source data.

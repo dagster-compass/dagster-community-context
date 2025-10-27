@@ -12,144 +12,107 @@ columns:
 schema_hash: fcfaa5cc26f88f9e9e5a710fccb41177ca856ced0fb517ad69a5109d28530920
 
 ---
-# Dataset Summary: compass-bigquery-demo.github_dataset.language_ecosystem
+# Table Summary: compass-bigquery-demo.github_dataset.language_ecosystem
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 424 records
-- **Data Quality**: Excellent - no null values in any column (0.00% null percentage across all fields)
-- **Structure**: Each row represents a unique programming language with associated ecosystem metrics
-- **Primary Key**: `primary_language` appears to be unique (424 unique values for 424 rows)
-- **Data Format**: All columns use categorical bucket classifications with descriptive ranges
+- **Total Rows**: 424
+- **Data Quality**: Excellent - no null values across all columns
+- **Structure**: Each row represents a unique programming language with various ecosystem metrics
+- **Pattern**: All metrics are categorized into predefined buckets with clear range descriptions
+- **Coverage**: Comprehensive view of 424 different programming languages and their GitHub ecosystem characteristics
 
 ## Column Details
 
 ### primary_language (STRING)
-- **Type**: Primary identifier for programming languages
-- **Completeness**: 100% populated
-- **Uniqueness**: 424 unique values (one per row)
-- **Examples**: PHP, Nim, Python, LookML, PAWN, Less, Papyrus, Groovy
-- **Usage**: Primary key for language identification
+- **Data Type**: String identifier
+- **Null Values**: 0% (complete dataset)
+- **Uniqueness**: 424 unique values (one per row) - serves as primary key
+- **Format**: Programming language names (e.g., "CoffeeScript", "OpenSCAD", "Ink")
+- **Usage**: Primary identifier for each language
 
-### language_size_bucket (STRING) 
-- **Type**: Categorical size classification
-- **Completeness**: 100% populated
+### language_size_bucket (STRING)
+- **Data Type**: Categorical string with size ranges
+- **Null Values**: 0%
 - **Categories**: 5 distinct buckets
-  - Tiny (<1K)
-  - Small (1K-9.9K) 
-  - Medium (10K-99K)
-  - Large (100K-999K)
-  - Very Large (1M+)
-- **Usage**: Indicates the scale/size of the language ecosystem
+  - Tiny (<1K), Small (1K-9.9K), Medium (10K-99K), Large (100K-999K), Very Large (1M+)
+- **Distribution**: Represents total lines of code or repository size
+- **Usage**: Good for filtering by language ecosystem size
 
 ### adoption_level_bucket (STRING)
-- **Type**: Categorical adoption measurement
-- **Completeness**: 100% populated  
-- **Categories**: 5 distinct levels
-  - Minimal (<10)
-  - Low (10-99)
-  - Medium (100-999)
-  - High (1K-9.9K)
-  - Very High (10K+)
-- **Usage**: Measures how widely adopted the language is
+- **Data Type**: Categorical string with adoption ranges
+- **Null Values**: 0%
+- **Categories**: 5 distinct buckets
+  - Minimal (<10), Low (10-99), Medium (100-999), High (1K-9.9K), Very High (10K+)
+- **Usage**: Excellent for filtering and grouping by language adoption rates
 
 ### diversity_bucket (STRING)
-- **Type**: Categorical diversity measurement
-- **Completeness**: 100% populated
-- **Categories**: 5 distinct levels
-  - Single (1)
-  - Dual (2)
-  - Mixed (3-4)
-  - Diverse (5-9)
-  - Very Diverse (10+)
-- **Pattern**: Many languages show "Single (1)" indicating low diversity
-- **Usage**: Likely measures ecosystem or usage diversity
-
-### activity_bucket (STRING)
-- **Type**: Categorical activity level
-- **Completeness**: 100% populated
-- **Categories**: 5 distinct levels
-  - Low (<50)
-  - Low-Medium (50-99)
-  - Medium (100-999)
-  - High (1K-9.9K)
-  - Very High (10K+)
-- **Usage**: Measures development activity or community engagement
-
-### popularity_bucket (STRING)
-- **Type**: Categorical popularity measurement
-- **Completeness**: 100% populated
-- **Categories**: 4 distinct levels (note: missing "Very High" tier)
-  - Minimal (<10)
-  - Low (10-99)
-  - Moderate (100-999)
-  - Popular (1K-9.9K)
-- **Pattern**: Many languages show "Minimal (<10)" popularity
-- **Usage**: Measures language popularity metrics
+- **Data Type**: Categorical string measuring ecosystem diversity
+- **Null Values**: 0%
+- **Categories**: 5 distinct buckets
+  - Single (1), Dual (2), Mixed (3-4), Diverse (5-9), Very Diverse (10+)
+- **Usage**: Indicates language ecosystem diversity, good for comparative analysis
 
 ### team_size_bucket (STRING)
-- **Type**: Categorical team size classification
-- **Completeness**: 100% populated
-- **Categories**: 5 distinct levels
-  - Individual (1)
-  - Pair (2-4)
-  - Small Team (5-19)
-  - Medium Team (20-99)
-  - Large Team (100+)
-- **Usage**: Indicates typical development team sizes for the language
+- **Data Type**: Categorical string for typical team sizes
+- **Null Values**: 0%
+- **Categories**: 5 distinct buckets
+  - Individual (1), Pair (2-4), Small Team (5-19), Medium Team (20-99), Large Team (100+)
+- **Usage**: Useful for analyzing collaboration patterns by language
+
+### popularity_bucket (STRING)
+- **Data Type**: Categorical string for popularity metrics
+- **Null Values**: 0%
+- **Categories**: 4 distinct buckets (missing "Very High" category)
+  - Minimal (<10), Low (10-99), Moderate (100-999), Popular (1K-9.9K)
+- **Usage**: Good for popularity-based filtering and trend analysis
+
+### activity_bucket (STRING)
+- **Data Type**: Categorical string for activity levels
+- **Null Values**: 0%
+- **Categories**: 5 distinct buckets
+  - Low (<50), Low-Medium (50-99), Medium (100-999), High (1K-9.9K), Very High (10K+)
+- **Usage**: Excellent for analyzing development activity and community engagement
 
 ### mit_adoption_bucket (STRING)
-- **Type**: Categorical MIT license adoption
-- **Completeness**: 100% populated
-- **Categories**: 5 distinct levels
-  - None (0)
-  - Low (1-9)
-  - Medium (10-99)
-  - High (100-999)
-  - Very High (1K+)
-- **Usage**: Measures adoption of MIT licensing in the language ecosystem
+- **Data Type**: Categorical string for MIT license adoption
+- **Null Values**: 0%
+- **Categories**: 5 distinct buckets
+  - None (0), Low (1-9), Medium (10-99), High (100-999), Very High (1K+)
+- **Usage**: License preference analysis, open-source ecosystem insights
 
 ### isc_adoption_bucket (STRING)
-- **Type**: Categorical ISC license adoption  
-- **Completeness**: 100% populated
-- **Categories**: 5 distinct levels
-  - None (0)
-  - Low (1-9)
-  - Medium (10-99)
-  - High (100-999)
-  - Very High (1K+)
-- **Pattern**: Many languages show "None (0)" for ISC adoption
-- **Usage**: Measures adoption of ISC licensing in the language ecosystem
+- **Data Type**: Categorical string for ISC license adoption
+- **Null Values**: 0%
+- **Categories**: 5 distinct buckets
+  - None (0), Low (1-9), Medium (10-99), High (100-999), Very High (1K+)
+- **Usage**: Alternative license preference analysis
 
 ## Potential Query Considerations
 
-### Filtering Opportunities
-- **Language identification**: Filter by `primary_language` for specific language analysis
-- **Size-based analysis**: Filter by `language_size_bucket` for ecosystem scale studies
-- **Adoption patterns**: Use `adoption_level_bucket` to focus on widely or narrowly adopted languages
-- **License analysis**: Filter by `mit_adoption_bucket` or `isc_adoption_bucket` for licensing studies
+### Filtering Columns
+- **primary_language**: Direct language lookup and exclusion queries
+- **All bucket columns**: Range-based filtering (e.g., "High adoption", "Large teams")
+- **License buckets**: Open-source licensing pattern analysis
 
-### Grouping/Aggregation Potential
-- **Cross-tabulation**: All bucket columns are excellent for GROUP BY operations
-- **Distribution analysis**: Count languages by any bucket dimension
-- **Correlation studies**: Compare distributions across different metric buckets
-- **Ecosystem segmentation**: Group by multiple dimensions (e.g., size + adoption level)
+### Grouping/Aggregation Opportunities
+- **Size vs. Adoption**: Cross-tabulation of language_size_bucket and adoption_level_bucket
+- **Team Size vs. Activity**: Correlation analysis between team_size_bucket and activity_bucket
+- **License Adoption Patterns**: Comparison between mit_adoption_bucket and isc_adoption_bucket
+- **Ecosystem Maturity**: Multi-dimensional grouping combining popularity, activity, and diversity
 
 ### Join Considerations
-- **Primary key**: `primary_language` could join with other language-related datasets
-- **No apparent foreign keys**: This appears to be a dimension/lookup table
-- **Reference data**: Could serve as a language ecosystem reference for other GitHub data
+- **primary_language**: Perfect join key for language-specific external datasets
+- **No apparent foreign keys**: This appears to be a fact table that could join with dimension tables
 
 ### Data Quality Considerations
-- **Excellent completeness**: No missing data concerns
-- **Consistent categorization**: All buckets follow similar naming patterns with ranges
-- **Ordinal nature**: Most buckets have implicit ordering (Low → Medium → High)
-- **Categorical constraints**: Values are controlled vocabularies, good for consistent querying
+- **Perfect completeness**: No null handling required
+- **Consistent categorization**: All buckets use standardized range notation
+- **Ordinal nature**: Bucket values have implicit ordering that can be used for range queries
+- **Missing "Very High" in popularity_bucket**: Consider this limitation when analyzing popularity distributions
 
 ## Keywords
+programming languages, GitHub ecosystem, language adoption, team size, code activity, license analysis, open source, software development metrics, language popularity, repository analysis, MIT license, ISC license, code diversity, development teams
 
-programming languages, GitHub, ecosystem analysis, adoption metrics, language popularity, team size, licensing analysis, MIT license, ISC license, development activity, language diversity, bucket analysis, categorical data, language metrics, open source
-
-## Table and Column Documentation
-
-No table comment or column comments are provided in the source data.
+## Table and Column Docs
+*No table comments or column comments were provided in the source data.*

@@ -6,72 +6,71 @@ columns:
 schema_hash: c6987d74945b29e0ce9bfcf62f9e4d90258cb4b9064c7d6a108bb0bbbcffca93
 
 ---
-# Table Analysis Summary: people_labs_data.companies_employee_distribution_by_sub_role
+# Table Summary: people_labs_data.companies_employee_distribution_by_sub_role
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 24,315,326 records
-- **Data Quality**: Excellent - 0% null values across all columns
-- **Dataset Purpose**: This table tracks employee count distribution across different sub-roles within companies
-- **Scale**: Covers over 10 million unique companies with 106 distinct sub-role categories
-- **Distribution Pattern**: The data shows a wide range of company sizes, from single employees to large corporations with over 300k employees in specific roles
+- **Data Quality**: Excellent - no null values detected in any column
+- **Structure**: Company-level employee distribution data organized by functional sub-roles
+- **Scale**: Covers over 10 million unique companies with detailed role-based workforce breakdowns
+- **Distribution Pattern**: Most companies appear to have small employee counts (1-10 range is common), with some large enterprises having hundreds of thousands of employees
 
 ## Column Details
 
 ### sub_role (STRING)
-- **Data Type**: String/Text
-- **Completeness**: 100% (0% null values)
-- **Cardinality**: 106 unique values
-- **Value Pattern**: Standardized role categories using lowercase with underscores
-- **Common Categories**: Includes diverse roles from `academic`, `account_executive`, `administrative` to specialized roles like `wellness`, `product_management`, `artist`
-- **Purpose**: Categorical classification of employee roles within organizations
+- **Data Type**: String/categorical
+- **Null Values**: 0% - complete data
+- **Unique Values**: 106 distinct sub-roles
+- **Value Patterns**: Professional function categories including:
+  - Business functions: account_executive, account_management, accounting, administrative
+  - Technical roles: mechanic, nursing, legal
+  - Specialized areas: agriculture, architecture, journalism, product_management, recruiting
+- **Usage**: Primary grouping dimension for workforce analysis
 
 ### employee_count (INT64)
-- **Data Type**: 64-bit Integer
-- **Completeness**: 100% (0% null values)
+- **Data Type**: Integer
+- **Null Values**: 0% - complete data
 - **Range**: 1 to 302,516 employees
-- **Cardinality**: 5,390 unique values
-- **Distribution**: Likely right-skewed with most companies having smaller employee counts in specific roles
-- **Purpose**: Quantifies the number of employees in each sub-role per company
+- **Unique Values**: 5,390 distinct counts
+- **Distribution**: Heavy concentration in lower ranges (1-10), indicating many small companies
+- **Usage**: Quantitative measure for aggregations and size-based filtering
 
 ### company_id (STRING)
 - **Data Type**: String identifier
-- **Completeness**: 100% (0% null values)
-- **Cardinality**: 10,078,178 unique values
-- **Format**: Alphanumeric strings (appears to be encoded/hashed identifiers)
-- **Purpose**: Unique identifier for each company in the dataset
+- **Null Values**: 0% - complete data
+- **Unique Values**: 10,078,178 distinct companies
+- **Format**: Alphanumeric hash-like identifiers (e.g., "thJcFG2B4pAE5dnLC9fxPgxEeXjA")
+- **Usage**: Primary key for company-level operations and joins
 
-## Query Considerations
+## Potential Query Considerations
 
 ### Filtering Opportunities
 - **sub_role**: Excellent for filtering by specific job functions or role categories
-- **employee_count**: Good for size-based filtering (small, medium, large teams in specific roles)
-- **company_id**: Suitable for company-specific analysis
+- **employee_count**: Good for size-based filtering (small/medium/large companies)
+- **company_id**: Essential for company-specific lookups
 
 ### Grouping/Aggregation Potential
-- **sub_role**: Primary dimension for role-based analysis and comparisons
-- **employee_count ranges**: Can be binned for company size analysis by role
-- **company_id**: Useful for company-level aggregations
+- **sub_role**: Primary dimension for workforce composition analysis
+- **Employee size bands**: Create size categories from employee_count for market segmentation
+- **Cross-tabulation**: Role distribution patterns across company sizes
 
-### Join Relationships
-- **company_id**: Likely foreign key that can join with other company-related tables
-- Potential relationships with company metadata, industry classifications, or geographic data
+### Join Capabilities
+- **company_id**: Primary join key for linking with other company datasets
+- Likely connects to company profile, industry, location, or financial data tables
 
 ### Data Quality Considerations
-- **High Quality**: No missing data concerns
-- **Consistency**: Standardized role naming convention
-- **Scalability**: Large dataset requiring efficient indexing on frequently queried columns
-- **Aggregation Performance**: Consider pre-computing common aggregations due to dataset size
+- **Complete Data**: No missing values simplifies query logic
+- **Large Scale**: Queries should consider performance implications with 24M+ rows
+- **Cardinality**: High company_id cardinality may require indexed access patterns
+- **Role Standardization**: Sub-roles appear standardized and consistently formatted
 
 ## Keywords
 
-employee distribution, company roles, workforce analytics, sub roles, organizational structure, employee count, company analysis, job functions, role categorization, workforce composition, people analytics, HR data, employment statistics, company sizing, role-based metrics
+employee distribution, workforce composition, company roles, sub-roles, organizational structure, people analytics, company size, employee count, business functions, job categories, workforce analysis, company demographics, role-based analytics, organizational data, people labs, employee segmentation
 
 ## Table and Column Documentation
 
-**Table Comment**: Not provided
+**Table Comment**: Not provided in the analysis report.
 
-**Column Comments**: 
-- sub_role: No comment provided
-- employee_count: No comment provided  
-- company_id: No comment provided
+**Column Comments**: No specific column comments were provided in the analysis report.

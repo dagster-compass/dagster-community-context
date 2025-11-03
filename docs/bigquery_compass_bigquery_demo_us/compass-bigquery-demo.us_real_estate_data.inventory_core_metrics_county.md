@@ -49,83 +49,241 @@ columns:
 schema_hash: 2ffe0feeb9432a86eef025e95a2af54c425d26745c0615ff163e6f8e4fb86e68
 
 ---
-# Table Summary: compass-bigquery-demo.us_real_estate_data.inventory_core_metrics_county
+# Table Summary: US Real Estate Inventory Core Metrics (County Level)
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 344,538 records
-- **Data Quality**: Generally good with most columns having very low null percentages (0-1%), though some month-over-month and year-over-year columns have higher null rates (10-25%)
-- **Geographic Coverage**: Covers 3,141 counties across the United States (based on FIPS codes)
-- **Time Series Nature**: Contains comparative metrics with month-over-month (mm) and year-over-year (yy) calculations
-- **Notable Issues**: The `month_date_yyyymm` column is completely null (100%), indicating missing temporal reference data
+**Total Rows:** 344,538
+
+This table contains comprehensive real estate market metrics at the county level across the United States. The dataset tracks various listing statistics, pricing information, and market dynamics over time. Notably, the `month_date_yyyymm` column is entirely null (100%), suggesting temporal information may be stored elsewhere or this represents a snapshot dataset. The data quality varies significantly by metric, with some columns having high null percentages (70%+) while core metrics like county identifiers and basic listing counts have near-complete data (<1% null).
+
+**Geographic Coverage:** 3,135+ unique counties across all US states (identifiable by state abbreviations in county names and FIPS codes ranging from 1001 to 56045).
+
+**Data Quality Observations:**
+- Core metrics (median listing price, active listings, county identifiers) have excellent coverage (<0.1% nulls)
+- Price change metrics show high null rates (70-75%), likely indicating insufficient data for these calculations in many counties
+- Month-over-month (mm) and year-over-year (yy) comparison metrics have moderate null rates (10-20%)
+- Quality flag present but 10.72% null, suggesting data quality assessment may be incomplete
 
 ## Column Details
 
 ### Geographic Identifiers
-- **county_fips** (INT64): County FIPS codes ranging from 1001 to 56045, no nulls, 3,141 unique values
-- **county_name** (STRING): County names with state abbreviations (e.g., "cass, nd"), no nulls, 3,135 unique values
 
-### Core Pricing Metrics
-- **median_listing_price** (FLOAT64): Property prices from $1,311 to $13M, minimal nulls (0.02%)
-- **average_listing_price** (FLOAT64): Average prices from $5K to $142M, minimal nulls (0.02%)
-- **median_listing_price_per_square_foot** (FLOAT64): Price per sqft from $0 to $56,250, minimal nulls (0.10%)
+**county_name** (STRING)
+- Format: "county name, state abbreviation" (e.g., "abbeville, sc")
+- 3,135 unique counties with complete coverage (0% null)
+- Serves as human-readable geographic identifier
+- Examples: "morris, nj", "sumner, tn", "claiborne, tn"
+
+**county_fips** (INT64)
+- Standard 5-digit FIPS codes (1001-56045)
+- 3,141 unique values (slightly more than county names, suggesting potential data granularity differences)
+- 0% null - reliable join key
+- Comment: Primary geographic key for joining with other datasets
+
+### Temporal Field
+
+**month_date_yyyymm** (STRING)
+- **100% NULL** - Non-functional column
+- Intended format likely YYYYMM based on name
+- Temporal context must be derived from context or external metadata
+
+### Price Metrics
+
+**median_listing_price** (FLOAT64)
+- Range: $1,311 to $13,000,000
+- 52,273 unique values indicating granular pricing
+- 0.02% null - highly reliable
+- Sample values show typical ranges: $84,375 (rural), $255,000 (suburban), $695,000 (affluent areas)
+
+**median_listing_price_mm** (FLOAT64)
+- Month-over-month price change rate
+- Range: -99.71% to +57,032% (extreme values suggest data quality issues or calculation anomalies)
+- 10.89% null
+- Negative values indicate price decreases, positive indicate increases
+
+**median_listing_price_yy** (FLOAT64)
+- Year-over-year price change rate
+- Range: -99.68% to +22,287%
+- 11.27% null
+- Shows longer-term market trends
+
+**average_listing_price** (FLOAT64)
+- Range: $5,000 to $142,882,807 (extreme high suggests luxury/outlier properties)
+- 252,993 unique values (most granular price metric)
+- 0.02% null
+- Higher variability than median due to outlier sensitivity
+
+**average_listing_price_mm/yy** (FLOAT64)
+- Similar patterns to median price changes
+- 10.89% and 11.27% null respectively
+
+**median_listing_price_per_square_foot** (FLOAT64)
+- Range: $0 to $56,250/sqft
+- 1,378 unique values
+- 0.10% null
+- Key metric for normalized price comparisons
+- Sample: $89-$310/sqft showing geographic price variation
+
+**median_listing_price_per_square_foot_mm/yy** (FLOAT64)
+- 10.96% and 11.37% null respectively
+- Wide ranges indicate volatile price-per-sqft changes in some markets
 
 ### Inventory Metrics
-- **active_listing_count** (FLOAT64): Active listings from 0 to 23,258, minimal nulls (0.01%)
-- **new_listing_count** (FLOAT64): New listings from 0 to 9,888, minimal nulls (0.01%)
-- **pending_listing_count** (FLOAT64): Pending sales from 0 to 14,211, moderate nulls (7.28%)
-- **total_listing_count** (FLOAT64): Total listings from 0 to 33,580, minimal nulls (0.01%)
 
-### Market Timing Metrics
-- **median_days_on_market** (FLOAT64): Days on market from 1 to 365, minimal nulls (0.11%)
-- **pending_ratio** (FLOAT64): Ratio of pending to active listings from 0 to 11.5, moderate nulls (7.32%)
+**active_listing_count** (FLOAT64)
+- Current available properties for sale
+- Range: 0 to 23,258 listings
+- 0.01% null - highly reliable
+- 6,008 unique values
+- Critical for market supply analysis
 
-### Price Change Metrics
-- **price_increased_count** (FLOAT64): Count of price increases, minimal nulls (0.01%)
-- **price_reduced_count** (FLOAT64): Count of price reductions, minimal nulls (0.01%)
-- **price_increased_share** (FLOAT64): Share of listings with price increases (0-4.0), minimal nulls (0.04%)
-- **price_reduced_share** (FLOAT64): Share of listings with price reductions (0-4.0), minimal nulls (0.04%)
+**active_listing_count_mm/yy** (FLOAT64)
+- Inventory change rates
+- Range -100% to +3,250% (mm), -100% to +9,150% (yy)
+- ~11% null for both
+
+**new_listing_count** (FLOAT64)
+- Fresh market entries
+- Range: 0 to 9,888 listings
+- 0.01% null
+- 2,274 unique values
+- Even numbers suggest possible aggregation
+
+**new_listing_count_mm/yy** (FLOAT64)
+- 19.15% and 19.51% null - higher than other mm/yy metrics
+- Indicates new listing data may be less available historically
+
+**total_listing_count** (FLOAT64)
+- Combined inventory metric
+- Range: 0 to 33,580
+- 0.01% null
+- 7,738 unique values
+
+**pending_listing_count** (FLOAT64)
+- Properties under contract
+- Range: 0 to 14,211
+- 7.28% null - moderate missing data
+- Important demand indicator
+
+**pending_ratio** (FLOAT64)
+- Pending/Active ratio showing market heat
+- Range: 0 to 11.5
+- 7.32% null
+- Values >1 indicate very hot markets
+
+### Market Velocity
+
+**median_days_on_market** (FLOAT64)
+- Time to sell/contract
+- Range: 1 to 365 days
+- 0.11% null
+- 365 unique values (appears capped at 1 year)
+- Key liquidity indicator
+
+**median_days_on_market_mm/yy** (FLOAT64)
+- ~11% null
+- Shows market acceleration/deceleration
+
+### Price Change Activity
+
+**price_increased_count** (FLOAT64)
+- Listings with price hikes
+- Range: 0 to 1,666
+- 0.01% null
+- 492 unique values (lower than other counts)
+
+**price_increased_count_mm/yy** (FLOAT64)
+- **74.31% and 73.67% NULL** - Very high missing data
+- Suggests this metric is only calculated for subset of markets
+
+**price_increased_share** (FLOAT64)
+- Proportion of listings with price increases
+- Range: 0 to 4.0 (values >1.0 likely data errors)
+- 0.04% null
+- 1,717 unique values
+
+**price_reduced_count** (FLOAT64)
+- Listings with price cuts
+- Range: 0 to 12,596
+- 0.01% null
+- 1,930 unique values
+- Generally higher counts than price increases
+
+**price_reduced_count_mm/yy** (FLOAT64)
+- 25.53% and 25.05% null - moderate missing data
+- More available than price_increased metrics
+
+**price_reduced_share** (FLOAT64)
+- Range: 0 to 4.0
+- 0.04% null
+- 3,919 unique values (more granular than price_increased_share)
 
 ### Property Characteristics
-- **median_square_feet** (FLOAT64): Property sizes from 4 to 30,902 sqft, minimal nulls (0.10%)
 
-### Comparative Metrics (Month-over-Month)
-All `_mm` suffixed columns show month-over-month changes with higher null rates (10-25%):
-- Values typically range from -1.0 to positive values indicating percentage changes
-- Negative values suggest decreases, positive values suggest increases
+**median_square_feet** (FLOAT64)
+- Property size metric
+- Range: 4 to 30,902 sqft
+- 0.10% null
+- 3,322 unique values
+- Samples: 1,497-2,662 sqft typical
 
-### Comparative Metrics (Year-over-Year)
-All `_yy` suffixed columns show year-over-year changes with similar null patterns to mm columns:
-- Generally wider ranges than mm columns, reflecting longer-term trends
+**median_square_feet_mm/yy** (FLOAT64)
+- 10.96% and 11.37% null
+- Shows shifting property size preferences
 
-### Quality Indicator
-- **quality_flag** (FLOAT64): Binary flag (0.0 or 1.0) with 10.72% nulls, likely indicating data quality issues
+### Data Quality
+
+**quality_flag** (FLOAT64)
+- Binary indicator: 0.0 or 1.0
+- 10.72% null
+- Likely indicates data reliability (1.0 = good quality)
+- Sample data shows mix of 0.0 and 1.0 values
 
 ## Query Considerations
 
-### Good for Filtering
-- `county_fips` and `county_name`: Geographic filtering
-- `quality_flag`: Data quality filtering
-- Price ranges on `median_listing_price` and `average_listing_price`
-- `active_listing_count` for market activity levels
+### Excellent for Filtering:
+- **county_fips**: Precise geographic filtering with complete data
+- **county_name**: Human-readable geographic filtering
+- **quality_flag**: Filter for data quality when not null
+- **active_listing_count**: Non-zero to exclude inactive markets
+- Price ranges for market segmentation
 
-### Good for Grouping/Aggregation
-- `county_fips` and `county_name`: Geographic grouping
-- Price tiers based on `median_listing_price`
-- Market size categories based on `total_listing_count`
+### Good for Aggregation/Grouping:
+- Geographic groupings (by state via county_name parsing)
+- Market segments (by price ranges, inventory levels)
+- Market health categories (by pending_ratio, days_on_market)
 
-### Potential Join Keys
-- `county_fips`: Standard geographic identifier for joining with other county-level datasets
-- `county_name`: Alternative geographic join key (though less reliable due to formatting)
+### Strong Metrics for Analysis:
+- **median_listing_price**: Most reliable price metric
+- **active_listing_count**: Supply indicator
+- **median_days_on_market**: Velocity metric
+- **pending_ratio**: Demand indicator
+- **median_listing_price_per_square_foot**: Normalized pricing
 
-### Data Quality Considerations
-- **Missing temporal data**: `month_date_yyyymm` is completely null, limiting time-based analysis
-- **Moderate nulls**: Pending listing metrics and comparative metrics have 7-25% null rates
-- **Extreme values**: Some outliers in pricing data (e.g., $142M average price) may need investigation
-- **Price change metrics**: High null percentages (70%+) in some price change count metrics suggest data sparsity
+### Caution Areas:
+- **month_date_yyyymm**: Unusable (100% null)
+- **price_increased_count metrics**: 70%+ null, use cautiously
+- Extreme values in mm/yy metrics may need filtering
+- Share metrics with values >1.0 may indicate calculation errors
+
+### Potential Join Keys:
+- **county_fips**: Standard government identifier for census, economic data
+- **county_name**: Can join to geographic databases (may need state parsing)
+
+### Missing Temporal Context:
+- No reliable date field means temporal analysis requires external date information
+- All mm/yy metrics suggest time-series data, but specific dates are missing
+- Query design must accommodate this limitation or join to date dimension
 
 ## Keywords
-real estate, housing, inventory, county, FIPS, median price, listing count, days on market, price changes, pending sales, square footage, market metrics, geographic data, time series, month-over-month, year-over-year
+
+real estate, housing market, property listings, county data, inventory metrics, median price, days on market, pending sales, active listings, new listings, price per square foot, market velocity, supply and demand, FIPS codes, geographic analysis, housing statistics, property metrics, market trends, listing counts, price changes, price increases, price reductions, square footage, real estate analytics, US counties, housing inventory, market indicators, pending ratio, time series, month over month, year over year, comparative metrics, quality flag
 
 ## Table and Column Documentation
-No table comment or column comments were provided in the source data.
+
+**Table Comment:** Not provided
+
+**Column Comments:**
+- county_fips: Standard 5-digit FIPS codes for US counties
+- No other column comments provided in the analysis

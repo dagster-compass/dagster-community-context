@@ -49,96 +49,208 @@ columns:
 schema_hash: 298de63c9f54c4d2298f4427674befa32a437912cf25f7841e703aa50148138b
 
 ---
-# Summary: US Real Estate Inventory Core Metrics by ZIP Code
+# Table Documentation: inventory_core_metrics_zip
 
-## Overall Dataset Characteristics
+## Overview
 
-- **Total Rows**: 3,142,815 records
-- **Data Quality**: Generally high quality with most core metrics having low null percentages (< 1%), though some derived metrics have higher null rates
-- **Geographic Coverage**: 34,141 unique postal codes across the United States
-- **Notable Patterns**: 
-  - Many metrics include year-over-year (yy) and month-over-month (mm) change calculations
-  - Negative values in change metrics likely represent percentage decreases
-  - `month_date_yyyymm` column is completely null, suggesting temporal data may be implicit in the dataset structure
+This table contains detailed real estate inventory metrics at the ZIP code level, tracking listing prices, inventory counts, market activity, and various period-over-period comparisons. The dataset includes **3,142,815 rows** representing time-series data across approximately 34,141 unique ZIP codes in the United States.
+
+### General Data Quality
+- Most core metrics (listing counts, prices) have low null rates (0-1%)
+- Year-over-year (yy) and month-over-month (mm) comparison fields have higher null rates (13-90%), likely due to insufficient historical data for newer records
+- The `month_date_yyyymm` field is 100% null, indicating a data quality issue or deprecated field
+- `quality_flag` field present (11% null) with binary values (0.0, 1.0) suggesting data quality markers
+
+---
 
 ## Column Details
 
 ### Geographic Identifiers
-- **postal_code** (INT64): Primary key, 0% null, 34,141 unique ZIP codes (range: 501-99929)
-- **zip_name** (STRING): Location names, 2.30% null, 26,083 unique values (format: "city, state")
 
-### Core Listing Metrics
-- **total_listing_count** (FLOAT64): Current total listings, 0.10% null, ranges 0-2,860
-- **active_listing_count** (FLOAT64): Active listings, 0.15% null, ranges 0-2,646  
-- **new_listing_count** (FLOAT64): New listings, 0.10% null, ranges 0-802
-- **pending_listing_count** (FLOAT64): Pending listings, 20.69% null, ranges 0-976
+**postal_code** (INT64)
+- Primary geographic key
+- 0% null - complete coverage
+- Range: 501 to 99929 (US ZIP codes)
+- 34,141 unique values
+- Used for: Geographic filtering, joins, aggregations
+
+**zip_name** (STRING)
+- Human-readable location names in format "city, state"
+- 2.30% null
+- 26,083 unique values (less than postal codes, indicating many-to-one relationships)
+- Examples: "morgantown, in", "new rochelle, ny", "chicago, il"
+
+### Listing Count Metrics
+
+**total_listing_count** (FLOAT64)
+- Total active listings
+- 0.10% null - highly reliable
+- Range: 0 to 2,860 listings
+- Common in filtering and aggregation queries
+
+**active_listing_count** (FLOAT64)
+- Currently active listings (subset of total)
+- 0.15% null
+- Range: 0 to 2,646
+- Key metric for market supply analysis
+
+**pending_listing_count** (FLOAT64)
+- Listings under contract
+- 20.69% null - use with caution
+- Range: 0 to 976
+- Higher null rate suggests not all markets report pending status
+
+**new_listing_count** (FLOAT64)
+- New listings in period
+- 0.10% null
+- Range: 0 to 802
+- Important for market velocity analysis
 
 ### Price Metrics
-- **median_listing_price** (FLOAT64): Current median price, 0.25% null, ranges $1-$279M
-- **average_listing_price** (FLOAT64): Current average price, 0.25% null, ranges $1-$279M
-- **median_listing_price_per_square_foot** (FLOAT64): Price per sqft, 0.96% null, ranges $0-$795K
 
-### Property Characteristics  
-- **median_square_feet** (FLOAT64): Median property size, 0.95% null, ranges 1-12.5M sqft
-- **median_days_on_market** (FLOAT64): Market time, 0.93% null, ranges 1-365 days
+**median_listing_price** (FLOAT64)
+- Core price metric
+- 0.25% null - highly reliable
+- Range: $1 to $279,000,000
+- Extreme upper values likely luxury/commercial properties
+- Use for price trend analysis
+
+**average_listing_price** (FLOAT64)
+- Mean listing price
+- 0.25% null
+- Range: $1 to $279,000,000
+- More sensitive to outliers than median
+
+**median_listing_price_per_square_foot** (FLOAT64)
+- Price efficiency metric
+- 0.96% null
+- Range: $0 to $795,000/sqft
+- Upper extremes likely data errors or special properties
+
+### Property Size Metrics
+
+**median_square_feet** (FLOAT64)
+- Median property size
+- 0.95% null
+- Range: 1 to 12,503,400 sqft
+- Upper extremes suggest data quality issues or commercial properties
 
 ### Market Activity Metrics
-- **pending_ratio** (FLOAT64): Pending/total ratio, 21.63% null, ranges 0-94.5%
-- **price_reduced_count** (FLOAT64): Price reduction count, 0.10% null, ranges 0-628
-- **price_increased_count** (FLOAT64): Price increase count, 0.10% null, ranges 0-268
-- **price_reduced_share** (FLOAT64): % with price reductions, 0.46% null, ranges 0-4.0
-- **price_increased_share** (FLOAT64): % with price increases, 0.46% null, ranges 0-4.0
 
-### Change Metrics (Year-over-Year)
-High null percentages (15-45%) suggest these are calculated only when historical data exists:
-- **total_listing_count_yy** (15.86% null): YoY listing change
-- **median_listing_price_yy** (16.67% null): YoY price change  
-- **active_listing_count_yy** (17.31% null): YoY active listing change
-- **new_listing_count_yy** (45.00% null): YoY new listing change
-- **pending_listing_count_yy** (37.49% null): YoY pending change
+**pending_ratio** (FLOAT64)
+- Ratio of pending to total listings
+- 21.63% null
+- Range: 0.0 to 94.5
+- Values appear to be percentages (0-100 scale)
+- Indicates market demand strength
 
-### Change Metrics (Month-over-Month)
-Moderate null percentages (12-55%):
-- **total_listing_count_mm** (12.72% null): MoM listing change
-- **median_listing_price_mm** (13.53% null): MoM price change
-- **active_listing_count_mm** (13.94% null): MoM active change
-- **new_listing_count_mm** (44.80% null): MoM new listing change
+**median_days_on_market** (FLOAT64)
+- Time to sale/pending status
+- 0.93% null - reliable
+- Range: 1 to 365 days
+- Key velocity indicator
+
+**price_reduced_count** (FLOAT64)
+- Number of listings with price reductions
+- 0.10% null
+- Range: 0 to 628
+- Market distress indicator
+
+**price_reduced_share** (FLOAT64)
+- Percentage of listings with price reductions
+- 0.46% null
+- Range: 0.0 to 4.0
+- Values suggest percentage scale
+
+**price_increased_count** (FLOAT64)
+- Number of listings with price increases
+- 0.10% null
+- Range: 0 to 268
+- Less common than reductions
+
+**price_increased_share** (FLOAT64)
+- Percentage of listings with price increases
+- 0.46% null
+- Range: 0.0 to 4.0
+
+### Period-over-Period Comparisons
+
+All metrics with **_mm** suffix represent month-over-month changes:
+- Generally 13-45% null rates
+- Values appear to be fractional changes (-1.0 = -100%, 1.0 = +100%)
+- Example: `total_listing_count_mm` shows monthly inventory change
+
+All metrics with **_yy** suffix represent year-over-year changes:
+- Generally 15-90% null rates (higher for less common metrics)
+- Same fractional change format
+- Example: `median_listing_price_yy` shows annual price appreciation
+
+**Notable null patterns in comparison metrics:**
+- `price_increased_count_mm`: 90.42% null
+- `price_increased_count_yy`: 89.71% null
+- `price_reduced_count_mm`: 54.76% null
+- `new_listing_count_yy/mm`: ~45% null
+- Suggests these metrics require minimum activity thresholds
 
 ### Data Quality Indicator
-- **quality_flag** (FLOAT64): Data quality indicator, 11.09% null, binary values (0.0/1.0)
 
-### Missing Data
-- **month_date_yyyymm** (STRING): Completely null (100%), likely indicates temporal dimension is handled elsewhere
+**quality_flag** (FLOAT64)
+- 11.09% null
+- Binary values: 0.0 or 1.0
+- Likely indicates data reliability (1.0 = good quality)
+- Consider filtering on this field for critical analyses
+
+### Deprecated Field
+
+**month_date_yyyymm** (STRING)
+- 100% null - completely unpopulated
+- Avoid using in queries
+
+---
 
 ## Query Considerations
 
-### Good for Filtering
-- **postal_code**: Primary geographic filter
-- **zip_name**: Location-based searches  
-- **quality_flag**: Data quality filtering
-- **total_listing_count**: Market size filtering
-- **median_listing_price**: Price range filtering
+### Recommended Filters
+- **postal_code**: Primary key for geographic filtering (0% null)
+- **zip_name**: User-friendly geographic filter (2.3% null)
+- **quality_flag**: Filter to quality_flag = 1.0 for reliable data
+- **Date ranges**: Must be inferred from time-series context (month_date_yyyymm unusable)
 
-### Good for Grouping/Aggregation
-- **postal_code**: Geographic aggregation
-- **zip_name**: State/city level grouping (extract state from name)
-- Market activity ranges (small/medium/large markets based on listing counts)
-- Price tiers based on median_listing_price
+### Good Aggregation Columns
+- **postal_code/zip_name**: Geographic grouping
+- Price metrics (median/average_listing_price) for market summaries
+- Count metrics (total/active/pending) for inventory analysis
+- **median_days_on_market**: Market velocity
 
 ### Potential Join Keys
-- **postal_code**: Primary key for joining with other geographic datasets
-- **zip_name**: Could join with demographic or economic data
+- **postal_code**: Primary join key to other geographic datasets
+- **zip_name**: Secondary join (but has more nulls)
 
 ### Data Quality Considerations
-- Many year-over-year metrics have high null rates (15-45%) - filter by quality_flag or handle nulls appropriately
-- Month-over-month metrics generally more complete (12-33% null)
-- Price and size outliers exist (properties up to $279M, 12.5M sqft) - consider filtering extremes
-- Negative values in change metrics represent decreases, not missing data
-- Some metrics like price_reduced_share have theoretical max of 4.0, suggesting percentage calculations
+1. **High null rates** in comparison metrics (_mm, _yy) - require null handling
+2. **Quality_flag** should be checked for critical analyses
+3. **Extreme values** in price and square footage may need outlier filtering
+4. **month_date_yyyymm** is unusable - temporal context must come from external source
+5. Period-over-period metrics use **fractional representation** (not percentages)
+6. Some metrics like **price_increased_count** have very high null rates (>89%)
+
+### Temporal Analysis
+- This appears to be time-series data, but temporal key is missing
+- Queries will need to join with external date dimension
+- Comparison metrics (_mm, _yy) provide built-in trend analysis
+- Higher null rates in historical comparisons for recent data
+
+---
 
 ## Keywords
-real estate, housing market, ZIP code, postal code, listing prices, inventory metrics, market trends, property data, housing analytics, residential real estate, market statistics, price changes, days on market, listing activity
+
+real estate, housing, inventory, listings, prices, zip code, postal code, market metrics, median price, average price, days on market, pending ratio, active listings, price per square foot, month over month, year over year, housing supply, market velocity, price reductions, new listings, geographic analysis, US real estate, property metrics, market trends, time series
+
+---
 
 ## Table and Column Documentation
-**Table Comment**: Not provided
-**Column Comments**: Not provided
+
+**Table Comment:** Not provided
+
+**Column Comments:**
+- No column-level comments were found in the schema. All column descriptions are inferred from data analysis.

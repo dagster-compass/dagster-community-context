@@ -12,123 +12,145 @@ columns:
 schema_hash: 8d18bf7a6f7507a4934d9a243691576a28d116f16ef8b6afd652dbb350651cc4
 
 ---
-# compass-bigquery-demo.github_dataset.temporal_analysis Summary
+# Comprehensive Summary: temporal_analysis Table
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 955
-- **Data Quality**: Excellent - no null values across any columns
-- **Dataset Nature**: This appears to be an aggregated temporal analysis of GitHub repository activity, with each row representing a unique combination of time dimensions and activity level buckets
-- **Notable Patterns**: 
-  - Data spans from 2015-2024 (11 years)
-  - Heavy skew toward "Very High" activity levels in multiple dimensions
-  - Wide range in unique_repos (1 to 292,500) suggesting diverse activity patterns
+**Total Rows:** 955
+
+**General Data Quality:**
+- Excellent data quality with 0% null values across all columns
+- Complete dataset with no missing data points
+- All columns are fully populated
+
+**Dataset Description:**
+This table contains temporal and activity analysis of GitHub repository data, tracking commit patterns across various dimensions including time, activity levels, and repository metrics. The data spans from 2015 to 2025 (11 years) and aggregates repository activity by unique repository counts across multiple categorical dimensions.
+
+**Notable Patterns:**
+- Data represents aggregated metrics rather than individual records
+- Highly dimensional data with multiple bucketing/categorization columns
+- Focus on temporal patterns (year, month, day type, time of day)
+- Activity segmentation across multiple hierarchical levels (minimal to very high)
 
 ## Column Details
 
-### unique_repos (INT64)
-- **Type**: Numeric count/aggregation field
-- **Null Values**: None (0.00%)
-- **Distribution**: Wide range from 1 to 292,500 repositories
-- **Pattern**: Likely represents the count of unique repositories for each temporal/activity combination
-- **Usage**: Primary metric for measuring repository diversity
+### **day_type** (STRING)
+- Binary classification of days
+- **Values:** "Weekday" or "Weekend"
+- **Distribution:** 2 unique values with complete coverage
+- Used for analyzing work vs. leisure time patterns in commits
 
-### commit_year (INT64)
-- **Type**: Temporal dimension (year)
-- **Null Values**: None (0.00%)
-- **Range**: 2015-2025 (note: 2025 may be partial/future data)
-- **Distribution**: Complete coverage across 11 years
-- **Usage**: Key temporal filter and grouping dimension
+### **commit_month** (INT64)
+- Represents calendar months
+- **Range:** 1 to 12 (January to December)
+- **Format:** Numeric representation
+- All 12 months represented in the dataset
+- Enables seasonal and monthly trend analysis
 
-### commit_month (INT64)
-- **Type**: Temporal dimension (month)
-- **Null Values**: None (0.00%)
-- **Range**: 1-12 (standard months)
-- **Distribution**: Complete monthly coverage
-- **Usage**: Seasonal analysis and monthly trend filtering
+### **unique_repos** (INT64)
+- Count of unique repositories
+- **Range:** 1 to 292,500 repositories
+- **High Cardinality:** 765 unique values
+- **Distribution:** Wide variance from single repos to hundreds of thousands
+- Key metric for measuring repository diversity in each segment
 
-### day_type (STRING)
-- **Type**: Categorical temporal dimension
-- **Null Values**: None (0.00%)
-- **Values**: "Weekday", "Weekend" (2 categories)
-- **Usage**: Business vs. leisure time analysis
+### **commit_year** (INT64)
+- Year of commit activity
+- **Range:** 2015 to 2025
+- **Coverage:** 11 years of historical data
+- **Values:** 2015-2024 confirmed present
+- Enables year-over-year trend analysis
 
-### time_period (STRING)
-- **Type**: Categorical temporal dimension
-- **Null Values**: None (0.00%)
-- **Values**: 4 time periods covering full day
-  - "Night (0-5)"
+### **time_period** (STRING)
+- Categorizes time of day into 4 periods
+- **Values:**
   - "Morning (6-11)"
   - "Afternoon (12-17)"
   - "Evening (18-23)"
-- **Usage**: Daily activity pattern analysis
+  - "Night (0-5)"
+- Uses 24-hour bucketing for circadian pattern analysis
 
-### activity_level_bucket (STRING)
-- **Type**: Categorical activity dimension
-- **Null Values**: None (0.00%)
-- **Values**: 4 buckets representing commit volume ranges
+### **contributor_level_bucket** (STRING)
+- Categorizes contributor activity levels
+- **3 Tiers:**
+  - "Minimal (<10)"
+  - "High (1K-9.9K)"
+  - "Very High (10K+)"
+- Notable gap: No "Low" or "Medium" tier between Minimal and High
+- Measures contributor engagement intensity
+
+### **activity_level_bucket** (STRING)
+- Overall activity level classification
+- **4 Tiers:**
   - "Minimal (<100)"
   - "Low (100-999)"
   - "High (10K-99K)"
   - "Very High (100K+)"
-- **Usage**: Activity volume segmentation
+- Most granular activity classification in the dataset
+- Enables detailed activity segmentation
 
-### contributor_level_bucket (STRING)
-- **Type**: Categorical contributor dimension
-- **Null Values**: None (0.00%)
-- **Values**: 3 buckets representing contributor count ranges
-  - "Minimal (<10)"
-  - "High (1K-9.9K)"
-  - "Very High (10K+)"
-- **Usage**: Contributor density analysis
-
-### repo_activity_level_bucket (STRING)
-- **Type**: Categorical repository activity dimension
-- **Null Values**: None (0.00%)
-- **Values**: 4 buckets representing repository activity levels
+### **repo_activity_level_bucket** (STRING)
+- Repository-specific activity classification
+- **4 Tiers:**
   - "Minimal (<10)"
   - "Low (10-99)"
   - "High (1K-9.9K)"
   - "Very High (10K+)"
-- **Usage**: Repository activity classification
+- Parallel structure to activity_level_bucket but different thresholds
+- Measures repository-level engagement
 
-### message_length_bucket (STRING)
-- **Type**: Categorical commit message dimension
-- **Null Values**: None (0.00%)
-- **Values**: 4 buckets representing commit message lengths
-  - "Very Short (<50)"
+### **message_length_bucket** (STRING)
+- Commit message length categorization
+- **4 Tiers:**
+  - "Very Short (<50)" - Most common in samples
   - "Short (50-99)"
-  - "Medium (100-199)"
+  - "Medium (100-199)" - Frequently observed
   - "Long (200+)"
-- **Usage**: Commit message analysis and developer behavior patterns
+- Character-based bucketing for commit message analysis
+
+## Table and Column Docs
+
+No table-level comment or column-level comments are provided in the source data.
 
 ## Potential Query Considerations
 
-### Good for Filtering
-- **commit_year**: Time-based filtering for trend analysis
-- **commit_month**: Seasonal pattern analysis
-- **day_type**: Weekday vs. weekend behavior analysis
-- **time_period**: Daily activity pattern filtering
-- All bucket columns for activity level segmentation
+### **Excellent Filtering Columns:**
+- `commit_year` - Time-based filtering, trend analysis
+- `commit_month` - Seasonal patterns, monthly comparisons
+- `day_type` - Weekday vs. weekend analysis
+- `time_period` - Time-of-day patterns
+- All bucket columns for activity segmentation
 
-### Good for Grouping/Aggregation
-- **Temporal dimensions**: commit_year, commit_month, day_type, time_period for time-series analysis
-- **Activity buckets**: All bucket columns for comparative analysis across activity levels
-- **Combined grouping**: Multi-dimensional analysis (e.g., year + month + day_type)
+### **Ideal Grouping/Aggregation Columns:**
+- `commit_year` + `commit_month` - Time series analysis
+- `day_type` + `time_period` - Temporal pattern discovery
+- Any combination of bucket columns - Multi-dimensional analysis
+- `time_period` - Daily activity distribution
 
-### Potential Relationships
-- No obvious foreign keys, but this appears to be a fact table from a larger dimensional model
-- The unique_repos field serves as the primary metric
-- All other columns appear to be dimension attributes
+### **Key Metrics for Aggregation:**
+- `unique_repos` - SUM, AVG, MAX, MIN operations
+- COUNT(*) for distribution analysis across dimensions
 
-### Data Quality Considerations
-- **Excellent data completeness**: No null handling required
-- **Consistent bucketing**: All categorical fields use clear, non-overlapping ranges
-- **Temporal completeness**: Full coverage across years and months
-- **Range validation**: May want to validate commit_year doesn't include unrealistic future dates
+### **Relationship Indicators:**
+- No explicit foreign keys present
+- Likely derived from a more granular commits table
+- Represents pre-aggregated analytical data
+- May join with repository metadata tables on temporal dimensions
+
+### **Data Quality Considerations:**
+
+1. **Complete Data:** Zero nulls make queries straightforward without NULL handling
+
+2. **Bucket Consistency:** All bucket columns use string labels with numeric ranges in parentheses - parse carefully if extracting numeric values
+
+3. **Time Range:** Data includes 2025 (future year as of context) - verify data freshness and completeness
+
+4. **Aggregation Level:** This is pre-aggregated data - unique_repos represents counts, not individual records
+
+5. **Wide Value Ranges:** unique_repos ranges from 1 to 292,500 - consider LOG scales for visualizations
+
+6. **Categorical Consistency:** All bucket labels follow consistent naming patterns with ranges in parentheses
 
 ## Keywords
-temporal analysis, github dataset, repository activity, commit patterns, time series, activity buckets, contributor levels, commit messages, weekday weekend patterns, daily activity periods, seasonal trends, repository metrics, developer behavior, bigquery analytics
 
-## Table and Column Docs
-No table comment or column comments are provided in the source data.
+temporal analysis, github data, commit patterns, repository activity, time series, weekday weekend analysis, contributor metrics, activity levels, commit messages, BigQuery, github dataset, temporal patterns, activity buckets, time periods, monthly trends, yearly trends, repository counts, commit timing, developer activity, code contribution patterns, circadian analysis, seasonal patterns, engagement metrics

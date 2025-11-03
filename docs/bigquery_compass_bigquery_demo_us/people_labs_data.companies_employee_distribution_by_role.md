@@ -6,73 +6,105 @@ columns:
 schema_hash: 51368c4f020428e9d698aaf80c8cd3744fb72c34ed4d1d8ed34fc89cbe090029
 
 ---
-# Dataset Summary: people_labs_data.companies_employee_distribution_by_role
+# Table Summary: people_labs_data.companies_employee_distribution_by_role
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 22,588,172 records
-- **Data Quality**: Excellent - no null values across all columns (0.00% null rate)
-- **Structure**: This appears to be a fact table containing employee distribution data across different roles within companies
-- **Scale**: Large dataset with over 10 million unique companies and comprehensive role coverage
-- **Distribution Pattern**: The data shows a wide range of employee counts (1 to 303,046), suggesting coverage of companies from small startups to large enterprises
+**Total Rows:** 22,588,172
+
+**General Description:** This table contains employee distribution data across different roles for companies. It represents a many-to-many relationship where each company can have multiple role entries, with each entry showing the count of employees in that specific role.
+
+**Data Quality:** Excellent - no null values detected in any column (0.00% null percentage across all fields).
+
+**Key Patterns:**
+- The dataset covers over 10 million unique companies
+- Employee counts range from 1 to 303,046 per role per company, suggesting coverage from small startups to large enterprises
+- 24 distinct role categories are tracked
+- Most entries appear to have small employee counts (1-10), with 303,046 being an outlier maximum
 
 ## Column Details
 
-### role (STRING)
-- **Data Type**: String/categorical
-- **Completeness**: 100% populated (0% nulls)
-- **Cardinality**: 24 distinct role categories
-- **Key Values**: advisory, analyst, creative, education, engineering, finance, fulfillment, health, hospitality, human_resources, other_uncategorized
-- **Usage Pattern**: Categorical dimension for role-based analysis
-- **Note**: "other_uncategorized" appears frequently in samples, suggesting this is a catch-all category
+### 1. company_id (STRING)
+- **Type:** String identifier
+- **Nulls:** None (0.00%)
+- **Cardinality:** 10,078,178 unique companies
+- **Format:** Alphanumeric hash-like identifiers (e.g., "nBb7d4SMLIS95ywqvDKirQFaHdEv")
+- **Purpose:** Primary identifier for companies; serves as the linking key to other company-related tables
+- **Distribution:** High cardinality indicates this is a granular company-level dataset
 
-### employee_count (INT64)
-- **Data Type**: Integer
-- **Completeness**: 100% populated (0% nulls)
-- **Range**: 1 to 303,046 employees
-- **Cardinality**: 5,454 unique values
-- **Distribution**: Heavily skewed toward smaller counts (samples show many 1-employee entries)
-- **Usage Pattern**: Quantitative measure for aggregations and size-based filtering
+### 2. role (STRING)
+- **Type:** Categorical string
+- **Nulls:** None (0.00%)
+- **Cardinality:** 24 unique values
+- **Known Values Include:**
+  - advisory
+  - analyst
+  - creative
+  - education
+  - engineering
+  - finance
+  - fulfillment
+  - health
+  - hospitality
+  - human_resources
+  - operations
+  - product
+  - professional_service
+  - research
+  - other_uncategorized
+- **Pattern:** Snake_case naming convention for multi-word roles
+- **Purpose:** Categorizes employee functions within companies
 
-### company_id (STRING)
-- **Data Type**: String identifier
-- **Completeness**: 100% populated (0% nulls)
-- **Cardinality**: 10,078,178 unique companies
-- **Format**: Alphanumeric hash-like identifiers (e.g., "1tWCcdHnvHnM72CcGBZaAg1LO9zR")
-- **Usage Pattern**: Primary key for company identification and joining
+### 3. employee_count (INT64)
+- **Type:** Integer
+- **Nulls:** None (0.00%)
+- **Range:** 1 to 303,046
+- **Cardinality:** 5,454 unique values
+- **Distribution:** Heavily skewed toward lower values (sample shows mostly 1-3), with maximum of 303,046 indicating large enterprise presence
+- **Purpose:** Quantifies the number of employees in each role per company
 
 ## Potential Query Considerations
 
-### Filtering Opportunities
-- **role**: Excellent for filtering by specific job functions or role categories
-- **employee_count**: Good for size-based filtering (e.g., companies with >100 employees in engineering)
-- **company_id**: Useful for company-specific analysis
+### Filtering Recommendations:
+- **role:** Excellent for filtering by job function categories (24 distinct values make it efficient)
+- **employee_count:** Good for filtering by company size thresholds (e.g., `WHERE employee_count > 100`)
+- **company_id:** Essential for company-specific analysis
 
-### Grouping/Aggregation Potential
-- **role**: Primary dimension for role-based analytics and comparisons
-- **employee_count**: Can be aggregated (SUM, AVG, MAX) to understand company sizes and role distributions
-- **company_id**: Can group to get total employees per company across all roles
+### Grouping/Aggregation Opportunities:
+- **By role:** Calculate total employees across roles, identify most common roles
+- **By company_id:** Get total employee distribution per company across all roles
+- **By employee_count ranges:** Segment companies by size (small, medium, large)
+- **Combined groupings:** Role distribution analysis by company size segments
 
-### Join Considerations
-- **company_id**: Primary key for joining with other company-related tables
-- This appears to be a normalized fact table that would benefit from dimension tables with company metadata
+### Join Considerations:
+- **company_id** is the natural join key to other company tables
+- This table likely joins with:
+  - Company master/profile tables
+  - Company metadata (industry, location, funding, etc.)
+  - Other employee-related tables
 
-### Data Quality Considerations
-- **Completeness**: Excellent data quality with no missing values
-- **Granularity**: One row per company-role combination
-- **Potential Duplicates**: Should verify no duplicate company_id + role combinations exist
-- **Scale Considerations**: Large dataset may require partitioning strategies for optimal query performance
-- **Role Standardization**: The "other_uncategorized" category suggests some roles may not be properly classified
+### Data Quality Considerations:
+- No missing data handling required (0% nulls)
+- Consider that a company may appear multiple times (once per role)
+- The "other_uncategorized" role may need special handling in analysis
+- Maximum employee_count (303,046) suggests possible data aggregation at enterprise level
+- Sum of employee_counts per company_id would give total company size
+
+### Performance Tips:
+- company_id and role combination likely represents the grain of the table
+- Queries filtering on specific roles will be efficient
+- Aggregations by role will be performant due to low cardinality (24 values)
+- Consider indexing on company_id for join performance
 
 ## Keywords
 
-employee distribution, company roles, workforce analytics, organizational structure, role-based analysis, company size, employee count, job functions, human resources data, organizational charts, staff distribution, company demographics, workforce composition, role categories, people analytics
+company employees, employee distribution, workforce composition, organizational structure, role analysis, job functions, company staffing, headcount by role, employee segmentation, workforce analytics, company size, human resources data, organizational roles, employee counts, staff allocation, company workforce, employment data, role categories, people analytics, company intelligence
 
 ## Table and Column Documentation
 
-**Table Comment**: Not provided
+**Table Comment:** Not provided in the analysis report.
 
-**Column Comments**: 
-- role: Not provided
-- employee_count: Not provided  
+**Column Comments:** 
 - company_id: Not provided
+- role: Not provided  
+- employee_count: Not provided

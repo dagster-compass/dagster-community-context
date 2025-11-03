@@ -6,72 +6,90 @@ columns:
 schema_hash: ff4c4d9126f8ac82b4a56d344f64cdefa61b08063949cfbe8f312bd99b8c0a9c
 
 ---
-# Property Taxes State County Dataset Summary
+# Data Summary: Property Taxes by State and County
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 3,221 records
-- **Data Quality**: High quality dataset with minimal missing data (only 0.56% null values in the tax amount column)
-- **Geographic Coverage**: Comprehensive coverage of US counties across all 50 states plus District of Columbia (52 total state/territory entities)
-- **Data Source**: 2021 5-year estimate data, indicating this is likely American Community Survey (ACS) data
-- **Notable Patterns**: 
-  - Wide range of property tax values ($200 to $10,000) reflecting significant geographic variation
-  - Nearly complete geographic coverage with 1,955 unique counties represented
-  - Clean, standardized naming conventions for states and counties
+**Total Records:** 3,221 rows
+
+**Dataset Description:** This table contains median property tax information at the county level across the United States, based on 2021 5-year estimates. The dataset provides comprehensive coverage of US counties with property tax data.
+
+**Data Quality:** High quality overall with minimal missing data (only 0.56% nulls in the median property tax column). The dataset appears complete with no nulls in geographic identifiers (state and county).
+
+**Notable Patterns:**
+- Coverage spans 52 states/territories (including DC and US territories)
+- 1,955 unique counties represented (approximately 60% of US counties)
+- Property tax range is substantial: $200 to $10,000, indicating significant geographic variation in property tax burdens
+- The 5-year estimate methodology suggests aggregated/smoothed data rather than point-in-time snapshots
 
 ## Column Details
 
 ### state (STRING)
-- **Data Type**: String with full state names
-- **Completeness**: 100% complete (0% null values)
-- **Distribution**: 52 unique values covering all US states plus DC
-- **Format**: Full state names (e.g., "Michigan", "South Carolina", "Alabama")
-- **Query Considerations**: Excellent for geographic filtering and grouping by state
+**Data Type:** String (categorical)
+**Completeness:** 100% (no nulls)
+**Cardinality:** 52 unique values
+**Description:** US state or territory names in full text format (e.g., "Alabama", "California", "District of Columbia")
+**Sample Values:** Pennsylvania, Illinois, Kansas, Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware, Florida
+**Usage Notes:** Standardized state names; includes DC and likely US territories to reach 52 values
 
 ### county (STRING)
-- **Data Type**: String with county names including "County" suffix
-- **Completeness**: 100% complete (0% null values)
-- **Distribution**: 1,955 unique counties (high cardinality)
-- **Format**: Standardized format with "County" suffix (e.g., "Hand County", "Carroll County")
-- **Query Considerations**: Good for specific county lookups; note that county names may repeat across states
+**Data Type:** String (categorical)
+**Completeness:** 100% (no nulls)
+**Cardinality:** 1,955 unique values
+**Description:** County names including the word "County" suffix (e.g., "Sherman County", "Steuben County")
+**Sample Values:** Aurora County, Cherry County, Manassas Park, Sherman County, Steuben County, Preble County, Lorain County, Sedgwick County
+**Format Pattern:** Generally follows "[Name] County" format, though exceptions exist (e.g., "Manassas Park")
+**Usage Notes:** County names may not be globally unique; must be combined with state for unique identification
 
 ### median_property_taxes_paid_by_county_2021_5_year_estimate (INT64)
-- **Data Type**: Integer representing dollar amounts
-- **Completeness**: 99.44% complete (0.56% null values - 18 missing records)
-- **Distribution**: 1,946 unique values ranging from $200 to $10,000
-- **Sample Values**: $541, $2,831, $856, $1,094, $1,518
-- **Query Considerations**: Primary metric for analysis, aggregation, and comparison
+**Data Type:** Integer (numeric)
+**Completeness:** 99.44% (0.56% nulls = ~18 records with missing values)
+**Cardinality:** 1,946 unique values
+**Range:** $200 to $10,000
+**Sample Values:** 1,674, 644, 1,746, 1,784, 1,021, 1,617, 2,687, 2,007
+**Distribution Characteristics:** 
+- Wide range suggests significant geographic variation
+- Values appear to be in whole dollars (no cents)
+- The 5-year estimate indicates this is Census Bureau data (likely American Community Survey)
+**Usage Notes:** NULL values represent counties where data was unavailable or unreliable; users should handle nulls appropriately in calculations
 
 ## Potential Query Considerations
 
-### Filtering Opportunities
-- **Geographic filtering**: Filter by specific states or regions
-- **Tax range filtering**: Filter counties by property tax brackets (low, medium, high)
-- **Data completeness**: May want to exclude records with null tax values
+### Recommended for Filtering:
+- **state:** Excellent for geographic filtering; use for state-level analysis or multi-state comparisons
+- **median_property_taxes_paid_by_county_2021_5_year_estimate:** Good for range queries (e.g., counties with taxes above/below thresholds)
 
-### Grouping/Aggregation Opportunities
-- **State-level analysis**: GROUP BY state for state comparisons
-- **Regional analysis**: Can group states into regions for broader geographic analysis
-- **Tax bracket analysis**: Create buckets/ranges of tax amounts for distribution analysis
-- **Statistical aggregations**: Calculate state averages, medians, min/max values
+### Recommended for Grouping/Aggregation:
+- **state:** Primary grouping dimension for state-level rollups (AVG, MIN, MAX, COUNT of counties per state)
+- Combined **state + county:** For ensuring unique geographic identification
 
-### Join Considerations
-- **Primary Keys**: Combination of (state, county) forms a natural composite key
-- **Potential Joins**: Can join with other county-level demographic or economic datasets
-- **Geographic Relationships**: Can join with state-level data using the state column
+### Join Key Considerations:
+- **Primary Key:** Combination of (state, county) provides unique record identification
+- **Join Potential:** Can join with other geographic datasets using state and/or county fields
+- **Caution:** County names alone are NOT unique (e.g., "Washington County" exists in multiple states)
 
-### Data Quality Considerations
-- **Missing Values**: 18 records (0.56%) have null property tax values - consider how to handle in aggregations
-- **County Name Standardization**: County names include "County" suffix consistently
-- **State Name Format**: Uses full state names rather than abbreviations - may need conversion for joins with other datasets
-- **Currency Format**: Tax values are in whole dollars (no cents), suitable for most financial analyses
+### Data Quality Considerations:
+- Account for 18 records (~0.56%) with NULL median property tax values in aggregations
+- Use COALESCE or WHERE clauses to handle nulls when computing averages or comparisons
+- State names are spelled out (not abbreviated), so joins requiring state codes will need mapping
+- Property tax values are estimates, not exact amounts; appropriate for comparative analysis but not precise tax calculations
+- Time period is 5-year estimate ending 2021; data may not reflect current conditions for queries run in later years
+
+### Analytical Use Cases:
+- **Ranking queries:** Identify highest/lowest property tax counties or states
+- **Distribution analysis:** Percentile calculations, histogram groupings
+- **Geographic comparisons:** State-to-state or regional comparisons
+- **Outlier detection:** Identify counties with unusual property tax patterns
+- **Coverage analysis:** Identify states/regions with missing data
 
 ## Keywords
 
-Property taxes, county data, state data, real estate, tax assessment, geographic analysis, ACS data, American Community Survey, median taxes, county-level statistics, US counties, state comparison, tax burden, real estate taxation
+property tax, real estate tax, county tax, state tax, median taxes, US counties, American Community Survey, ACS, Census data, 2021 estimates, geographic data, tax burden, local taxes, county-level data, state-level aggregation, real estate economics, housing costs, property assessment, tax analysis, geographic analysis
 
 ## Table and Column Documentation
 
-**Table Comment**: Not provided in the analysis
+**Table Comment:** Not provided in the analysis report
 
-**Column Comments**: No column comments were provided in the analysis
+**Column Comments:** Not provided in the analysis report
+
+The column name `median_property_taxes_paid_by_county_2021_5_year_estimate` is self-documenting, indicating this represents the median (middle value) of property taxes paid within each county, based on a 5-year data collection period ending in 2021, consistent with American Community Survey methodology.

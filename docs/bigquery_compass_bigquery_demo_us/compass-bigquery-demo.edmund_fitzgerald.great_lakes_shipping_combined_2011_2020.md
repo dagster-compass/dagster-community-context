@@ -14,155 +14,146 @@ columns:
 schema_hash: 4f9db89dc501bb2fb2a50d3498e442da1471a165111c08db72869fd67986ad57
 
 ---
-# Comprehensive Data Summary: Great Lakes Shipping Combined 2011-2020
+# Table Documentation Summary: great_lakes_shipping_combined_2011_2020
 
 ## Overall Dataset Characteristics
 
-**Total Rows:** 11 rows (representing years 2011-2021, though the table name suggests 2011-2020)
+**Total Rows:** 11
 
-**General Data Quality:**
-- This is a high-quality, small time-series dataset with minimal missing data
-- Only 4 columns have null values: `slag`, `coal_lignite`, `salt`, and `value_iron_ore`, and `value_limestone` - all with exactly 9.09% (1 row) missing
-- All numeric values are FLOAT64 type except for `year` (INT64)
-- Data appears to represent shipping volumes or rates for various commodities on the Great Lakes
+**Dataset Description:** This table contains aggregated shipping data for various commodities transported across the Great Lakes from 2011-2020 (despite the table name, data appears to extend through 2021 based on year range). The dataset represents annual measurements of shipping volumes for different cargo types including bulk materials, minerals, and agricultural products.
+
+**Data Quality:** 
+- Generally high quality with most columns having complete data
+- Four columns (slag, coal_lignite, salt, value_iron_ore, value_limestone) have approximately 9.09% null values (1 row missing)
+- Small dataset size (11 rows) suggests annual aggregation
+- All numeric columns appear to contain ratio or normalized values rather than raw tonnage
 
 **Notable Patterns:**
-- The dataset shows annual aggregated data for Great Lakes shipping commodities
-- Values appear to be normalized or represent rates per unit (possibly millions of tons or similar)
-- Some commodities show negative values (wheat, petroleum_coke), suggesting possible year-over-year changes or adjusted metrics
-- Iron ore and limestone show the highest absolute values (44-55 range for iron ore, 18-22 range for limestone)
-- Wheat shows the most variation including negative values, suggesting volatility in that commodity
+- Data spans consecutive years from 2011-2021
+- Most values appear to be normalized or calculated metrics (many floating-point ratios/percentages)
+- Iron ore and limestone show the highest absolute values (44-56 and 18-22 ranges respectively)
+- Several commodities show negative values (wheat, petroleum_coke), suggesting possible year-over-year change calculations or standardized scores
 
-**Table Comment:** Not provided
+## Column Details
 
----
+### year (INT64)
+- **Type:** Integer, primary temporal dimension
+- **Range:** 2011 to 2021
+- **Nulls:** None (0%)
+- **Pattern:** Consecutive annual data
+- **Comment:** None provided
+- **Usage:** Primary key candidate, essential for time-series analysis
 
-## Column-by-Column Analysis
+### slag (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 0.256 to 0.919
+- **Nulls:** 9.09% (1 missing value)
+- **Distribution:** Moderate variation, all positive values between 0-1
+- **Comment:** None provided
+- **Usage:** Likely represents shipping volume proportion or efficiency metric for slag (steel industry byproduct)
 
-### **year** (INT64)
-- **Purpose:** Time dimension - primary key for annual data
-- **Range:** 2011 to 2021 (11 consecutive years)
-- **Data Quality:** Complete (0% null), unique values for each row
-- **Comment:** Not provided
+### wheat (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** -0.354 to 2.133
+- **Nulls:** None (0%)
+- **Distribution:** Includes negative values, suggesting normalized/standardized measurements
+- **Comment:** None provided
+- **Usage:** Agricultural commodity metric, possibly year-over-year change or z-score
 
-### **wheat** (FLOAT64)
-- **Range:** -0.35 to 2.13
-- **Data Quality:** Complete (0% null)
-- **Pattern:** Shows both negative and positive values, suggesting this may represent year-over-year changes or normalized deviations from a baseline
-- **Distribution:** Most values are negative or near zero, with one significant positive outlier (2.13)
-- **Comment:** Not provided
+### cement_concrete (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 4.132 to 5.343
+- **Nulls:** None (0%)
+- **Distribution:** Relatively stable, clustered around 4-5 range
+- **Comment:** None provided
+- **Usage:** Construction materials shipping metric
 
-### **sand_gravel** (FLOAT64)
-- **Range:** 1.11 to 3.73
-- **Data Quality:** Complete (0% null)
-- **Pattern:** All positive values, relatively stable with most values between 1-3
-- **Distribution:** Fairly consistent across years with one high value (3.73)
-- **Comment:** Not provided
+### sand_gravel (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 1.113 to 3.731
+- **Nulls:** None (0%)
+- **Distribution:** Moderate spread, all positive values
+- **Comment:** None provided
+- **Usage:** Aggregate materials shipping volume indicator
 
-### **cement_concrete** (FLOAT64)
-- **Range:** 4.13 to 5.34
-- **Data Quality:** Complete (0% null)
-- **Pattern:** All positive values, showing the most stability among all commodities
-- **Distribution:** Tightly clustered between 4-5, indicating consistent shipping volumes
-- **Comment:** Not provided
+### petroleum_coke (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** -0.090 to 3.930
+- **Nulls:** None (0%)
+- **Distribution:** Wide range including small negative values
+- **Comment:** None provided
+- **Usage:** Petroleum industry byproduct shipping metric
 
-### **slag** (FLOAT64)
-- **Range:** 0.26 to 0.92
-- **Data Quality:** 9.09% null (1 missing value)
-- **Pattern:** All positive values when present, lower magnitude than most other commodities
-- **Distribution:** Relatively low values, ranging from 0.26 to 0.92
-- **Comment:** Not provided
+### asphalt_tar_pitch (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 0.783 to 5.187
+- **Nulls:** None (0%)
+- **Distribution:** Wide range, all positive values
+- **Comment:** None provided
+- **Usage:** Petroleum-based construction materials metric
 
-### **coal_lignite** (FLOAT64)
-- **Range:** 7.35 to 23.08
-- **Data Quality:** 9.09% null (1 missing value)
-- **Pattern:** All positive values, highly variable
-- **Distribution:** Wide range suggesting significant year-to-year fluctuations in coal shipping
-- **Comment:** Not provided
+### salt (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 3.708 to 6.335
+- **Nulls:** 9.09% (1 missing value)
+- **Distribution:** Moderate range, higher absolute values
+- **Comment:** None provided
+- **Usage:** Bulk mineral commodity shipping indicator
 
-### **petroleum_coke** (FLOAT64)
-- **Range:** -0.09 to 3.93
-- **Data Quality:** Complete (0% null)
-- **Pattern:** Mostly positive with two slightly negative values
-- **Distribution:** Variable, with most values under 1.0 but some reaching 3.93
-- **Comment:** Not provided
+### coal_lignite (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 7.346 to 23.084
+- **Nulls:** 9.09% (1 missing value)
+- **Distribution:** Highest variability, largest absolute values
+- **Comment:** None provided
+- **Usage:** Energy commodity metric, shows significant year-to-year variation
 
-### **salt** (FLOAT64)
-- **Range:** 3.71 to 6.33
-- **Data Quality:** 9.09% null (1 missing value)
-- **Pattern:** All positive values when present
-- **Distribution:** Mid-range values, relatively consistent between 3.7-6.3
-- **Comment:** Not provided
+### value_iron_ore (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 44.988 to 55.749
+- **Nulls:** 9.09% (1 missing value)
+- **Distribution:** Highest absolute values in dataset, relatively stable
+- **Comment:** None provided
+- **Usage:** Primary iron ore shipping value/volume - likely most economically significant commodity
 
-### **asphalt_tar_pitch** (FLOAT64)
-- **Range:** 0.78 to 5.19
-- **Data Quality:** Complete (0% null)
-- **Pattern:** All positive values
-- **Distribution:** Variable, ranging from 0.78 to 5.19, suggesting fluctuating demand
-- **Comment:** Not provided
-
-### **value_limestone** (FLOAT64)
-- **Range:** 18.00 to 22.44
-- **Data Quality:** 9.09% null (1 missing value)
-- **Pattern:** All positive values, highest absolute values along with iron ore
-- **Distribution:** Consistently high values, suggesting limestone is a major shipping commodity
-- **Comment:** Not provided
-
-### **value_iron_ore** (FLOAT64)
-- **Range:** 44.99 to 55.75
-- **Data Quality:** 9.09% null (1 missing value)
-- **Pattern:** All positive values, the highest absolute values in the dataset
-- **Distribution:** Consistently very high values (45-56 range), indicating iron ore is the dominant commodity
-- **Comment:** Not provided
-
----
-
-## Potential Query Considerations
-
-### **Filtering Columns:**
-- **year:** Primary filter for time-based queries (e.g., specific years, year ranges)
-- **All commodity columns:** Good for threshold-based filtering (e.g., years when iron ore exceeded 50)
-
-### **Grouping/Aggregation Columns:**
-- **year:** Natural grouping dimension for temporal analysis
-- Limited grouping potential due to small dataset and lack of categorical dimensions
-- Aggregations would primarily involve calculating averages, sums, min/max across years
-
-### **Join Keys:**
-- **year:** Could join with other time-series tables (economic indicators, weather data, etc.)
-- No other obvious foreign keys present
-
-### **Data Quality Considerations:**
-
-1. **Missing Values:** Queries involving `slag`, `coal_lignite`, `salt`, `value_limestone`, or `value_iron_ore` should handle nulls appropriately:
-   - Use `IS NOT NULL` filters when nulls would affect calculations
-   - Consider `COALESCE()` or `IFNULL()` for default values
-   - One year (likely 2011 or 2021) is missing data for these five columns
-
-2. **Negative Values:** Wheat and petroleum_coke can have negative values:
-   - These likely represent declines or adjusted metrics
-   - Avoid absolute value assumptions in aggregations
-   - Consider whether negative values should be excluded for certain analyses
-
-3. **Small Dataset:** With only 11 rows:
-   - Statistical analyses will have limited power
-   - Outlier detection should be used cautiously
-   - Trend analysis is possible but limited by sample size
-
-4. **Value Interpretation:** All values appear to be normalized or rate-based:
-   - Column names with "value_" prefix (limestone, iron ore) may represent monetary value vs. volume
-   - Consider the measurement unit when interpreting results
-
----
-
-## Keywords
-
-Great Lakes, shipping, commodities, maritime transport, bulk cargo, iron ore, limestone, coal, cement, wheat, sand, gravel, salt, petroleum coke, asphalt, slag, time series, annual data, 2011-2020, waterborne commerce, inland waterways, freight transport, commodity volumes, shipping rates, Great Lakes economy, bulk materials, industrial shipping
-
----
+### value_limestone (FLOAT64)
+- **Type:** Decimal/Float
+- **Range:** 18.003 to 22.438
+- **Nulls:** 9.09% (1 missing value)
+- **Distribution:** Moderate range, second-highest absolute values
+- **Comment:** None provided
+- **Usage:** Industrial mineral shipping metric
 
 ## Table and Column Documentation
 
-**Table Comment:** Not provided in the analysis report
+**Table Comment:** None provided
 
-**Column Comments:** No column-level comments were provided in the analysis report
+**Column Comments:** No column-level comments are present in the schema.
+
+## Query Considerations
+
+### Filtering Recommendations:
+- **year:** Ideal for time-range filters (WHERE year BETWEEN 2015 AND 2020)
+- **Complete data columns:** wheat, cement_concrete, sand_gravel, petroleum_coke, asphalt_tar_pitch have no nulls and are safe for all operations
+- **Nullable columns:** Consider NULL handling for slag, coal_lignite, salt, value_iron_ore, value_limestone
+
+### Grouping/Aggregation Opportunities:
+- **Temporal analysis:** GROUP BY year for trend analysis
+- **Year-over-year comparisons:** Use LAG/LEAD window functions with year ordering
+- **Commodity comparisons:** Pivot or aggregate across commodity columns
+- **Statistical analysis:** AVG, STDDEV calculations work well given normalized nature of data
+
+### Potential Relationships:
+- **Primary key:** year appears to be unique identifier (11 rows, 11 years)
+- **No explicit foreign keys:** This appears to be a fact table without obvious dimensional relationships
+- **Commodity correlations:** Multiple commodity columns may have inter-relationships (e.g., coal_lignite with value_iron_ore for steel production)
+
+### Data Quality Considerations:
+- **Missing data pattern:** The same row appears to be missing across multiple columns (9.09% = 1/11 rows)
+- **Scale differences:** Queries comparing commodities must account for different value ranges (wheat: -0.35 to 2.13 vs coal_lignite: 7.35 to 23.08)
+- **Negative values:** Some commodities have negative values - verify interpretation before aggregation
+- **Small sample size:** 11 rows limits statistical analysis and requires careful interpretation of trends
+- **NULL handling:** Use COALESCE or WHERE IS NOT NULL for columns with missing data
+
+### Keywords:
+Great Lakes, shipping, maritime, cargo, bulk commodities, freight, iron ore, limestone, coal, lignite, slag, wheat, cement, concrete, sand, gravel, petroleum coke, salt, asphalt, tar, pitch, transportation, logistics, 2011-2020, annual data, time series, commodity volumes, trade statistics, waterborne commerce, inland waterways, steel industry, construction materials, energy commodities, agricultural shipping, mineral resources, Edmund Fitzgerald

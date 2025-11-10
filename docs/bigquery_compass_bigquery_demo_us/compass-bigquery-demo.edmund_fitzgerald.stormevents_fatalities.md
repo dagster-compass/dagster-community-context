@@ -14,149 +14,158 @@ columns:
 schema_hash: c76da1b64b2bb0a2d5d5a621101afbfd88fb0da26913d7d55d6aa46ea546e2ef
 
 ---
-# Table Summary: compass-bigquery-demo.edmund_fitzgerald.stormevents_fatalities
+# Table Documentation Summary: stormevents_fatalities
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 24,480 records
-- **Time Span**: Data spans from 1951 to 2025 (195102 to 202505 in yearmonth format)
-- **Data Type**: Storm event fatality records tracking deaths and injuries from weather events
-- **Data Quality**: Generally good with some notable null patterns:
-  - Most columns have low null rates (<25%)
-  - `fatality_time` column is 97.44% null (largely unused)
-  - Some demographic data gaps (18-23% nulls for age and sex)
-- **Distribution Pattern**: Event-based fatality tracking with multiple fatalities often linked to single events (14,386 unique events for 24,480 fatalities)
+**Total Rows:** 24,480
+
+**General Description:** This table contains records of fatalities related to storm events, tracking demographic information, location, and temporal details of weather-related deaths from 1951 to 2025. The data appears to be part of a comprehensive storm events database tracking both direct (D) and indirect (I) fatalities.
+
+**Data Quality Observations:**
+- High-quality temporal data with minimal nulls in date fields
+- Significant missing data in demographic fields (age: 23.28%, sex: 18.42%)
+- fatality_time field is largely unusable (97.44% null)
+- Event linkage appears robust with event_id having no nulls
+- Some anomalous values exist (event_yearmonth showing 999999.0, likely indicating missing/unknown values)
+
+**Notable Patterns:**
+- Data spans approximately 74 years (1951-2025)
+- 20 distinct fatality locations tracked
+- Age distribution ranges from infants (0.0) to elderly (102.0)
+- Multiple fatalities can be linked to single storm events (14,386 unique events for 24,480 fatalities)
 
 ## Column Details
 
-### Identifier Columns
+### fatality_id (INT64)
+- **Type:** Integer, Primary identifier
+- **Nulls:** 0.00% - Excellent data quality
+- **Range:** 2 to 990,000,007
+- **Uniqueness:** 23,566 unique values (96.3% of total rows)
+- **Purpose:** Primary key for individual fatality records
+- **Query Considerations:** Good for exact matching and deduplication checks
 
-**fatality_id** (INT64)
-- Primary identifier for each fatality record
-- Range: 2 to 990,000,007
-- No nulls (0.00%)
-- 23,566 unique values out of 24,480 rows (some duplicate IDs exist)
-- Good for joins and unique record identification
+### event_id (INT64)
+- **Type:** Integer, Foreign key
+- **Nulls:** 0.00% - Complete data
+- **Range:** 445 to 990,000,003
+- **Uniqueness:** 14,386 unique events
+- **Purpose:** Links fatalities to storm events (multiple fatalities per event possible)
+- **Query Considerations:** Essential join key for connecting to event details; good for grouping to analyze multi-fatality events
 
-**event_id** (INT64)
-- Links fatalities to specific storm events
-- Range: 445 to 990,000,003
-- No nulls (0.00%)
-- 14,386 unique values (multiple fatalities per event common)
-- Key field for joining to storm event tables
-- Average ~1.7 fatalities per event
+### fatality_date (DATE)
+- **Type:** Date
+- **Nulls:** 0.07% - Near-complete data
+- **Range:** 1951-2025 (6,901 unique dates)
+- **Format:** YYYY-MM-DD
+- **Query Considerations:** Primary temporal filter; useful for time-series analysis, trending, and year-over-year comparisons
 
-### Temporal Columns
+### fatality_yearmonth (INT64)
+- **Type:** Integer representation of year-month
+- **Nulls:** 0.00% - Complete data
+- **Range:** 195102 to 202505 (695 unique values)
+- **Format:** YYYYMM (e.g., 201906 = June 2019)
+- **Query Considerations:** Excellent for monthly aggregations and time-based grouping without date parsing
 
-**fatality_date** (DATE)
-- Date of the fatality
-- Near-complete data (0.07% nulls)
-- 6,901 unique dates
-- Sample range: 1951 to 2025
-- Good for temporal filtering and trend analysis
+### fatality_day (INT64)
+- **Type:** Integer (day of month)
+- **Nulls:** 0.00%
+- **Range:** 0-31
+- **Note:** Value 0 appears anomalous (possibly indicating unknown day)
+- **Query Considerations:** Useful for day-of-month analysis patterns
 
-**fatality_yearmonth** (INT64)
-- Year-month composite in YYYYMM format
-- No nulls (0.00%)
-- 695 unique values
-- Range: 195102 to 202505
-- Excellent for monthly aggregations and time series
+### fatality_time (DATE)
+- **Type:** Date (likely TIME stored as DATE)
+- **Nulls:** 97.44% - **NOT RECOMMENDED FOR ANALYSIS**
+- **Pattern:** Non-null values appear as dates in 1700s range (1700-01-01 to 1715-01-01), suggesting time-of-day stored as date
+- **Query Considerations:** Largely unusable due to missing data; avoid in queries unless specifically filtering for records with time data
 
-**event_yearmonth** (FLOAT64)
-- Year-month of the associated event
-- Very low null rate (0.09%)
-- 611 unique values
-- Includes special value 999999.0 (likely indicates missing/unknown)
-- Range: 195102.0 to 999999.0
+### event_yearmonth (FLOAT64)
+- **Type:** Float representation of year-month
+- **Nulls:** 0.09% - Near-complete
+- **Range:** 195102.0 to 999999.0
+- **Special Values:** 999999.0 appears as placeholder for unknown/missing event dates
+- **Query Considerations:** Useful for event-to-fatality temporal analysis; filter out 999999.0 for valid temporal queries
 
-**fatality_day** (INT64)
-- Day of month (1-31, with 0 for unknown)
-- No nulls (0.00%)
-- 32 unique values (0-31)
-- Day 0 likely represents unknown day
+### fatality_age_years (FLOAT64)
+- **Type:** Float (age in years)
+- **Nulls:** 23.28% - Significant missing data
+- **Range:** 0.0 to 102.0 (103 unique values)
+- **Distribution:** Covers full lifespan from infants to elderly
+- **Query Considerations:** Useful for demographic analysis but requires null handling; can create age bands for aggregation
 
-**fatality_time** (DATE)
-- Intended for time of death but stored as DATE type
-- 97.44% null (mostly unused)
-- Only 145 unique values
-- Values appear malformed (1700-01-01 format suggests time stored incorrectly)
-- **NOT RECOMMENDED for queries**
+### fatality_sex (STRING)
+- **Type:** String (categorical)
+- **Nulls:** 18.42% - Moderate missing data
+- **Values:** 'M' (Male), 'F' (Female)
+- **Query Considerations:** Good for gender-based analysis; requires null handling for complete demographic profiles
 
-### Demographic Columns
+### fatality_type (STRING)
+- **Type:** String (categorical)
+- **Nulls:** 0.00% - Complete data
+- **Values:** 'D' (Direct), 'I' (Indirect)
+- **Purpose:** Classifies whether death was directly caused by storm or indirect consequence
+- **Query Considerations:** Essential for distinguishing immediate vs. secondary storm impacts; excellent filter/group by column
 
-**fatality_age_years** (FLOAT64)
-- Age of victim in years
-- 23.28% null (missing for ~1 in 4 records)
-- Range: 0.0 to 102.0
-- 103 unique values
-- Useful for age-based analysis when present
+### fatality_location (STRING)
+- **Type:** String (categorical)
+- **Nulls:** 5.62% - Good data quality
+- **Unique Values:** 20 distinct locations
+- **Common Categories:** 
+  - Permanent Home
+  - Vehicle/Towed Trailer
+  - Outside/Open Areas
+  - In Water
+  - Boating/Boat
+  - Business
+  - Camping
+  - Church
+  - Ball Field
+  - Golfing
+  - Heavy Equipment/Construction
+- **Query Considerations:** Excellent for location-based risk analysis; well-suited for grouping and filtering
 
-**fatality_sex** (STRING)
-- Gender of victim
-- 18.42% null
-- 2 values: 'M' (Male), 'F' (Female)
-- Good for demographic breakdowns
+## Potential Query Considerations
 
-### Classification Columns
+### Strong Filter Columns:
+1. **fatality_type** - Complete data, 2 clear categories
+2. **fatality_yearmonth** - Complete temporal data, good for date ranges
+3. **fatality_date** - Near-complete, precise temporal filtering
+4. **fatality_location** - Low nulls, meaningful categories
 
-**fatality_type** (STRING)
-- Type of fatality
-- No nulls (0.00%)
-- 2 values: 'D' (Direct), 'I' (Indirect)
-- 'D' = Direct fatality (directly caused by weather)
-- 'I' = Indirect fatality (indirectly related to weather event)
-- Critical for classification analysis
+### Good Grouping/Aggregation Columns:
+1. **fatality_yearmonth** - Monthly trend analysis
+2. **fatality_location** - Risk by location type
+3. **fatality_type** - Direct vs. indirect impact analysis
+4. **event_id** - Multi-fatality event analysis
+5. **fatality_age_years** - Age demographic patterns (with null handling)
 
-**fatality_location** (STRING)
-- Location where fatality occurred
-- 5.62% null
-- 20 unique categories
-- Common values: "Other", "Unknown", "Camping", "Permanent Home", "Mobile/Trailer Home", "Outside/Open Areas", "Boat", "Boating", "Business", "Church"
-- Other locations: Ball Field, Golfing, Heavy Equipment/Construction, In Water
-- Useful for risk location analysis
+### Join Keys:
+- **event_id** - Primary join key to related storm event tables
+- **fatality_id** - Unique identifier for deduplication or detailed lookups
 
-## Query Considerations
+### Data Quality Considerations:
+1. **Always filter out** event_yearmonth = 999999.0 for temporal analysis
+2. **Handle nulls** in age (23.28%) and sex (18.42%) for demographic queries
+3. **Avoid fatality_time** unless specifically needed (97% null)
+4. **Check for fatality_day = 0** which may indicate unknown day
+5. **Account for multiple fatalities per event** when aggregating by event_id
 
-### Best Columns for Filtering
-- **fatality_date**: Precise date filtering with minimal nulls
-- **fatality_yearmonth**: Efficient monthly filtering, no nulls
-- **fatality_type**: Clean binary classification (Direct/Indirect)
-- **event_id**: Linking to specific events
-- **fatality_day**: Day of month filtering
-
-### Best Columns for Grouping/Aggregation
-- **fatality_yearmonth**: Temporal trends (monthly)
-- **fatality_type**: Direct vs Indirect analysis
-- **fatality_location**: Location-based risk analysis
-- **fatality_sex**: Gender demographics
-- **event_id**: Fatalities per event analysis
-- **event_yearmonth**: Event-based temporal grouping
-
-### Potential Join Keys
-- **event_id**: Primary key for joining to storm events table
-- **fatality_id**: Unique identifier for this table
-- Date fields can join to temporal dimension tables
-
-### Data Quality Considerations
-1. **Avoid fatality_time**: 97% null and appears malformed
-2. **Handle nulls in demographics**: 18-23% missing for age and sex
-3. **Special values**: event_yearmonth = 999999.0 indicates missing data
-4. **Day 0**: In fatality_day represents unknown day
-5. **Duplicate fatality_ids**: Some IDs appear multiple times (23,566 unique vs 24,480 rows)
-6. **Location nulls**: 5.62% have "None" - combine with "Unknown" for analysis
-7. **Temporal consistency**: Check fatality_date vs fatality_yearmonth for consistency
-
-### Recommended Query Patterns
-- Filter by date ranges using fatality_date or fatality_yearmonth
-- Group by fatality_type for Direct vs Indirect analysis
-- Use event_id to count fatalities per storm event
-- Filter out event_yearmonth = 999999.0 for clean temporal analysis
-- Use COALESCE for handling null demographics
-- Consider fatality_location for spatial risk analysis
+### Recommended Query Patterns:
+- Time-series: Use fatality_yearmonth for efficient monthly aggregations
+- Demographics: JOIN age and sex but handle nulls appropriately
+- Location risk: GROUP BY fatality_location with fatality_type
+- Event severity: COUNT fatalities per event_id to identify major disasters
+- Temporal trends: Compare direct vs. indirect fatalities over time
 
 ## Keywords
-storm events, weather fatalities, deaths, injuries, NOAA, severe weather, casualties, storm deaths, meteorological fatalities, weather-related deaths, direct fatalities, indirect fatalities, disaster casualties, extreme weather, time series, temporal analysis, demographic analysis, fatality location, event casualties, storm impact
+
+storm fatalities, weather deaths, direct fatalities, indirect fatalities, storm casualties, natural disaster deaths, weather-related mortality, NOAA storm data, meteorological fatalities, severe weather deaths, demographic storm analysis, temporal storm analysis, fatality locations, age demographics, storm event casualties, disaster mortality tracking, weather hazard deaths, storm victim data, multi-fatality events, fatality time series
 
 ## Table and Column Documentation
 
-**Note**: No table-level comment or column-level comments were provided in the analysis report. This table appears to be part of the NOAA Storm Events Database tracking fatalities associated with severe weather events in the United States.
+**Table Comment:** Not provided
+
+**Column Comments:** Not provided
+
+This table represents a critical public safety dataset for analyzing weather-related mortality patterns, risk factors, and demographic vulnerabilities to severe weather events across more than seven decades of U.S. history.

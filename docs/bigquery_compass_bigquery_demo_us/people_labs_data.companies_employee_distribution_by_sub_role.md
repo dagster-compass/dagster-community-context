@@ -6,72 +6,118 @@ columns:
 schema_hash: c6987d74945b29e0ce9bfcf62f9e4d90258cb4b9064c7d6a108bb0bbbcffca93
 
 ---
-# Table Analysis Summary: people_labs_data.companies_employee_distribution_by_sub_role
+# Table Summary: people_labs_data.companies_employee_distribution_by_sub_role
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 24,315,326 records
-- **Data Quality**: Excellent - 0% null values across all columns
-- **Dataset Purpose**: This table tracks employee count distribution across different sub-roles within companies
-- **Scale**: Covers over 10 million unique companies with 106 distinct sub-role categories
-- **Distribution Pattern**: The data shows a wide range of company sizes, from single employees to large corporations with over 300k employees in specific roles
+This table contains **24,315,326 rows** representing the distribution of employees across different sub-roles (job functions) within companies. 
+
+**Key Observations:**
+- **Excellent data quality**: 0% null values across all columns
+- **Granular company-level data**: Over 10 million unique companies
+- **Comprehensive role taxonomy**: 106 distinct sub-role categories
+- **Wide distribution of company sizes**: Employee counts range from 1 to 302,516 per sub-role per company
+- **Many-to-many relationship**: Each company can have multiple sub-roles, and each sub-role appears across multiple companies
+- **Table comment**: Not provided
 
 ## Column Details
 
+### company_id (STRING)
+- **Purpose**: Primary identifier for companies
+- **Data Type**: String (hash-based identifier)
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 10,078,178 unique companies
+- **Format**: Alphanumeric hash strings (e.g., "xTtBnzbFoBFiU3Ki8aV3jAgtq8LR")
+- **Pattern**: Appears to be a consistent-length encoded identifier
+- **Column comment**: Not provided
+
 ### sub_role (STRING)
-- **Data Type**: String/Text
-- **Completeness**: 100% (0% null values)
-- **Cardinality**: 106 unique values
-- **Value Pattern**: Standardized role categories using lowercase with underscores
-- **Common Categories**: Includes diverse roles from `academic`, `account_executive`, `administrative` to specialized roles like `wellness`, `product_management`, `artist`
-- **Purpose**: Categorical classification of employee roles within organizations
+- **Purpose**: Categorizes job functions/roles within organizations
+- **Data Type**: String (categorical)
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 106 unique sub-roles
+- **Common Categories Include**:
+  - Executive functions: executive, advisor
+  - Technical roles: product_management, product_design, architecture
+  - Sales/Business: account_executive, account_management, business_development
+  - Operations: accounting, accounting_services, administrative
+  - Customer-facing: customer_success
+  - Industry-specific: agriculture, academic, aides
+  - Education: primary_and_secondary
+  - Catch-all: other_uncategorized
+- **Format**: Lowercase with underscores (snake_case)
+- **Column comment**: Not provided
 
 ### employee_count (INT64)
-- **Data Type**: 64-bit Integer
-- **Completeness**: 100% (0% null values)
+- **Purpose**: Number of employees in a specific sub-role at a given company
+- **Data Type**: Integer
+- **Completeness**: 100% populated (0% null)
 - **Range**: 1 to 302,516 employees
-- **Cardinality**: 5,390 unique values
-- **Distribution**: Likely right-skewed with most companies having smaller employee counts in specific roles
-- **Purpose**: Quantifies the number of employees in each sub-role per company
+- **Distribution**: 
+  - 5,390 unique values
+  - Lower counts (1-10) appear most frequently in samples
+  - Maximum of 302,516 suggests very large organizations in dataset
+- **Pattern**: Positive integers only, no zeros (companies only represented if they have employees in that role)
+- **Column comment**: Not provided
 
-### company_id (STRING)
-- **Data Type**: String identifier
-- **Completeness**: 100% (0% null values)
-- **Cardinality**: 10,078,178 unique values
-- **Format**: Alphanumeric strings (appears to be encoded/hashed identifiers)
-- **Purpose**: Unique identifier for each company in the dataset
+## Potential Query Considerations
 
-## Query Considerations
+### Optimal for Filtering:
+- **sub_role**: Excellent for filtering by specific job functions (e.g., `WHERE sub_role = 'executive'`)
+- **company_id**: Essential for company-specific queries
+- **employee_count**: Good for filtering by company size in specific roles (e.g., `WHERE employee_count > 100`)
 
-### Filtering Opportunities
-- **sub_role**: Excellent for filtering by specific job functions or role categories
-- **employee_count**: Good for size-based filtering (small, medium, large teams in specific roles)
-- **company_id**: Suitable for company-specific analysis
+### Optimal for Grouping/Aggregation:
+- **sub_role**: Primary dimension for workforce analysis (e.g., distribution of roles across industries)
+- **company_id**: For calculating total employees per company, role diversity per company
+- **employee_count**: For aggregations like SUM, AVG, MAX to understand workforce composition
 
-### Grouping/Aggregation Potential
-- **sub_role**: Primary dimension for role-based analysis and comparisons
-- **employee_count ranges**: Can be binned for company size analysis by role
-- **company_id**: Useful for company-level aggregations
+### Potential Join Keys:
+- **company_id**: Primary join key to other company-related tables (firmographics, financials, locations, etc.)
+- Could join to employee detail tables, company profile tables, or industry classification tables
 
-### Join Relationships
-- **company_id**: Likely foreign key that can join with other company-related tables
-- Potential relationships with company metadata, industry classifications, or geographic data
+### Recommended Query Patterns:
 
-### Data Quality Considerations
-- **High Quality**: No missing data concerns
-- **Consistency**: Standardized role naming convention
-- **Scalability**: Large dataset requiring efficient indexing on frequently queried columns
-- **Aggregation Performance**: Consider pre-computing common aggregations due to dataset size
+1. **Company workforce composition**: 
+   ```sql
+   GROUP BY company_id, sub_role
+   ```
+
+2. **Role distribution analysis**:
+   ```sql
+   GROUP BY sub_role 
+   AGGREGATE SUM(employee_count)
+   ```
+
+3. **Company size by role**:
+   ```sql
+   WHERE sub_role IN ('executive', 'sales', 'engineering')
+   GROUP BY company_id
+   ```
+
+4. **Large department identification**:
+   ```sql
+   WHERE employee_count > threshold
+   ```
+
+### Data Quality Considerations:
+
+- **No null handling required**: All columns are fully populated
+- **Grain understanding**: One row = one sub-role within one company (not individual employees)
+- **Completeness**: Companies without employees in a sub-role will have no row (not a zero count)
+- **Size outliers**: The maximum of 302,516 suggests potential for very large companies; consider percentile-based filtering for typical analyses
+- **Role taxonomy**: The 106 sub-roles provide granular detail but may need grouping for high-level analysis
+- **Snapshot nature**: Appears to be point-in-time data (no temporal dimension visible)
 
 ## Keywords
 
-employee distribution, company roles, workforce analytics, sub roles, organizational structure, employee count, company analysis, job functions, role categorization, workforce composition, people analytics, HR data, employment statistics, company sizing, role-based metrics
+employee distribution, workforce composition, job roles, sub-roles, company workforce, organizational structure, headcount by role, employee count, job functions, people analytics, workforce analytics, talent distribution, company staffing, role taxonomy, organizational roles, business functions, departmental headcount, company_id, people data, labor distribution, staffing levels, workforce segmentation
 
-## Table and Column Documentation
+## Table and Column Docs
 
 **Table Comment**: Not provided
 
 **Column Comments**: 
-- sub_role: No comment provided
-- employee_count: No comment provided  
-- company_id: No comment provided
+- company_id: Not provided
+- sub_role: Not provided  
+- employee_count: Not provided

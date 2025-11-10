@@ -35,84 +35,274 @@ columns:
 schema_hash: d38593c04ee29d00dc4293c1e582aff8d127ad64d764673a6fff2ff5844400bd
 
 ---
-# Table Analysis Summary: compass-bigquery-demo.us_political_contributions.contributions
+# Comprehensive Data Summary: US Political Contributions Table
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 68,666 records
-- **Data Quality**: The dataset has significant missing data patterns, with many financial columns having high null percentages (ranging from 37% to 96%)
-- **Time Span**: Data spans from 1980 to 2026, with 24 distinct years represented
-- **Geographic Coverage**: Contains data for all US states plus territories (57 unique values in cand_office_st)
-- **Data Sources**: 24 different source files, following the pattern "weball[YY].txt"
+**Total Rows:** 68,666
 
-## Column Details
+**General Description:** This table contains US political campaign contribution and financial data spanning from 1980 to 2026. Each row represents a candidate's financial summary for a specific election cycle, including receipts, disbursements, contributions, and election results.
 
-### Identification Columns
-- **cand_id** (STRING): Primary identifier with 28,356 unique candidates, no nulls
-- **cand_name** (STRING): 29,986 unique candidate names, no nulls
-- **source_file** (STRING): 24 files indicating data source/year, no nulls
+**Data Quality Observations:**
+- High quality for core identification fields (cand_id, cand_name, year) with 0% nulls
+- Significant null percentages in financial detail columns (ranging from 12% to 96%)
+- Very high null rates in transfer-related fields (trans_from_auth: 89.64%, trans_to_auth: 92.46%)
+- Election-specific fields show high null rates (spec_election: 99.16%, run_election: 99.41%)
+- Financial data shows some negative values, likely representing refunds or corrections
 
-### Categorical Columns
-- **cand_ici** (STRING): Incumbency status (17.98% null) - C (Challenger), I (Incumbent), O (Open seat)
-- **pty_cd** (INT64): Party code (1-3), no nulls
-- **cand_pty_affiliation** (STRING): 80 different party affiliations (0.13% null), includes major parties like REP, DEM, and many minor parties
-- **cand_office_st** (STRING): State/territory codes (57 unique), no nulls
-- **cand_office_district** (INT64): District numbers 0-53 (0.09% null)
+**Notable Patterns:**
+- Data is organized by year (1980-2026) and sourced from annual text files
+- Covers federal candidates across all US states and territories
+- Includes various party affiliations (80 unique values) with Democratic and Republican being predominant
+- Financial ranges span from negative values to billions of dollars
 
-### Financial Columns (High Null Rates)
-- **ttl_receipts** (FLOAT64): Total receipts (18.76% null), wide range including negative values
-- **ttl_disb** (FLOAT64): Total disbursements (12.80% null)
-- **ttl_indiv_contrib** (FLOAT64): Individual contributions (38.21% null)
-- **coh_cop/coh_bop** (FLOAT64): Cash on hand (37.75% and 49.41% null respectively)
-- **trans_from_auth/trans_to_auth** (FLOAT64): Authorization transfers (89.64% and 92.46% null)
-- **cand_contrib** (FLOAT64): Candidate contributions (74.07% null)
-- **cand_loans** (FLOAT64): Candidate loans (73.83% null)
-- **other_loans** (FLOAT64): Other loans (96.34% null)
-- **debts_owed_by** (FLOAT64): Outstanding debts (59.32% null)
-- **pol_pty_contrib** (FLOAT64): Political party contributions (79.77% null)
-- **other_pol_cmte_contrib** (FLOAT64): Other political committee contributions (61.83% null)
+## Column-by-Column Analysis
 
-### Election Results Columns (Very High Null Rates)
-- **spec_election** (STRING): Special election results (99.16% null)
-- **run_election** (STRING): Runoff election results (99.41% null)
-- **prim_election** (STRING): Primary election results (72.04% null)
-- **gen_election** (STRING): General election results (77.30% null)
-- **gen_election_precent** (FLOAT64): General election percentage (77.77% null)
+### **Identification Columns**
 
-### Temporal Column
-- **cvg_end_dt** (DATE): Coverage end date, no nulls, spans from 1989 to 2024
-- **year** (INT64): Election year (1980-2026), no nulls
+#### cand_id (STRING)
+- **Purpose:** Unique candidate identifier
+- **Characteristics:** 28,356 unique values, 0% null
+- **Format Pattern:** Alphanumeric code (e.g., H6MD04258, H2AR02087)
+- **Usage:** Primary key for candidate identification, ideal for joins
 
-## Potential Query Considerations
+#### cand_name (STRING)
+- **Purpose:** Candidate's full name
+- **Characteristics:** 29,986 unique values, 0% null
+- **Format:** Last name first, often with titles (e.g., "CARTWRIGHT, NICHOLAS", "HOFFMAN, DOUGLAS L. MR.")
+- **Usage:** Human-readable identifier, searchable field
 
-### Good for Filtering:
-- **year**: Complete data, good for time-based analysis
-- **cand_office_st**: State-level filtering
-- **cand_pty_affiliation**: Party-based analysis
-- **cand_ici**: Incumbency analysis
-- **source_file**: Data source filtering
+### **Candidate Status & Affiliation**
 
-### Good for Grouping/Aggregation:
-- **year**: Temporal trends
-- **cand_office_st**: Geographic analysis
-- **cand_pty_affiliation**: Party comparison
-- **cand_office_district**: District-level analysis
-- **pty_cd**: Simplified party grouping
+#### cand_ici (STRING)
+- **Purpose:** Candidate incumbent/challenger/open seat status
+- **Null Rate:** 17.98%
+- **Values:** 'C' (Challenger), 'I' (Incumbent), 'O' (Open seat)
+- **Usage:** Filter for competitive race analysis
 
-### Potential Join Keys:
-- **cand_id**: Primary key for candidate-level joins
-- **cand_office_st + cand_office_district**: Geographic joins
-- **year**: Temporal joins
+#### pty_cd (INT64)
+- **Purpose:** Party code (numeric)
+- **Characteristics:** 0% null, values 1-3
+- **Usage:** Simple numeric party classification
 
-### Data Quality Considerations:
-- Financial columns have very high null rates (60-96% for some)
-- Election result columns are mostly empty
-- Negative values exist in financial columns (may indicate refunds/corrections)
-- Some financial ranges are extremely wide, suggesting outliers
-- Missing data patterns suggest not all candidates file complete financial reports
+#### cand_pty_affiliation (STRING)
+- **Purpose:** Party affiliation abbreviation
+- **Null Rate:** 0.13%
+- **Unique Values:** 80 different parties
+- **Common Values:** DEM, REP, GRE, (I)
+- **Usage:** Detailed party analysis and filtering
+
+### **Major Financial Metrics**
+
+#### ttl_receipts (FLOAT64)
+- **Purpose:** Total campaign receipts
+- **Null Rate:** 18.76%
+- **Range:** -$1.3M to $4.8B
+- **Characteristics:** 47,984 unique values showing high variance
+- **Comment:** Negative values likely represent corrections/adjustments
+- **Usage:** Key metric for campaign finance analysis, aggregation candidate
+
+#### ttl_disb (FLOAT64)
+- **Purpose:** Total disbursements
+- **Null Rate:** 12.80%
+- **Range:** -$674K to $3.8B
+- **Characteristics:** 52,253 unique values
+- **Usage:** Spending analysis, comparison with receipts
+
+#### coh_bop (FLOAT64)
+- **Purpose:** Cash on hand at beginning of period
+- **Null Rate:** 49.41%
+- **Range:** -$430K to $775M
+- **Usage:** Starting financial position analysis
+
+#### coh_cop (FLOAT64)
+- **Purpose:** Cash on hand at close of period
+- **Null Rate:** 37.75%
+- **Range:** -$2.3M to $9.7B
+- **Usage:** Ending financial position, campaign viability indicator
+
+### **Contribution Sources**
+
+#### ttl_indiv_contrib (FLOAT64)
+- **Purpose:** Total individual contributions
+- **Null Rate:** 38.21%
+- **Range:** -$1.2M to $18.8B
+- **Characteristics:** 35,215 unique values
+- **Usage:** Analysis of grassroots support, major aggregation target
+
+#### other_pol_cmte_contrib (FLOAT64)
+- **Purpose:** Contributions from other political committees
+- **Null Rate:** 61.83%
+- **Range:** -$35K to $1.9B
+- **Usage:** PAC and committee support analysis
+
+#### pol_pty_contrib (FLOAT64)
+- **Purpose:** Political party contributions
+- **Null Rate:** 79.77%
+- **Range:** -$11K to $9.6M
+- **Usage:** Party support analysis
+
+### **Candidate Self-Financing**
+
+#### cand_contrib (FLOAT64)
+- **Purpose:** Candidate's own contributions
+- **Null Rate:** 74.07%
+- **Range:** -$35K to $2.8B
+- **Usage:** Self-funding analysis
+
+#### cand_loans (FLOAT64)
+- **Purpose:** Loans from candidate
+- **Null Rate:** 73.83%
+- **Range:** -$1.6M to $62.8M
+- **Usage:** Candidate investment analysis
+
+#### cand_loan_repay (FLOAT64)
+- **Purpose:** Repayment of candidate loans
+- **Null Rate:** 79.33%
+- **Range:** -$35K to $1.9B
+- **Usage:** Loan repayment tracking
+
+### **Other Loans**
+
+#### other_loans (FLOAT64)
+- **Null Rate:** 96.34% (rarely used)
+- **Range:** -$13K to $20.9M
+- **Usage:** Non-candidate loan analysis
+
+#### other_loan_repay (FLOAT64)
+- **Null Rate:** 96.79% (rarely used)
+- **Range:** -$3K to $49.9M
+- **Usage:** Loan repayment tracking
+
+### **Transfer Fields**
+
+#### trans_from_auth (FLOAT64)
+- **Null Rate:** 89.64% (rarely populated)
+- **Range:** -$600K to $533M
+- **Usage:** Transfers from authorized committees
+
+#### trans_to_auth (FLOAT64)
+- **Null Rate:** 92.46% (rarely populated)
+- **Range:** -$17K to $47.5M
+- **Usage:** Transfers to authorized committees
+
+### **Debts & Refunds**
+
+#### debts_owed_by (FLOAT64)
+- **Null Rate:** 59.32%
+- **Range:** -$346K to $73.6M
+- **Usage:** Outstanding debt analysis
+
+#### indiv_refunds (FLOAT64)
+- **Null Rate:** 68.05%
+- **Range:** -$555K to $1.9B
+- **Usage:** Individual contribution refunds
+
+#### cmte_refunds (FLOAT64)
+- **Null Rate:** 86.14%
+- **Range:** -$131K to $48.4M
+- **Usage:** Committee contribution refunds
+
+### **Geographic & Office Information**
+
+#### cand_office_st (STRING)
+- **Characteristics:** 0% null, 57 unique values
+- **Values:** US state codes plus '00' (likely for federal/at-large)
+- **Usage:** Critical for geographic filtering and analysis
+
+#### cand_office_district (INT64)
+- **Null Rate:** 0.09%
+- **Range:** 0-53
+- **Note:** 0 likely indicates Senate or statewide races
+- **Usage:** District-level analysis, combined with state for specific races
+
+### **Election Results**
+
+#### spec_election (STRING)
+- **Null Rate:** 99.16% (rarely populated)
+- **Values:** L (Loss), R (Runoff), W (Win)
+- **Usage:** Special election outcomes
+
+#### prim_election (STRING)
+- **Null Rate:** 72.04%
+- **Values:** L, P, R, W, X (various case formats)
+- **Usage:** Primary election results
+
+#### run_election (STRING)
+- **Null Rate:** 99.41% (rarely populated)
+- **Values:** L, R, W
+- **Usage:** Runoff election results
+
+#### gen_election (STRING)
+- **Null Rate:** 77.30%
+- **Values:** L, R, W (various case formats)
+- **Usage:** General election results, important for winner analysis
+
+#### gen_election_precent (FLOAT64)
+- **Null Rate:** 77.77%
+- **Range:** 1-100
+- **Usage:** Vote percentage in general election
+
+### **Temporal Fields**
+
+#### cvg_end_dt (DATE)
+- **Characteristics:** 0% null, 6,398 unique values
+- **Range:** Covers dates from 1993 to 2024
+- **Usage:** Reporting period end date, temporal analysis
+
+#### year (INT64)
+- **Characteristics:** 0% null, 24 unique values
+- **Range:** 1980-2026
+- **Usage:** Primary temporal dimension for queries, excellent for grouping
+
+#### source_file (STRING)
+- **Characteristics:** 0% null, 24 unique values
+- **Format:** weballYY.txt pattern
+- **Usage:** Data lineage tracking, quality verification
+
+## Query Considerations
+
+### **Best Columns for Filtering:**
+- `year` - Temporal filtering (election cycles)
+- `cand_office_st` - Geographic filtering
+- `cand_pty_affiliation` - Party analysis
+- `cand_ici` - Incumbent status filtering
+- `gen_election` - Winner/loser filtering (when not null)
+- `cand_office_district` - District-specific queries
+
+### **Best Columns for Grouping/Aggregation:**
+- `year` - Time series analysis
+- `cand_office_st` - State-level aggregations
+- `cand_pty_affiliation` - Party comparisons
+- `cand_ici` - Incumbent vs. challenger analysis
+- `cand_office_district` - District rollups
+- Financial columns (ttl_receipts, ttl_disb, ttl_indiv_contrib) - Sum, average calculations
+
+### **Potential Join Keys:**
+- `cand_id` - Primary candidate identifier
+- `cand_office_st` + `cand_office_district` + `year` - Race-level joins
+- `year` - Temporal joins with other political datasets
+
+### **Data Quality Considerations:**
+
+1. **High Null Rates:** Many financial detail columns have >60% nulls. Queries should use COALESCE or handle nulls explicitly.
+
+2. **Negative Values:** Financial fields contain negative values (likely corrections/refunds). Consider ABS() functions or filtering for analysis.
+
+3. **Inconsistent Case:** Election result fields show mixed case ('W' vs 'w'). Use UPPER() or LOWER() for consistent comparisons.
+
+4. **Missing Values:** Election result fields are mostly null - only populated when results are available.
+
+5. **Date Ranges:** The `cvg_end_dt` field may not align perfectly with `year` due to reporting periods.
+
+6. **Outliers:** Extreme values in financial fields (billions) may represent cumulative totals or data quality issues.
 
 ## Keywords
-US political contributions, campaign finance, FEC data, candidate contributions, election data, political campaigns, financial disclosures, incumbency, party affiliations, state elections, district elections, campaign receipts, disbursements, individual contributions, political action committees, PAC, candidate loans, debt analysis, election results, primary elections, general elections
 
-## Table and Column Documentation
-No table comment or column comments were provided in the analysis report.
+political contributions, campaign finance, FEC data, election data, campaign receipts, campaign disbursements, political candidates, incumbent challenger, party affiliation, individual contributions, PAC contributions, candidate loans, election results, congressional districts, US states, political parties, Democratic, Republican, primary elections, general elections, campaign spending, cash on hand, political committees, federal elections, election cycles, fundraising, vote percentage, special elections, runoff elections, debt, refunds, 1980-2026
+
+## Table and Column Docs
+
+**Table Comment:** Not provided in the analysis report.
+
+**Column Comments:** No column-level comments or documentation were provided in the analysis report. The column meanings have been inferred from naming conventions and data patterns.

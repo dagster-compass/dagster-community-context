@@ -6,74 +6,79 @@ columns:
 schema_hash: 84b585c7c99900f31105ce68bb168b946b200165fe6977c111e050edd4528030
 
 ---
-# Table Analysis Summary: people_labs_data.companies_employee_distribution_by_country
+# Table Summary: people_labs_data.companies_employee_distribution_by_country
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 15,495,627 records
+### Scale and Structure
+- **Total Rows**: 15,495,627 (approximately 15.5 million records)
 - **Data Quality**: Excellent - 0% null values across all columns
-- **Dataset Purpose**: This appears to be a comprehensive mapping of companies to countries with their respective employee counts, likely representing the distribution of company workforces across different geographical locations
-- **Scale**: Large-scale dataset with over 10 million unique companies across 250 countries
-- **Data Completeness**: 100% complete with no missing values
+- **Granularity**: Each row represents the employee count for a specific company in a specific country
+- **Coverage**: Global dataset with 250 countries represented and over 10 million unique companies
+
+### Notable Patterns
+- The dataset appears to track employee distribution across different geographic locations for companies
+- Many companies appear multiple times (10M unique companies across 15.5M rows), suggesting multinational operations
+- Employee counts range dramatically from 1 to 248,710 employees per country per company
+- High concentration in major economies (United States and Germany appear frequently in samples)
 
 ## Column Details
 
 ### country (STRING)
-- **Data Type**: String, standardized lowercase format
-- **Null Values**: 0% (complete data)
-- **Distribution**: 250 unique countries represented
-- **Format Pattern**: Lowercase, full country names (e.g., "united states", "united kingdom")
-- **Notable Values**: Includes major economies like India, Netherlands, United States, as well as smaller territories like American Samoa, Anguilla
-- **Geographic Coverage**: Global dataset including countries, territories, and dependencies
+- **Data Type**: String, lowercase format
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 250 unique countries
+- **Format Pattern**: Lowercase, full country names (e.g., "united states", "germany", "tunisia")
+- **Common Values**: Based on samples: "united states", "germany", "mexico", "tunisia"
+- **Geographic Coverage**: Comprehensive global coverage including territories (e.g., "american samoa", "anguilla")
+- **Query Consideration**: Primary dimension for geographic analysis and filtering
 
 ### employee_count (INT64)
-- **Data Type**: Integer
-- **Null Values**: 0% (complete data)
+- **Data Type**: Integer (64-bit)
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 5,964 unique values
 - **Range**: 1 to 248,710 employees
-- **Distribution**: 5,964 unique employee count values
-- **Patterns**: 
-  - Heavily skewed toward smaller companies (many companies with 1 employee)
-  - Large range suggests presence of both small startups and major corporations
-  - Maximum of 248,710 suggests very large multinational companies
+- **Distribution**: Likely right-skewed (many small counts, few very large ones)
+- **Granularity**: Precise employee counts per company-country combination
+- **Query Consideration**: Key metric for aggregation (SUM, AVG, MAX) and filtering by company size
 
 ### company_id (STRING)
-- **Data Type**: String identifier
-- **Null Values**: 0% (complete data)
-- **Uniqueness**: 10,075,624 unique company IDs
-- **Format**: Alphanumeric strings (appears to be encoded/hashed identifiers)
-- **Pattern**: Consistent length format, likely system-generated
-- **Key Characteristic**: Primary identifier for companies in the dataset
+- **Data Type**: String (appears to be alphanumeric hash/identifier)
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 10,075,624 unique companies
+- **Format Pattern**: 28-character alphanumeric strings (e.g., "JuiDJFFFE5QxGUKxxyKthQJNcBN7")
+- **Uniqueness**: Non-unique in this table (companies appear multiple times for different countries)
+- **Query Consideration**: Primary key for joining to company master tables; grouping key for company-level aggregations
 
 ## Potential Query Considerations
 
-### Filtering Opportunities
-- **country**: Excellent for geographical analysis and filtering by specific regions or countries
-- **employee_count**: Good for size-based company segmentation (small/medium/large enterprises)
-- **company_id**: Perfect for individual company lookups
+### Filtering Strategies
+- **Geographic filtering**: Use `country` column for regional analysis (exact match required due to lowercase format)
+- **Size-based filtering**: Use `employee_count` with numeric operators (>, <, BETWEEN) to segment by company size
+- **Company-specific queries**: Filter by `company_id` for individual company analysis
 
-### Grouping/Aggregation Potential
-- **country**: Primary grouping dimension for geographical analysis
-- **employee_count ranges**: Can be binned for company size analysis
-- **Aggregate functions**: SUM(employee_count) by country, COUNT(*) for company counts per country
+### Aggregation Opportunities
+- **Total employees by country**: `SUM(employee_count) GROUP BY country`
+- **Total employees per company globally**: `SUM(employee_count) GROUP BY company_id`
+- **Average company size by country**: `AVG(employee_count) GROUP BY country`
+- **Company presence (country count)**: `COUNT(DISTINCT country) GROUP BY company_id`
+- **Market concentration**: Count of companies by country
 
 ### Join Key Potential
-- **company_id**: Primary key for joining with other company-related tables
-- **country**: Can be joined with geographical/economic data tables
+- **company_id**: Primary join key to connect with other company-related tables (company profiles, financials, industries, etc.)
+- **country**: Potential join to country reference tables (GDP, population, regional groupings)
 
 ### Data Quality Considerations
-- **No null handling required**: All columns are complete
-- **Case sensitivity**: Country names are in lowercase, may need standardization when joining with other datasets
-- **Employee count validation**: Consider filtering out unrealistic values if needed (though range appears reasonable)
-- **Country name standardization**: May need mapping if joining with datasets using different country naming conventions
-
-## Query Performance Considerations
-- **Large dataset**: 15M+ rows require efficient indexing strategies
-- **Country filtering**: Likely benefits from indexing on country column
-- **Company lookups**: company_id should be indexed for individual company queries
-- **Aggregation queries**: Consider partitioning by country for large analytical queries
+- **No null handling required**: All columns are fully populated
+- **Case sensitivity**: Country names are lowercase; queries should use lowercase or LOWER() function
+- **Duplicate awareness**: Companies appear multiple times (one row per country presence); use appropriate GROUP BY for company-level metrics
+- **Scale considerations**: 15.5M rows requires indexing on frequently filtered columns for performance
+- **Employee count accuracy**: Represents snapshot in time; may need date context from related tables
 
 ## Keywords
-employee distribution, company workforce, geographical analysis, business intelligence, company size, international business, workforce analytics, company demographics, global companies, employee count by country, business presence, multinational corporations, startup analysis, SME analysis, geographic distribution
+
+multinational companies, employee distribution, geographic presence, company size, workforce by country, global employment, company locations, international business, employee headcount, country-level data, company footprint, labor distribution, organizational structure, company expansion, market presence, workforce analytics, global operations, company geography, employee counts by region, international workforce
 
 ## Table and Column Documentation
-*No table comment or column comments were provided in the source data.*
+
+**Note**: No table comment or column comments were provided in the source analysis report.

@@ -7,164 +7,134 @@ columns:
 schema_hash: a944d443b31cab890fcc72e7fed7569e37a8e7dad550d208c30f68ca6ff6757a
 
 ---
-# Table Summary: compass-bigquery-demo.edmund_fitzgerald.google_trends_combined
+# Data Summary: google_trends_combined Table
 
 ## Overall Dataset Characteristics
 
-### Dataset Size and Scope
+### Basic Statistics
 - **Total Rows**: 8,122 records
-- **Time Period**: January 2004 to January 2025 (approximately 21 years of data)
-- **Temporal Granularity**: Monthly data (263 unique dates)
+- **Time Period**: Spans from 2004 to 2024 (approximately 20 years)
+- **Data Granularity**: Monthly aggregated data (263 unique months)
 - **Data Quality**: Excellent - 0% null values across all columns
 
 ### General Observations
-This dataset tracks Google Trends data (search interest over time) for keywords related to the Edmund Fitzgerald shipwreck and Gordon Lightfoot's famous song. The data captures both web search and YouTube search trends, providing insights into public interest in this historical maritime disaster and its cultural references.
-
-### Notable Patterns
-- **Value Distribution**: Search interest values range from 0 to 100 (standard Google Trends normalization)
-- **Keyword Focus**: 10 distinct keywords covering various aspects: the ship itself, the anniversary, documentaries, the song, Gordon Lightfoot, and Lake Superior shipwrecks
-- **Dual Source Tracking**: Data is split between web search and YouTube platforms, allowing for comparison of interest across media types
-- **Low Average Interest**: Many 0.0 values suggest generally low search volume for these historical topics, likely with periodic spikes around anniversaries or cultural events
+- This dataset tracks Google Trends data for Edmund Fitzgerald-related search terms
+- Data is split between two source platforms: web search and YouTube
+- The dataset combines 10 different keyword variations related to the Edmund Fitzgerald shipwreck, Gordon Lightfoot's famous song, and related topics
+- Value metric appears to be normalized on a 0-100 scale (typical for Google Trends relative popularity scores)
+- Data shows strong temporal patterns with monthly granularity
 
 ---
 
 ## Column Details
 
 ### 1. keyword (STRING)
-**Description**: The search term being tracked in Google Trends
+- **Purpose**: Categorizes the specific search term being tracked
+- **Null Rate**: 0% (complete data)
+- **Cardinality**: 10 unique keywords
+- **Value Categories**:
+  - Direct Edmund Fitzgerald references: "Edmund Fitzgerald", "Edmund Fitzgerald anniversary", "Edmund Fitzgerald documentary", "Edmund Fitzgerald shipwreck", "Edmund Fitzgerald song"
+  - Gordon Lightfoot/Song related: "Gordon Lightfoot", "Gordon Lightfoot Wreck of the Edmund Fitzgerald", "Wreck of the Edmund Fitzgerald", "Wreck of the Edmund Fitzgerald lyrics"
+  - General topic: "Lake Superior shipwreck"
+- **Query Consideration**: Excellent for grouping and filtering; natural dimension for analysis
 
-- **Data Type**: STRING
-- **Null Values**: None (0%)
-- **Cardinality**: 10 unique values (low cardinality - good for grouping)
+### 2. date (DATE)
+- **Purpose**: Time dimension representing the month of measurement
+- **Null Rate**: 0% (complete data)
+- **Cardinality**: 263 unique months
+- **Time Range**: 2004-01-01 to approximately 2024
+- **Format**: First day of each month (e.g., 2004-01-01, 2004-02-01)
+- **Pattern**: Regular monthly intervals with no gaps
+- **Query Consideration**: Primary time dimension for time-series analysis, filtering, and trend identification
 
-**Complete Keyword List**:
-1. Edmund Fitzgerald
-2. Edmund Fitzgerald anniversary
-3. Edmund Fitzgerald documentary
-4. Edmund Fitzgerald shipwreck
-5. Edmund Fitzgerald song
-6. Gordon Lightfoot
-7. Gordon Lightfoot Wreck of the Edmund Fitzgerald
-8. Wreck of the Edmund Fitzgerald
-9. Wreck of the Edmund Fitzgerald lyrics
-10. Lake Superior shipwreck
-
-**Analysis**: Keywords are divided into thematic categories - direct references to the ship, the song/lyrics, the artist (Gordon Lightfoot), and broader topics (shipwrecks, documentaries, anniversary). This structured keyword set allows for categorical analysis of interest types.
-
----
-
-### 2. source (STRING)
-**Description**: The Google Trends data source platform
-
-- **Data Type**: STRING
-- **Null Values**: None (0%)
+### 3. source (STRING)
+- **Purpose**: Identifies the Google platform where searches occurred
+- **Null Rate**: 0% (complete data)
 - **Cardinality**: 2 unique values
-
-**Values**:
-- `web_search`: Traditional Google web search data
-- `youtube`: YouTube search data
-
-**Analysis**: Binary classification allows for easy comparison between search behavior on Google's main search engine versus its video platform. This is particularly relevant for a topic tied to a famous song.
-
----
-
-### 3. date (DATE)
-**Description**: The month for which search interest is measured
-
-- **Data Type**: DATE
-- **Null Values**: None (0%)
-- **Cardinality**: 263 unique dates
-- **Range**: 2004-01-01 to 2025-01-01
-- **Granularity**: Monthly (first day of each month)
-
-**Temporal Coverage**: 
-- Spans 21 years of search trend data
-- Monthly intervals provide good balance between granularity and data volume
-- Covers period from after the 2004 anniversary through recent times
-
-**Analysis**: The date range is comprehensive for trend analysis, covering multiple anniversaries of the 1975 sinking (which occurred on November 10, 1975). Expect seasonal patterns, particularly spikes around November.
-
----
+- **Values**:
+  - "web_search": Traditional Google web search
+  - "youtube": YouTube platform searches
+- **Distribution**: Binary split across the dataset
+- **Query Consideration**: Key dimension for comparing search behavior across platforms
 
 ### 4. value (FLOAT64)
-**Description**: Google Trends search interest index (0-100 scale)
-
-- **Data Type**: FLOAT64
-- **Null Values**: None (0%)
+- **Purpose**: Represents normalized search interest/popularity score
+- **Null Rate**: 0% (complete data)
 - **Cardinality**: 72 unique values
 - **Range**: 0.0 to 100.0
-- **Distribution**: Heavily skewed toward lower values (many 0.0 entries)
-
-**Value Interpretation**:
-- 100 = Peak search interest for the keyword in the time period
-- 0 = Very low or no search interest (below threshold)
-- Values are normalized relative to the highest point for that keyword
-
-**Analysis**: The presence of many 0.0 values indicates this is a niche topic with intermittent interest. Higher values likely correspond to anniversaries (especially major ones like 40th, 45th, 50th), documentary releases, or news events related to the shipwreck.
+- **Distribution**: 
+  - Includes 0.0 (no/minimal interest)
+  - Maximum of 100.0 (peak interest)
+  - Discrete values (likely integers stored as floats)
+- **Interpretation**: Google Trends relative popularity metric where 100 represents peak popularity
+- **Query Consideration**: Primary metric for aggregation (SUM, AVG, MAX, MIN); useful for trending and comparison analysis
 
 ---
 
 ## Potential Query Considerations
 
-### Filtering Operations
-**Best Columns for WHERE Clauses**:
-1. **date**: Time-based filtering (specific years, date ranges, months)
-   - Filter for November data: `EXTRACT(MONTH FROM date) = 11`
-   - Anniversary years: `EXTRACT(YEAR FROM date) IN (2015, 2020, 2025)` (40th, 45th, 50th)
-2. **source**: Platform-specific analysis (`source = 'youtube'`)
-3. **keyword**: Specific keyword tracking or category filtering
-4. **value**: Interest threshold filtering (`value > 50` for high-interest periods)
+### Filtering Opportunities
+1. **Time-based filtering**:
+   - Filter by specific years or date ranges
+   - Identify anniversary periods (November, when the Edmund Fitzgerald sank in 1975)
+   - Compare different time periods (e.g., pre-2010 vs post-2010)
 
-### Grouping and Aggregation
-**Recommended GROUP BY Columns**:
-1. **keyword**: Compare interest across different search terms
-2. **source**: Web vs YouTube comparison
-3. **EXTRACT(YEAR FROM date)**: Yearly trends
-4. **EXTRACT(MONTH FROM date)**: Seasonal patterns (expect November peaks)
-5. **Combination groupings**: `keyword, source` for detailed breakdowns
+2. **Keyword filtering**:
+   - Focus on song-related vs shipwreck-related terms
+   - Compare Gordon Lightfoot searches vs direct Edmund Fitzgerald searches
+   - Isolate specific search intents (documentary, lyrics, anniversary)
 
-**Common Aggregations**:
-- `AVG(value)`: Average search interest
-- `MAX(value)`: Peak interest periods
-- `SUM(value)`: Total interest (with caveats about normalization)
-- `COUNT(*)`: Data point coverage
+3. **Source filtering**:
+   - Separate web search behavior from YouTube search behavior
+   - Platform-specific trend analysis
 
-### Join Keys and Relationships
-**Potential Join Scenarios**:
-- **Date-based joins**: Link to calendar tables, historical events, or weather data
-- **Keyword joins**: Connect to keyword metadata tables (if available)
-- **No obvious foreign keys**: This appears to be a standalone fact table
+### Grouping/Aggregation Opportunities
+1. **Temporal aggregations**: 
+   - Monthly trends (already at monthly grain)
+   - Yearly aggregations for long-term patterns
+   - Seasonal patterns (month of year)
 
-### Time Series Analysis Opportunities
-- **Trend Analysis**: Year-over-year comparisons
-- **Seasonality**: Monthly patterns (especially November spikes)
-- **Event Correlation**: Major anniversaries (1975 + 10, 20, 30, 40, 50 years)
-- **Platform Comparison**: Web search vs YouTube interest over time
+2. **Categorical groupings**:
+   - By keyword to compare popularity of different terms
+   - By source to compare platform engagement
+   - Combined keyword + source for detailed breakdowns
 
-### Data Quality Considerations
+3. **Metric aggregations**:
+   - Average interest over time periods
+   - Peak interest identification (MAX)
+   - Total accumulated interest (SUM)
 
-**For Accurate Queries**:
-1. **Normalization Awareness**: Values are relative within each keyword's timeframe, not absolute search volumes
-2. **Zero Values**: Many 0.0 values are expected for niche historical topics; they're valid data points
-3. **Monthly Granularity**: Don't expect daily precision; data represents monthly aggregates
-4. **Platform Differences**: web_search and youtube values aren't directly comparable (different user bases/behaviors)
-5. **Recent Data**: January 2025 data may be incomplete depending on query date
+### Join Keys & Relationships
+- **No explicit foreign keys present**, but potential relationships include:
+  - Could join with date dimension tables for enhanced time analysis
+  - Could join with external events table (e.g., Gordon Lightfoot news, anniversary events)
+  - Could correlate with weather/shipping data from Lake Superior
 
-**Query Best Practices**:
-- Use PARTITION BY for relative comparisons within keywords
-- Consider filtering out or handling 0 values depending on analysis goals
-- Use date functions to identify anniversary periods
-- Apply moving averages to smooth monthly volatility
-- Separate analyses by source when comparing platforms
+### Data Quality Considerations for Queries
+1. **Strengths**:
+   - Complete data (no nulls)
+   - Consistent time granularity
+   - Standardized value scale
+
+2. **Limitations**:
+   - Value 0.0 appears frequently, indicating low/no search volume periods
+   - Relative scale (0-100) means absolute search volumes are unknown
+   - Data is normalized within each keyword/source combination
+
+3. **Query Best Practices**:
+   - When comparing keywords, be aware that each may have different normalization baselines
+   - Consider filtering out zero values for certain analyses
+   - Use EXTRACT functions for date-based grouping
+   - Apply CASE statements to categorize keywords into broader themes
 
 ---
 
 ## Keywords
 
-Edmund Fitzgerald, shipwreck, Google Trends, search interest, Gordon Lightfoot, Lake Superior, maritime history, search trends, time series, web search, YouTube, monthly data, search analytics, trending data, historical events, song lyrics, documentary, anniversary tracking, seasonal patterns, interest over time, search volume, trend analysis, BigQuery, public interest metrics
+Edmund Fitzgerald, Google Trends, search volume, time series, Gordon Lightfoot, shipwreck, Lake Superior, YouTube search, web search, keyword analysis, search trends, popularity metrics, monthly data, 2004-2024, disaster history, maritime history, song lyrics, documentary, anniversary trends, seasonal patterns
 
 ---
 
 ## Table and Column Documentation
 
-**Note**: No table comments or column comments were provided in the source data. The table name `google_trends_combined` suggests this is an aggregated dataset combining multiple Google Trends exports, likely for both web search and YouTube search data related to Edmund Fitzgerald keywords.
+**Note**: No table comment or column comments were provided in the source data analysis report.

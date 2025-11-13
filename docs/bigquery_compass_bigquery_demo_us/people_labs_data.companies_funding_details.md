@@ -11,106 +11,135 @@ columns:
 schema_hash: 207f8196f1fb29d0267d8f7140f74d3a54c010fa272465c0697ef3cac301588a
 
 ---
-# Table Analysis Summary: people_labs_data.companies_funding_details
+# Comprehensive Summary: companies_funding_details Table
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 436,869 funding records
-- **Data Quality**: Generally good with complete primary identifiers, but significant missing data (28.16%) in funding amounts
-- **Coverage**: Spans from 1900 to recent years (2021+) with 9,152 unique funding dates
-- **Scope**: Covers 191,921 unique companies with diverse funding activities
-- **Notable Patterns**: 
-  - Many funding rounds lack disclosed amounts (28.16% null)
-  - All currency data is in USD when present
-  - Investor information is stored as arrays, allowing multiple investors per round
+**Total Rows:** 436,869 funding records
+
+**General Data Quality:**
+- High-quality primary identifiers with 0% null values for core fields (company_id, funding_detail_id, funding_round_type, funding_round_date)
+- Significant missing data in financial details: 28.16% of records lack funding amount and currency information
+- Complex nested data structures using ARRAY types for investor information
+- Unique funding_detail_id for each record suggests this is a fact table tracking individual funding events
+
+**Notable Patterns:**
+- Dataset spans from 1900 to at least 2023, with historical dates likely representing legacy or founding dates
+- 191,921 unique companies across 436,869 funding rounds (average ~2.3 funding rounds per company)
+- Many funding rounds have empty investor arrays, suggesting incomplete investor tracking or self-funded rounds
+- All funding amounts appear to be normalized to USD when currency is specified
+
+**Table Purpose:** This appears to be a comprehensive funding transaction table linking companies to their funding rounds, with details about timing, amount, type, and participating investors.
 
 ## Column Details
 
-### **company_id** (STRING)
-- **Type**: Primary identifier for companies
-- **Completeness**: 100% populated (0% null)
-- **Uniqueness**: 191,921 unique companies across 436,869 records
-- **Pattern**: Alphanumeric hash-like identifiers (e.g., "sAMuHNVFm3rnNtPKzbGfvAWBwm9n")
-- **Usage**: Primary key for joining with other company tables
+### funding_round_type (STRING)
+- **Data Type:** Categorical string
+- **Null Values:** 0% - Required field
+- **Cardinality:** 28 distinct types
+- **Common Values:** angel, convertible_note, corporate_round, debt_financing, equity_crowdfunding, grant, initial_coin_offering, non_equity_assistance, post_ipo_debt, post_ipo_equity, pre_seed, seed, series_unknown
+- **Patterns:** Includes traditional VC stages (seed, series rounds), alternative funding (crowdfunding, ICO), and post-IPO activities
+- **Query Considerations:** Excellent for filtering and grouping by funding stage; useful for analyzing funding patterns
 
-### **funding_detail_id** (STRING)
-- **Type**: Unique identifier for each funding event
-- **Completeness**: 100% populated (0% null)
-- **Uniqueness**: 436,869 unique values (one per row)
-- **Pattern**: Numeric strings (e.g., "490320", "426404")
-- **Usage**: Primary key for this table, ensures each funding round is uniquely identified
+### company_id (STRING)
+- **Data Type:** Unique identifier (hash-like string)
+- **Null Values:** 0% - Required field
+- **Cardinality:** 191,921 unique companies
+- **Format:** Alphanumeric string (e.g., "UvElqrVrYBxihlcaQF72xw3ofKAW")
+- **Patterns:** Fixed-length encoded identifier, likely an internal system ID
+- **Query Considerations:** Primary join key to company master table; use for aggregating funding by company
 
-### **funding_round_date** (STRING)
-- **Type**: Date of funding round in YYYY-MM-DD format
-- **Completeness**: 100% populated (0% null)
-- **Range**: Historical data from 1900-01-01 to 2021+ (9,152 unique dates)
-- **Pattern**: ISO date format strings
-- **Usage**: Excellent for temporal analysis, filtering by time periods, trend analysis
+### funding_round_date (STRING)
+- **Data Type:** Date stored as STRING
+- **Null Values:** 0% - Required field
+- **Cardinality:** 9,152 unique dates
+- **Format:** ISO 8601 date format (YYYY-MM-DD)
+- **Range:** 1900-01-01 to at least 2023-12-18
+- **Patterns:** Some very old dates (1900-1917) likely represent placeholder or legacy data
+- **Query Considerations:** Cast to DATE type for temporal analysis; excellent for time-series queries, trend analysis, and date range filtering
 
-### **funding_round_type** (STRING)
-- **Type**: Categorical funding stage/type
-- **Completeness**: 100% populated (0% null)
-- **Variety**: 28 distinct funding types
-- **Common Types**: seed, pre_seed, series_a, series_b, series_c, angel, convertible_note, corporate_round, debt_financing, equity_crowdfunding, grant, initial_coin_offering, non_equity_assistance, post_ipo_debt, post_ipo_equity, private_equity
-- **Usage**: Ideal for grouping and filtering by funding stage
+### funding_detail_id (STRING)
+- **Data Type:** Unique identifier (numeric as string)
+- **Null Values:** 0% - Required field
+- **Cardinality:** 436,869 unique values (100% unique)
+- **Format:** Numeric string (e.g., "127591", "358088")
+- **Patterns:** Primary key for the table; each funding event has unique ID
+- **Query Considerations:** Use for deduplication and ensuring row-level uniqueness; can be used for pagination or ordering
 
-### **funding_amount** (STRING)
-- **Type**: Funding amount as string (includes scientific notation)
-- **Completeness**: 71.84% populated (28.16% null)
-- **Format**: Mix of decimal notation ("3500000.0") and scientific notation ("5.0E7", "1.0E8")
-- **Considerations**: Requires parsing for numeric operations; nulls indicate undisclosed amounts
-- **Usage**: Key for financial analysis when converted to numeric format
+### investing_companies (ARRAY<STRING>)
+- **Data Type:** Array of strings
+- **Null Values:** 0% for array (but many contain empty arrays [])
+- **Cardinality:** 436,869 unique combinations
+- **Format:** Array of company names (e.g., ['HV Capital', 'Unbound'], ['Galaxy'])
+- **Patterns:** Many records have empty arrays; some have single investors, others have multiple
+- **Query Considerations:** Requires array operations (UNNEST, ARRAY_LENGTH) for analysis; use to identify co-investment patterns or specific investor participation
 
-### **funding_currency** (STRING)
-- **Type**: Currency code for funding amount
-- **Completeness**: 71.84% populated (28.16% null - matches funding_amount nulls)
-- **Values**: Only "usd" when populated
-- **Pattern**: Null exactly when funding_amount is null
-- **Usage**: Currently all USD, but structure supports multi-currency expansion
+### investing_individuals (ARRAY<STRING>)
+- **Data Type:** Array of strings
+- **Null Values:** 0% for array (but predominantly empty arrays)
+- **Cardinality:** 436,869 unique combinations
+- **Format:** Array of individual investor names
+- **Patterns:** Sample data shows mostly empty arrays; individual investor data appears sparse
+- **Query Considerations:** Similar to investing_companies; may have limited analytical value due to sparsity
 
-### **investing_companies** (ARRAY<STRING>)
-- **Type**: Array of company investor names
-- **Completeness**: 100% populated (0% null, but arrays can be empty [])
-- **Content**: Company names as strings within arrays
-- **Pattern**: Many empty arrays [], some with multiple company investors
-- **Usage**: Enables analysis of investor networks, co-investment patterns
+### funding_amount (STRING)
+- **Data Type:** Numeric value stored as STRING
+- **Null Values:** 28.16% - Significant missing data
+- **Cardinality:** 106,753 unique values
+- **Format:** Floating point number as string (e.g., "72000.0", "3.4881343E7" in scientific notation)
+- **Patterns:** Mix of standard decimal notation and scientific notation; values vary from thousands to tens of millions
+- **Query Considerations:** Must cast to FLOAT/NUMERIC for calculations; handle nulls appropriately; scientific notation requires proper parsing
 
-### **investing_individuals** (ARRAY<STRING>)
-- **Type**: Array of individual investor names
-- **Completeness**: 100% populated (0% null, but arrays can be empty [])
-- **Content**: Individual names as strings within arrays
-- **Pattern**: Many empty arrays [], some with multiple individual investors
-- **Usage**: Tracks angel investors and individual participants in funding rounds
+### funding_currency (STRING)
+- **Data Type:** Currency code
+- **Null Values:** 28.16% - Matches funding_amount null pattern
+- **Cardinality:** 1 unique value (excluding nulls)
+- **Values:** "usd" only (when present)
+- **Patterns:** When funding_amount exists, currency is always USD; nulls are perfectly correlated with funding_amount nulls
+- **Query Considerations:** Limited analytical value as all non-null values are USD; use null check to identify records with/without financial data
 
-## Potential Query Considerations
+## Query Considerations
 
-### **Excellent for Filtering**:
-- `funding_round_date`: Time-based filtering, date ranges, yearly/quarterly analysis
-- `funding_round_type`: Stage-based analysis (seed vs. series rounds)
-- `company_id`: Company-specific funding history
-- `funding_currency`: Currency filtering (though currently only USD)
+### Good Filtering Columns:
+- **funding_round_type:** Categorical with reasonable cardinality (28 values) - excellent for stage analysis
+- **funding_round_date:** Temporal filtering for trend analysis, year-over-year comparisons
+- **company_id:** Filtering for specific company funding history
+- **funding_amount IS NOT NULL:** Distinguishing records with/without financial data
 
-### **Good for Grouping/Aggregation**:
-- `funding_round_type`: Analyze funding patterns by stage
-- `funding_round_date`: Temporal aggregations (by year, quarter, month)
-- `company_id`: Company-level funding summaries
-- Array fields: Investor participation analysis
+### Good Grouping/Aggregation Columns:
+- **funding_round_type:** Analyze funding by stage
+- **EXTRACT(YEAR FROM funding_round_date):** Time-based aggregations
+- **company_id:** Calculate total funding per company, count rounds per company
+- **investing_companies (with UNNEST):** Investor activity analysis
 
-### **Potential Join Keys**:
-- `company_id`: Primary join key to other company tables
-- `funding_detail_id`: Unique identifier for funding event details
+### Potential Join Keys:
+- **company_id:** Primary join key to companies master table
+- **investing_companies elements:** Could join to investor/VC firm tables (requires UNNEST operation)
 
-### **Data Quality Considerations**:
-- **Missing Amounts**: 28.16% of records lack funding amounts - consider this in financial analyses
-- **Scientific Notation**: Funding amounts require parsing before numeric operations
-- **Array Handling**: Investor arrays need special handling for searches and counts
-- **Historical Data**: Very old dates (1900s) may need validation
-- **Empty Investor Arrays**: Many rounds have no recorded investors
+### Data Quality Considerations:
+
+1. **Missing Financial Data:** 28.16% of records lack funding amounts - queries calculating total funding should handle nulls appropriately
+2. **Date Range Anomalies:** Very old dates (1900-1920) may need filtering for realistic analysis
+3. **Type Conversions Required:** 
+   - funding_round_date needs DATE casting
+   - funding_amount needs FLOAT/NUMERIC casting with scientific notation handling
+4. **Array Operations:** Investor analysis requires UNNEST and array function expertise
+5. **Empty vs Null Arrays:** Distinguish between no data (empty array) and missing data (though arrays are never null)
+6. **Currency Normalization:** All amounts already in USD simplifies cross-border analysis
+
+### Recommended Query Patterns:
+- Aggregate funding by company: `GROUP BY company_id`
+- Time-series analysis: `GROUP BY EXTRACT(YEAR FROM CAST(funding_round_date AS DATE))`
+- Stage analysis: `GROUP BY funding_round_type`
+- Investor participation: `CROSS JOIN UNNEST(investing_companies)`
+- Filter valid financial data: `WHERE funding_amount IS NOT NULL`
 
 ## Keywords
-
-funding, investments, venture capital, startup financing, series rounds, seed funding, investors, companies, funding amounts, funding dates, funding types, angel investment, private equity, convertible notes, grants, ICO, crowdfunding, financial data, investment rounds, funding history
+funding rounds, venture capital, investment data, startup funding, series funding, seed funding, angel investment, IPO, company financing, investor data, funding stage, convertible notes, equity crowdfunding, debt financing, corporate venture capital, funding amount, USD, investment timeline, co-investors, funding history, VC deals, pre-seed, series A/B/C, post-IPO, ICO, grant funding, funding transactions
 
 ## Table and Column Documentation
 
-*No table comment or column comments were provided in the analysis report.*
+**Table Comment:** Not provided in the analysis report.
+
+**Column Comments:** 
+- No specific column-level comments were provided in the analysis report. The column descriptions above are derived from data analysis and inference from the data patterns and values.

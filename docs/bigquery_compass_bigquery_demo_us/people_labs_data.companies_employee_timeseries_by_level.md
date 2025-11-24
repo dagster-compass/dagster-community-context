@@ -7,92 +7,124 @@ columns:
 schema_hash: a4a68bd81a642b890c2263843fc594c3f207689ec7e49ebbdc4834e6f89e20d9
 
 ---
-# Table Analysis Summary: companies_employee_timeseries_by_level
+# Comprehensive Table Summary: companies_employee_timeseries_by_level
 
 ## Overall Dataset Characteristics
 
 - **Total Rows**: 10,466,558,360 (over 10 billion records)
+- **Table Type**: Time-series employee count data segmented by organizational level
 - **Data Quality**: Excellent - 0% null values across all columns
-- **Time Range**: Monthly data from 2010-01 to approximately 2021+ (188 unique months, ~15.7 years)
-- **Data Pattern**: Time series data tracking employee counts by organizational level for companies
-- **Scale**: Massive dataset covering over 16 million unique companies with hierarchical employee tracking
+- **Time Range**: January 2010 onwards (188 unique months, suggesting data through approximately 2025)
+- **Granularity**: Monthly snapshots of employee counts at different organizational levels for each company
+
+**Key Patterns**:
+- This is a massive time-series dataset tracking workforce composition over time
+- Each row represents a specific company's employee count at a particular level for a given month
+- Many records show 0 employees (indicating either no employees at that level or historical gaps)
+- Data structure suggests comprehensive tracking of organizational hierarchy changes
 
 ## Column Details
 
-### company_id (STRING)
-- **Data Type**: String identifier
-- **Completeness**: 100% (no nulls)
-- **Cardinality**: 16,020,211 unique companies
-- **Format**: Alphanumeric hash-like identifiers (32 characters)
-- **Pattern**: Appears to be encoded/hashed company identifiers
-- **Usage**: Primary entity identifier for companies
-
 ### month_date (STRING)
-- **Data Type**: String in YYYY-MM format
-- **Completeness**: 100% (no nulls)
-- **Cardinality**: 188 unique months
-- **Range**: 2010-01 through 2021+ (spans ~15.7 years)
-- **Format**: Consistent YYYY-MM date format
-- **Usage**: Temporal dimension for time series analysis
+- **Format**: YYYY-MM (e.g., "2010-01", "2014-08", "2023-08")
+- **Null Values**: None (0.00%)
+- **Unique Values**: 188 distinct months
+- **Date Range**: 2010-01 through approximately 2025-08 (based on sample showing 2023-08)
+- **Notes**: Stored as string rather than DATE type; represents the first day of each month
+- **Use Cases**: Primary time-series dimension for trend analysis, filtering by date ranges, temporal aggregations
 
 ### level (STRING)
-- **Data Type**: Categorical string
-- **Completeness**: 100% (no nulls)
-- **Cardinality**: 10 distinct organizational levels
-- **Values**: 
-  - `cxo` (C-level executives)
-  - `director` (Director level)
-  - `entry` (Entry level)
-  - `manager` (Manager level)
-  - `owner` (Business owners)
-  - `partner` (Partners)
-  - `senior` (Senior level)
-  - `training` (Trainees/interns)
-  - `unpaid` (Unpaid positions)
-  - `vp` (Vice Presidents)
-- **Usage**: Organizational hierarchy dimension
+- **Null Values**: None (0.00%)
+- **Unique Values**: 10 distinct organizational levels
+- **Complete Value Set**:
+  - `cxo` - C-suite executives (CEO, CFO, CTO, etc.)
+  - `director` - Director-level positions
+  - `entry` - Entry-level employees
+  - `manager` - Manager positions
+  - `owner` - Business owners
+  - `partner` - Partners (common in professional services)
+  - `senior` - Senior-level individual contributors
+  - `training` - Employees in training programs
+  - `unpaid` - Unpaid positions (interns, volunteers)
+  - `vp` - Vice President positions
+- **Notes**: Represents a hierarchical classification from entry to executive levels
+- **Use Cases**: Grouping by organizational level, filtering for specific hierarchy tiers, workforce composition analysis
 
 ### employee_count (INT64)
-- **Data Type**: Integer
-- **Completeness**: 100% (no nulls)
+- **Null Values**: None (0.00%)
+- **Unique Values**: 26,016 distinct counts
 - **Range**: 0 to 120,165 employees
-- **Cardinality**: 26,016 unique values
-- **Distribution**: Heavy concentration at lower values (many 0s), indicating sparse data
-- **Usage**: Measure/metric for analysis
+- **Distribution**: Heavy skew toward lower values (many 0s and small counts in samples)
+- **Notes**: Integer counts representing number of employees at a specific level for a company in a given month
+- **Use Cases**: Primary metric for aggregation, trend analysis, workforce size calculations
+
+### company_id (STRING)
+- **Null Values**: None (0.00%)
+- **Unique Values**: 16,020,211 distinct companies
+- **Format**: Alphanumeric hash strings (28 characters, mixed case)
+- **Examples**: "jozwklhnXe5kK10qrotwkgow3A6X", "SAYH9H3NbLsp3Oz8jflRYQGheSIW"
+- **Notes**: Anonymized/hashed company identifiers; primary entity dimension
+- **Use Cases**: Filtering specific companies, joining with other company tables, grouping for company-level aggregations
 
 ## Potential Query Considerations
 
-### Filtering Columns
-- **month_date**: Excellent for time-based filtering (quarters, years, date ranges)
-- **level**: Perfect for organizational hierarchy analysis
-- **company_id**: For company-specific analysis
-- **employee_count**: For size-based filtering (>0 for active positions, ranges for company sizes)
+### Optimal Filtering Columns
+1. **month_date**: Essential for time-based queries and trend analysis
+   - Consider converting to DATE type in queries for proper date operations
+   - Format: `PARSE_DATE('%Y-%m', month_date)`
+2. **company_id**: For company-specific analysis (though may require additional lookup tables for meaningful company names)
+3. **level**: For organizational tier analysis (e.g., executive vs. entry-level trends)
+4. **employee_count**: For filtering by company size thresholds (e.g., WHERE employee_count > 100)
 
-### Grouping/Aggregation Opportunities
-- **Time-based aggregation**: By year, quarter, or month using `month_date`
-- **Hierarchical analysis**: Grouping by `level` for organizational structure insights
-- **Company segmentation**: Grouping by `company_id` for company-level metrics
-- **Combined dimensions**: Multi-dimensional analysis (company + time + level)
+### Optimal Grouping/Aggregation Columns
+1. **month_date**: Time-series aggregations (monthly, quarterly, yearly trends)
+2. **level**: Workforce composition analysis across hierarchy
+3. **company_id**: Company-level summaries
+4. **Combinations**: month_date + level for hierarchical trends over time
 
-### Potential Join Keys
-- **company_id**: Primary key for joining with other company-related tables
-- **month_date**: Can join with other time series data
-- **level**: Could join with organizational hierarchy reference tables
+### Join Considerations
+- **company_id**: Primary join key to other company dimension tables (e.g., company details, industry, location)
+- Likely part of a star schema where this is a fact table
+- No obvious foreign keys to other tables in this dataset alone
 
 ### Data Quality Considerations
-- **Zero values**: High frequency of 0 employee_counts suggests sparse data structure
-- **Scale**: Extremely large dataset requires careful query optimization
-- **Time series completeness**: Consider gaps in time series for specific companies/levels
-- **Partitioning**: Likely partitioned by month_date for query performance
 
-### Query Performance Tips
-- Use date range filters early in WHERE clauses
-- Consider aggregating before detailed analysis due to data volume
-- Partition-aware queries using month_date will be most efficient
-- Index on company_id likely exists for fast company lookups
+**Strengths**:
+- Zero null values ensures reliable aggregations
+- Consistent formatting across all fields
+- Complete time-series coverage (188 months)
+
+**Query Optimization Concerns**:
+1. **Massive Scale**: 10+ billion rows require careful query optimization
+   - Always use partitioning on month_date if available
+   - Limit date ranges in WHERE clauses
+   - Use appropriate aggregation levels to reduce result sets
+2. **Zero Values**: Many records have employee_count = 0
+   - Consider whether to include zeros in analyses (depends on use case)
+   - May want to filter WHERE employee_count > 0 for active workforce analysis
+3. **String Date Format**: Requires parsing for date operations
+   - Pre-parse dates in subqueries for complex temporal logic
+4. **Cardinality**: 16M companies × 188 months × 10 levels = theoretical max of ~30B records
+   - Actual data (~10B) suggests sparse data or filtered companies
+
+### Recommended Query Patterns
+
+1. **Time-Series Analysis**: Always partition/filter by date range first
+2. **Company Analysis**: Aggregate across time and levels for company profiles
+3. **Level Distribution**: Sum employee_count by level and month for organizational trends
+4. **Growth Metrics**: Use LAG/LEAD window functions with PARTITION BY company_id, level
+5. **Active Companies**: Consider filtering companies with employee_count > 0 for meaningful analysis
 
 ## Keywords
-time series, employee data, organizational hierarchy, company analytics, workforce tracking, C-level executives, management levels, employment trends, corporate structure, people analytics, headcount data, organizational analysis, business intelligence, HR metrics
+
+time-series, employee data, workforce analytics, organizational hierarchy, company employees, headcount, staffing levels, employee count by level, monthly snapshots, organizational structure, CXO, executives, directors, managers, senior staff, entry level, business owners, partners, unpaid staff, training programs, company_id, workforce composition, employee trends, headcount tracking, organizational levels, temporal data, people analytics, HR analytics, workforce intelligence, company growth, staffing trends
 
 ## Table and Column Documentation
-*No table comment or column comments were provided in the analysis report.*
+
+**Table Comment**: Not provided
+
+**Column Comments**: Not provided
+
+---
+
+**Analysis Note**: This table appears to be a core fact table in a people analytics/workforce intelligence system, tracking how companies' workforce composition changes over time across different organizational levels. The massive scale and comprehensive coverage make it suitable for enterprise-level workforce analytics, market intelligence, and trend analysis applications.

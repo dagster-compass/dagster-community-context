@@ -8,87 +8,111 @@ columns:
 schema_hash: 79523b2b19040120bf40e40186db1d6f50f4e640a6d1ba170a495487fadaaafb
 
 ---
-# Company Employee Timeseries Dataset Summary
+# Table Summary: people_labs_data.companies_employee_timeseries
 
 ## Overall Dataset Characteristics
 
-This is a massive employee tracking dataset with **1,790,408,682 rows** containing monthly timeseries data for company employee counts. The dataset spans from 2010 to 2023 (188 unique months) across over 16 million unique companies, making it a comprehensive workforce analytics resource.
+This is a **massive time-series dataset** tracking employee counts and movements across companies over time, containing **1.79 billion rows**. The data spans approximately **188 months** (roughly 15+ years from 2010 onwards based on sample values) and covers **16+ million unique companies**.
 
-**Data Quality Observations:**
-- High data completeness for core fields (company_id, month_date, total_employee_count)
-- Significant missing data for employee movement metrics (17.46% for additions, 41.61% for departures)
-- The dataset appears to prioritize headcount tracking over detailed hiring/departure analytics
-
-**Notable Patterns:**
-- Company sizes range from 0 to 542,509 employees, indicating coverage of everything from startups to large enterprises
-- Missing departure data is more common than missing addition data, suggesting challenges in tracking employee exits
-- The timespan covers both pre-recession, recession, recovery, and pandemic periods (2010-2023)
+### Key Observations:
+- **Time Period**: Data ranges from at least 2010-01 through 2021-08 (and likely beyond)
+- **Scale**: Monthly snapshots of employee metrics for millions of companies
+- **Data Quality**: Mixed quality with significant null values in movement metrics (additions: 17.46%, departures: 41.61%)
+- **Granularity**: Monthly aggregations with company-level metrics
 
 ## Column Details
 
 ### month_date (STRING)
-- **Format:** YYYY-MM (e.g., "2020-09", "2018-09", "2023-01")
-- **Coverage:** 188 months from 2010-01 to 2023 (approximately 15+ years)
-- **Completeness:** 100% - no null values
-- **Usage:** Primary time dimension for temporal analysis
-
-### company_id (STRING)
-- **Format:** Alphanumeric hash identifiers (32 characters)
-- **Uniqueness:** 16,020,211 unique companies
-- **Completeness:** 100% - no null values  
-- **Usage:** Primary company identifier for grouping and filtering
+- **Format**: YYYY-MM date string
+- **Coverage**: 188 unique months spanning ~15 years
+- **Completeness**: 100% populated (no nulls)
+- **Pattern**: Monthly time series data starting from 2010
+- **Query Use**: Primary time dimension for filtering and grouping; temporal analysis
 
 ### total_employee_count (INT64)
-- **Range:** 0 to 542,509 employees
-- **Distribution:** 57,786 unique values, heavily skewed toward smaller companies
-- **Completeness:** 100% - no null values
-- **Usage:** Core metric for company size analysis and growth tracking
+- **Range**: 0 to 542,509 employees
+- **Distribution**: 57,786 unique values; heavily skewed toward smaller companies
+- **Completeness**: 100% populated
+- **Characteristics**: 
+  - Many companies with 0 employees (possibly defunct or pre-launch)
+  - Maximum suggests very large enterprise companies included
+  - Low single-digit values are common (startups/small businesses)
+- **Query Use**: Primary metric for company size analysis, filtering, aggregation
 
 ### employee_additions_count (INT64)
-- **Range:** 0 to 30,333 new hires per month
-- **Missing Data:** 17.46% null values
-- **Distribution:** 4,376 unique values, most companies show 0-10 additions
-- **Usage:** Hiring velocity and growth analysis (with data quality caveats)
+- **Range**: 0 to 30,333 new hires per month
+- **Null Rate**: 17.46% (significant missing data)
+- **Distribution**: 4,376 unique values; most companies have low hiring rates
+- **Characteristics**:
+  - Represents monthly new hires/additions
+  - Nulls likely indicate no data available vs. zero additions
+  - Maximum of 30K suggests major hiring events or large companies
+- **Query Use**: Growth analysis, hiring trend identification (handle nulls carefully)
 
 ### employee_departures_count (INT64)
-- **Range:** 0 to 16,422 departures per month
-- **Missing Data:** 41.61% null values - highest missing rate
-- **Distribution:** 3,540 unique values
-- **Usage:** Attrition analysis and workforce stability metrics (limited by data availability)
+- **Range**: 0 to 16,422 departures per month
+- **Null Rate**: 41.61% (high missing data - worse than additions)
+- **Distribution**: 3,540 unique values
+- **Characteristics**:
+  - Represents monthly attrition/departures
+  - Higher null rate suggests departure data is harder to track
+  - Maximum lower than additions (16K vs 30K)
+- **Query Use**: Attrition analysis, turnover calculations (requires null handling)
 
-## Query Considerations
+### company_id (STRING)
+- **Cardinality**: 16,020,211 unique companies
+- **Format**: Alphanumeric hash strings (consistent length ~32 characters)
+- **Completeness**: 100% populated
+- **Pattern**: Appears to be a UUID or hash-based identifier
+- **Query Use**: Primary key for company identification, join key for company dimension tables
 
-### Optimal Filtering Columns:
-- **month_date**: Excellent for time-based filtering and trend analysis
-- **company_id**: Essential for company-specific analysis
-- **total_employee_count**: Good for company size segmentation (0-10, 11-100, 101-1000, etc.)
+## Potential Query Considerations
+
+### Filtering Best Practices:
+1. **Time-based filtering**: Use `month_date` for temporal queries
+   - Consider date range filters (e.g., `month_date >= '2020-01'`)
+   - Monthly aggregations are already built-in
+   
+2. **Company size filtering**: Use `total_employee_count` to segment by company size
+   - Small: 1-50, Medium: 51-500, Large: 500+
+   - Filter out zero-employee records if analyzing active companies
+
+3. **Data quality filtering**: 
+   - Consider `WHERE employee_additions_count IS NOT NULL` for hiring analysis
+   - Be aware of 41.61% null rate in departures data
 
 ### Grouping/Aggregation Opportunities:
-- **Temporal grouping**: By year, quarter, or month for trend analysis
-- **Company size buckets**: Small/medium/large enterprise analysis
-- **Geographic analysis**: If company location data is available in related tables
-- **Industry analysis**: If sector data is available in related tables
+1. **Time-series analysis**: Group by `month_date` for trend analysis
+2. **Company-level aggregations**: Group by `company_id` for company lifecycle analysis
+3. **Cohort analysis**: Combine time and size dimensions
+4. **Growth metrics**: Calculate net employee change (additions - departures)
 
-### Potential Join Keys:
-- **company_id**: Primary key for joining with company profile, industry, or location tables
-- **month_date**: Can join with economic indicators, market data, or external events
+### Join Considerations:
+- **Primary join key**: `company_id` - likely joins to company dimension tables
+- **Composite key**: (`company_id`, `month_date`) for precise point-in-time joins
+- **Expected related tables**: Company profiles, industry classifications, geographic data
 
 ### Data Quality Considerations:
-- **Missing departure data**: Queries involving employee_departures_count should account for 41.61% null values
-- **Missing addition data**: 17.46% null rate for employee_additions_count requires careful handling
-- **Zero vs. null distinction**: Zero values indicate measured zero activity; nulls indicate missing measurements
-- **Time series gaps**: Companies may have missing months in their timeseries
-- **Company lifecycle**: Some companies may appear/disappear from dataset over time
+1. **Null handling**: Critical for movement metrics
+   - Don't assume NULL = 0 for additions/departures
+   - Consider separate analysis for records with complete vs. incomplete data
+   
+2. **Zero employee companies**: Decide whether to include/exclude based on analysis goal
+   
+3. **Outliers**: Very large employee counts or movements may need validation
+   
+4. **Time coverage**: Not all companies have data for all months (gaps expected)
 
-### Recommended Query Patterns:
-- Use `total_employee_count` for reliable workforce size analysis
-- Apply null-safe operations when using additions/departures metrics
-- Consider rolling averages for smoothing monthly volatility
-- Use window functions for growth rate calculations
-- Filter out companies with insufficient data history for trend analysis
+5. **Calculation accuracy**: 
+   - Net change: `total_employee_count` current month - previous month
+   - May not always equal `additions - departures` due to data collection methods
 
 ## Keywords
-employee timeseries, workforce analytics, company headcount, hiring data, employee departures, monthly employment data, company growth tracking, HR analytics, workforce planning, employee additions, company size analysis, employment trends, business intelligence, people analytics
+
+time-series, employee-count, workforce-analytics, headcount-tracking, hiring-trends, attrition-analysis, company-growth, monthly-snapshots, workforce-movement, employee-additions, employee-departures, company-timeseries, headcount-history, employment-data, organizational-growth, turnover-metrics, people-analytics, staffing-trends, workforce-changes, company-metrics
 
 ## Table and Column Documentation
-*No table comment or column comments were provided in the source data.*
+
+**Table Comment**: Not provided
+
+**Column Comments**: Not provided

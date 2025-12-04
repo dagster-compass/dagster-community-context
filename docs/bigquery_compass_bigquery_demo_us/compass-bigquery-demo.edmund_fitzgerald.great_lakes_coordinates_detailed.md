@@ -6,100 +6,127 @@ columns:
 schema_hash: e6dbc9a41ef2ec6cea50628ee7f266c1238159a71b48b1142f674052b677f1a8
 
 ---
-# Table Documentation Summary: great_lakes_coordinates_detailed
+# Table Summary: great_lakes_coordinates_detailed
 
 ## Overall Dataset Characteristics
 
-**Dataset Size:** 30 rows
+**Total Rows:** 30
 
-**Purpose:** This table contains geographical coordinate data for the five Great Lakes of North America, providing latitude and longitude points that likely represent various locations across each lake (possibly shoreline points, survey locations, or other reference coordinates).
+**Dataset Description:**
+This table contains geographic coordinate data for the five Great Lakes of North America. The dataset appears to be a collection of representative coordinate points distributed across each lake, likely representing key locations, boundary points, or sampling positions within each lake's geography.
 
-**Data Quality:** Excellent - no null values detected in any column (0% null percentage across all fields).
+**Data Quality:** Excellent
+- No null values present in any column (0.00% null rate across all fields)
+- All coordinates fall within the expected geographic range for the Great Lakes region
+- Clean, consistent data structure with no apparent anomalies
 
-**Distribution Patterns:**
-- Geographic coverage spans approximately 7° latitude (41.6° to 48.2° N) and 13° longitude (-89.7° to -76.3° W)
-- All five Great Lakes are represented in the dataset
-- Multiple coordinate pairs per lake (average ~6 points per lake based on 30 total rows for 5 lakes)
-- Coordinates fall within the expected geographical boundaries of the Great Lakes region
-
-**Table Comment:** Not provided
-
----
+**Notable Patterns:**
+- The data covers all five Great Lakes (Erie, Huron, Michigan, Ontario, Superior)
+- Latitude ranges from 41.6° to 48.2° N (spanning ~6.6 degrees)
+- Longitude ranges from -89.7° to -76.3° W (spanning ~13.4 degrees)
+- Each lake has multiple coordinate points (averaging 6 points per lake)
+- The westernmost coordinates belong to Lake Superior and Lake Michigan
+- The easternmost coordinates belong to Lake Ontario
 
 ## Column Details
 
-### 1. **latitude** (FLOAT64)
-- **Data Type:** Floating-point decimal number (geographic coordinate)
-- **Null Values:** None (0.00%)
-- **Value Range:** 41.6° N to 48.2° N
-- **Unique Values:** 23 distinct latitude values
-- **Distribution Pattern:** Relatively well-distributed across the range, with some latitude values appearing multiple times (30 rows but only 23 unique values suggests 7 repeated latitude values)
-- **Geographic Context:** Spans from southern Lake Erie (41.6°) to northern Lake Superior (48.2°)
-- **Column Comment:** Not provided
+### lake (STRING)
+**Data Type:** STRING (categorical)
+**Data Quality:** 100% populated, no nulls
+**Unique Values:** 5 distinct lakes
 
-### 2. **longitude** (FLOAT64)
-- **Data Type:** Floating-point decimal number (geographic coordinate)
-- **Null Values:** None (0.00%)
-- **Value Range:** -89.7° W to -76.3° W
-- **Unique Values:** 26 distinct longitude values
-- **Distribution Pattern:** High uniqueness (26 out of 30 values are distinct), suggesting broad east-west coverage
-- **Geographic Context:** Spans from western Lake Superior (-89.7°) to eastern Lake Ontario (-76.3°)
-- **Column Comment:** Not provided
+**Value Distribution:**
+- Lake Erie
+- Lake Huron
+- Lake Michigan
+- Lake Ontario
+- Lake Superior
 
-### 3. **lake** (STRING)
-- **Data Type:** Text string (categorical)
-- **Null Values:** None (0.00%)
-- **Unique Values:** 5 (complete enumeration of the Great Lakes)
-- **Possible Values:**
-  - Lake Erie
-  - Lake Huron
-  - Lake Michigan
-  - Lake Ontario
-  - Lake Superior
-- **Distribution:** Each lake has multiple coordinate points in the dataset
-- **Column Comment:** Not provided
+**Characteristics:**
+- Acts as the primary categorical identifier for grouping coordinates by lake
+- Consistent naming convention using "Lake [Name]" format
+- All five Great Lakes are represented in the dataset
 
----
+### latitude (FLOAT64)
+**Data Type:** FLOAT64 (numeric, decimal)
+**Data Quality:** 100% populated, no nulls
+**Unique Values:** 23 distinct values
 
-## Query Considerations
+**Range:** 41.6° to 48.2° North
+**Span:** ~6.6 degrees
 
-### Optimal Filtering Columns:
-- **`lake`** - Primary categorical filter; ideal for queries focusing on specific lakes (e.g., "WHERE lake = 'Lake Superior'")
-- **`latitude` / `longitude`** - Geographic range filters for bounding box queries (e.g., "WHERE latitude BETWEEN 42.0 AND 44.0")
+**Characteristics:**
+- Represents north-south positioning
+- Higher values (closer to 48.2°) indicate northern positions (likely Lake Superior)
+- Lower values (closer to 41.6°) indicate southern positions (likely Lakes Erie and Michigan)
+- 23 unique values across 30 rows suggests some coordinate pairs may share latitude values
+- All values are positive, consistent with Northern Hemisphere location
 
-### Aggregation/Grouping Opportunities:
-- **`lake`** - Excellent GROUP BY candidate for calculating statistics per lake (e.g., average coordinates, geographic center, coordinate count per lake)
-- Geographic analysis: Calculate centroid coordinates, bounding boxes, or geographic span per lake
+**Sample Values:** 48.2, 43.0, 41.6
+
+### longitude (FLOAT64)
+**Data Type:** FLOAT64 (numeric, decimal)
+**Data Quality:** 100% populated, no nulls
+**Unique Values:** 26 distinct values
+
+**Range:** -89.7° to -76.3° West
+**Span:** ~13.4 degrees
+
+**Characteristics:**
+- Represents east-west positioning
+- All values are negative, consistent with Western Hemisphere location
+- More westerly values (closer to -89.7°) represent western lakes (Lake Superior, Lake Michigan)
+- More easterly values (closer to -76.3°) represent eastern lakes (Lake Ontario)
+- 26 unique values across 30 rows indicates high coordinate diversity
+
+**Sample Values:** -89.7, -83.5, -78.5
+
+## Potential Query Considerations
+
+### Filtering Opportunities:
+- **lake column:** Ideal for filtering by specific Great Lake(s)
+- **latitude/longitude ranges:** Can filter by geographic boundaries or regions
+- **Combined coordinate filters:** Can identify points within specific rectangular bounds using WHERE clauses with lat/long ranges
+
+### Grouping/Aggregation Opportunities:
+- **GROUP BY lake:** Calculate statistics per lake (count of points, average coordinates, geographic center)
+- **Coordinate-based aggregations:** 
+  - MIN/MAX latitude/longitude per lake to find boundaries
+  - AVG to find approximate center points
+  - COUNT to see distribution of points across lakes
 
 ### Potential Join Keys:
-- **`lake`** - Can join with other Great Lakes-related tables (e.g., shipping data, water quality, historical records)
-- **`latitude, longitude`** pair - Could join with point-based geographic data or spatial datasets
+- **lake column:** Can join with other tables containing Great Lakes data (shipping routes, weather data, depth measurements, etc.)
+- **latitude/longitude pairs:** Can join with geographic reference tables or perform spatial joins with other coordinate-based datasets
 
-### Spatial Query Potential:
-- Coordinates can be used to create GEOGRAPHY points for spatial queries in BigQuery
-- Distance calculations between points
-- Proximity searches (e.g., finding nearest coordinates to a specific location)
+### Geographic Analysis Capabilities:
+- Calculate distances between points using Haversine formula
+- Identify northernmost/southernmost/easternmost/westernmost points per lake
+- Determine geographic center of each lake
+- Map coverage area or boundaries
 
 ### Data Quality Considerations:
-- **No missing data:** All queries can assume complete data without NULL handling
-- **Coordinate precision:** Float values provide sufficient precision for most geographic analyses
-- **Limited sample size:** Only 30 points total; statistical analyses should consider small sample size
-- **Uneven distribution:** Unknown if points are evenly distributed per lake or weighted toward certain areas
+- **No null handling required:** All columns are fully populated
+- **Coordinate validation:** All values fall within expected Great Lakes region
+- **Precision considerations:** FLOAT64 provides sufficient precision for geographic analysis
+- **Limited resolution:** With only ~6 points per lake on average, this appears to be a simplified/sampled dataset rather than comprehensive boundary data
 
----
+### Query Performance Notes:
+- Small dataset (30 rows) means performance is not a concern
+- No indexes required for this size
+- All query types (filtering, grouping, joins) will execute quickly
 
 ## Keywords
 
-`Great Lakes`, `coordinates`, `latitude`, `longitude`, `Lake Superior`, `Lake Michigan`, `Lake Huron`, `Lake Erie`, `Lake Ontario`, `geography`, `geospatial data`, `Edmund Fitzgerald`, `mapping`, `location data`, `North America`, `freshwater lakes`, `spatial analysis`, `GIS`, `coordinate pairs`, `geographic reference points`
-
----
+Great Lakes, geography, coordinates, latitude, longitude, Lake Superior, Lake Michigan, Lake Huron, Lake Erie, Lake Ontario, geospatial data, geographic coordinates, North America, freshwater lakes, coordinate points, mapping data, location data, edmund fitzgerald, compass bigquery demo
 
 ## Table and Column Documentation
 
-### Table Comment
-*No table comment provided in the schema*
+**Table Comment:** Not provided
 
-### Column Comments
-- **latitude:** *No column comment provided*
-- **longitude:** *No column comment provided*
-- **lake:** *No column comment provided*
+**Column Comments:** 
+- lake: Not provided
+- latitude: Not provided  
+- longitude: Not provided
+
+*Note: No explicit table or column comments were included in the source data.*

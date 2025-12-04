@@ -18,156 +18,156 @@ schema_hash: 04f57cfc6327ebfaf6791fd219d6261cd9a68b0059167d98fee3ea9ea636bb73
 
 ## Overall Dataset Characteristics
 
-**Total Rows:** 1,742,275
-
-**Description:** This table contains geographic location data for storm events, with multiple location points per event (indicated by location_index 1-8). The dataset spans from June 1972 to May 2025 (based on event_yearmonth range), providing detailed spatial information about where storm events occurred.
-
-**Data Quality Observations:**
-- Good primary key structure with event_id and location_index combinations
-- Significant null values in location detail fields (~24-27% for range/azimuth data, ~11-15% for coordinate data)
-- Some data quality issues in coordinate fields (latitude values >90, extremely large alternate coordinate values)
-- Generally complete for core identifiers (event_yearmonth, episode_id, event_id, location_index)
-
-**Notable Patterns:**
-- Most events have multiple location points (location_index ranges 1-8)
-- Location coordinates appear in two formats: standard lat/lon and an "alternate" format with much larger values (possibly a different coordinate system or encoding)
-- Distance and directional data (range_miles and azimuth) are frequently missing together (same 24.57% null rate)
+- **Total Rows**: 1,742,275 records
+- **Dataset Type**: Storm event location data spanning from June 1972 to May 2025 (event_yearmonth: 197206-202505)
+- **Temporal Coverage**: 354 unique year-month combinations over approximately 53 years
+- **Event Scale**: Tracks 1,272,091 unique events across 317,600 episodes
+- **Location Granularity**: Up to 8 location points per event (location_index 1-8)
+- **Data Quality**: Generally good, with most critical identifiers having 100% completeness. Location attributes show varying degrees of completeness (11-27% null rates for optional fields)
 
 ## Column Details
 
-### event_yearmonth (INT64)
-- **Format:** YYYYMM integer format
-- **Range:** 197206 (June 1972) to 202505 (May 2025)
-- **Null Values:** None (0%)
-- **Unique Values:** 354 distinct year-month combinations
-- **Comment:** None provided
-- **Usage:** Primary temporal dimension for filtering and time-series analysis
+### Identifier Columns
 
-### episode_id (INT64)
-- **Format:** Sequential integer identifiers
-- **Range:** 2 to 990,000,001
-- **Null Values:** None (0%)
-- **Unique Values:** 317,600 distinct episodes
-- **Comment:** None provided
-- **Usage:** Groups related storm events together; potential join key to episode-level tables
+**location_index** (INT64)
+- Purpose: Sequential identifier for multiple locations within a single event
+- Values: 1 through 8 (discrete)
+- Complete: 100% populated
+- Usage: Indicates ordering of location points for storm events that affect multiple areas
+- Query consideration: Good for filtering specific location sequences or counting locations per event
 
-### event_id (INT64)
-- **Format:** Sequential integer identifiers
-- **Range:** 7 to 990,000,001
-- **Null Values:** None (0%)
-- **Unique Values:** 1,272,091 distinct events
-- **Comment:** None provided
-- **Usage:** Primary identifier for individual storm events; key for joining to other event tables
+**episode_id** (INT64)
+- Purpose: Groups related storm events into episodes
+- Range: 2 to 990,000,001
+- Cardinality: 317,600 unique episodes
+- Complete: 100% populated
+- Usage: Primary grouping key for related storm events
+- Query consideration: Excellent for aggregating multiple related events
 
-### location_range_miles (FLOAT64)
-- **Format:** Decimal distance values
-- **Range:** 0.0 to 519.78 miles
-- **Null Values:** 24.57%
-- **Distribution:** Includes precise measurements to 2 decimal places
-- **Common Pattern:** Many events at 0.0 miles (exact location)
-- **Comment:** None provided
-- **Usage:** Distance metric from reference point; useful for proximity analysis
+**event_id** (INT64)
+- Purpose: Unique identifier for individual storm events
+- Range: 7 to 990,000,001
+- Cardinality: 1,272,091 unique events
+- Complete: 100% populated
+- Usage: Primary key for individual storm occurrences
+- Query consideration: Key join column; ~4 locations per event on average (1.37:1 ratio)
 
-### location_index (INT64)
-- **Format:** Sequential integers 1-8
-- **Range:** 1 to 8
-- **Null Values:** None (0%)
-- **Unique Values:** 8
-- **Comment:** None provided
-- **Usage:** Indicates multiple location points per event; critical for proper event aggregation (part of composite key with event_id)
+### Temporal Column
 
-### location_azimuth (STRING)
-- **Format:** Compass direction abbreviations
-- **Null Values:** 24.57% (same as location_range_miles)
-- **Unique Values:** 16 distinct directions
-- **Possible Values:** E, ENE, ESE, N, NE, NNE, NNW, NW, S, SE, SSE, SSW, SW, W, WNW, WSW
-- **Comment:** None provided
-- **Usage:** Cardinal/intercardinal direction from reference point; pairs with location_range_miles
+**event_yearmonth** (INT64)
+- Format: YYYYMM (e.g., 201906 = June 2019)
+- Range: 197206 (June 1972) to 202505 (May 2025)
+- Cardinality: 354 unique months
+- Complete: 100% populated
+- Usage: Time-based filtering and temporal analysis
+- Query consideration: Excellent partition/filter column; consider extracting year and month separately for analysis
 
-### location_name (STRING)
-- **Format:** Place names, some with airport codes
-- **Null Values:** 11.36%
-- **Unique Values:** 54,319 distinct locations
-- **Common Patterns:** City names, airport identifiers (e.g., "(01R)AFB GNRY RNG AL"), geographic features
-- **Comment:** None provided
-- **Usage:** Human-readable location identifier; good for filtering by known places
+### Directional Location Attributes
 
-### location_latitude (FLOAT64)
-- **Format:** Decimal degrees
-- **Range:** -14.5551 to 97.1 (NOTE: values >90 indicate data quality issues)
-- **Null Values:** 15.02%
-- **Unique Values:** 182,970 distinct values
-- **Precision:** Typically 4-5 decimal places
-- **Comment:** None provided
-- **Usage:** Standard geographic coordinate; primary for mapping and spatial queries
+**location_azimuth** (STRING)
+- Purpose: Compass direction from reference point
+- Values: 16 cardinal/intercardinal directions (N, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW, NNE)
+- Null Rate: 24.57% (optional attribute)
+- Usage: Indicates direction of storm location relative to named reference point
+- Query consideration: Good for geographic/directional analysis when paired with location_range_miles
 
-### location_longitude (FLOAT64)
-- **Format:** Decimal degrees
-- **Range:** -171.4 to 171.4689
-- **Null Values:** 15.02% (matches location_latitude)
-- **Unique Values:** 315,788 distinct values
-- **Precision:** Typically 4-5 decimal places
-- **Comment:** None provided
-- **Usage:** Standard geographic coordinate; primary for mapping and spatial queries
+**location_range_miles** (FLOAT64)
+- Purpose: Distance from reference location in miles
+- Range: 0.0 to 519.78 miles
+- Cardinality: 5,674 unique values
+- Null Rate: 24.57% (matches azimuth nulls)
+- Pattern: Many events at 0.0 miles (direct hits on named locations)
+- Usage: Combined with azimuth for relative positioning
+- Query consideration: Filter for proximity analysis; nulls indicate absolute location rather than relative
 
-### location_latitude_alternate (FLOAT64)
-- **Format:** Large integer-like values
-- **Range:** -1,433,306 to 7,030,174
-- **Null Values:** 27.11%
-- **Unique Values:** 183,166 distinct values
-- **Pattern:** Appears to be coordinates * 100,000 (e.g., 37.12378° → 3712378.0)
-- **Comment:** None provided
-- **Usage:** Alternative coordinate encoding; likely for precision or legacy system compatibility
+**location_name** (STRING)
+- Purpose: Named reference point (cities, airports, landmarks)
+- Cardinality: 54,319 unique location names
+- Null Rate: 11.36%
+- Examples: Cities (OWENSBORO, HUDSON), Airports ((1K5)ELKHART), Landmarks (FT ROSS)
+- Usage: Human-readable location identifier
+- Query consideration: Good for filtering by known locations; case-sensitive string matching
 
-### location_longitude_alternate (FLOAT64)
-- **Format:** Large integer-like values
-- **Range:** -17,128,134 to 17,055,188
-- **Null Values:** 27.11% (matches location_latitude_alternate)
-- **Unique Values:** 316,165 distinct values
-- **Pattern:** Appears to be coordinates * 100,000 (e.g., -79.8628° → 7986280.0, with sign possibly stored separately)
-- **Comment:** None provided
-- **Usage:** Alternative coordinate encoding; companion to location_latitude_alternate
+### Absolute Coordinate Columns
 
-## Query Considerations
+**location_latitude** (FLOAT64)
+- Purpose: Geographic latitude in decimal degrees
+- Range: -14.5551 to 97.1 (note: 97.1 appears to be an error; valid range should be -90 to 90)
+- Cardinality: 182,970 unique values
+- Null Rate: 15.02%
+- Usage: Primary latitude coordinate
+- Query consideration: Data quality issue with values >90; filter for valid range (-90 to 90) in queries
 
-### Good for Filtering:
-- **event_yearmonth**: Temporal filtering (by year, month, or ranges)
-- **event_id**: Specific event lookups
-- **episode_id**: Finding all events in an episode
-- **location_name**: Text-based location searches
-- **location_azimuth**: Directional filtering (e.g., all northern events)
+**location_longitude** (FLOAT64)
+- Purpose: Geographic longitude in decimal degrees
+- Range: -171.4 to 171.4689
+- Cardinality: 315,788 unique values
+- Null Rate: 15.02% (matches latitude)
+- Usage: Primary longitude coordinate
+- Query consideration: Valid range; pair with latitude for spatial queries
 
-### Good for Grouping/Aggregation:
-- **event_yearmonth**: Time-series analysis
-- **location_azimuth**: Directional analysis
-- **location_index**: Analyzing multi-point events
+**location_latitude_alternate** (FLOAT64)
+- Purpose: Alternative latitude encoding (appears to be degrees-minutes format: DDMMSS)
+- Range: -1,433,306 to 7,030,174
+- Cardinality: 183,166 unique values
+- Null Rate: 27.11%
+- Example: 3746200.0 = 37°46'20.0" N
+- Usage: Alternative coordinate representation
+- Query consideration: Requires conversion formula; higher null rate than primary coordinates
+
+**location_longitude_alternate** (FLOAT64)
+- Purpose: Alternative longitude encoding (degrees-minutes format: DDDMMSS)
+- Range: -17,128,134 to 17,055,188
+- Cardinality: 316,165 unique values
+- Null Rate: 27.11% (matches alternate latitude)
+- Example: 878298.0 = 87°82'98.0" W (note: seconds >60 suggests data quality issues)
+- Usage: Alternative coordinate representation
+- Query consideration: Complex conversion needed; prefer primary coordinates
+
+## Potential Query Considerations
+
+### Filtering Columns
+- **event_yearmonth**: Excellent for temporal filtering; partition-friendly
+- **episode_id/event_id**: Specific event lookup
+- **location_name**: Known location filtering
+- **location_latitude/longitude**: Geographic bounding box queries
+- **location_azimuth**: Directional filtering
+- **location_index**: Filter for specific location sequences
+
+### Grouping/Aggregation Columns
+- **event_yearmonth**: Temporal aggregation (monthly, yearly trends)
+- **episode_id**: Group related events
 - **location_name**: Location-based statistics
+- **location_azimuth**: Directional distribution analysis
+- **location_index**: Count locations per event
 
-### Potential Join Keys:
-- **event_id**: Primary key for joining to main events table
-- **episode_id**: For joining to episode-level data
-- **Composite key (event_id, location_index)**: Unique row identifier
+### Join Keys
+- **event_id**: Primary key for joining with other storm event tables
+- **episode_id**: Join to episode-level data
+- **event_yearmonth**: Time-based joins
 
-### Data Quality Considerations:
-1. **Coordinate Validation**: Filter out latitude values >90 or <-90
-2. **Null Handling**: ~24-27% of range/azimuth and alternate coordinates are NULL
-3. **Coordinate Pairs**: location_latitude and location_longitude are NULL together (15.02%)
-4. **Alternate Coordinates**: Different null pattern (27.11%) suggests not always populated
-5. **Location Index**: Always query with location_index or use DISTINCT on event_id to avoid duplication
-6. **Coordinate Systems**: Choose between standard (lat/lon) or alternate format based on precision needs
+### Data Quality Considerations
+1. **Coordinate Validation**: Filter location_latitude between -90 and 90 (outliers exist)
+2. **Null Handling**: ~25% of directional attributes (azimuth/range) are null; ~15% of primary coordinates are null; ~27% of alternate coordinates are null
+3. **Alternate Coordinates**: Complex format requiring conversion; prefer primary lat/long
+4. **Location Multiplicity**: Events can have 1-8 locations; be aware when counting
+5. **Date Range**: Data spans 1972-2025, consider temporal data quality variations
+6. **Location Names**: May contain special characters and formatting (airport codes, etc.)
 
-### Spatial Analysis Notes:
-- Use location_latitude/longitude for standard GIS operations
-- location_range_miles and location_azimuth provide polar coordinates from reference point
-- Multiple location points per event suggest path or area coverage
-- Consider using ST_GEOGPOINT for BigQuery spatial functions
+### Recommended Query Patterns
+- Use primary lat/long for spatial analysis
+- Filter event_yearmonth for time ranges
+- Join on event_id for detailed event information
+- Group by episode_id for event cluster analysis
+- Use location_name with LIKE for flexible location matching
+- Calculate distance/direction when both azimuth and range are non-null
 
 ## Keywords
 
-storm events, weather data, geographic locations, coordinates, latitude, longitude, storm tracking, meteorological data, event locations, spatial data, weather events, NOAA, storm database, location tracking, azimuth, distance, polar coordinates, multi-point events, temporal weather data, geographic analysis, storm paths
+storm events, weather data, NOAA, severe weather, geographic locations, coordinates, latitude, longitude, episodes, temporal data, location tracking, event locations, storm tracking, weather database, US storms, cardinal directions, azimuth, distance, range, 1972-2025, time series, spatial data, BigQuery, multi-location events, storm paths, weather episodes
 
 ## Table and Column Documentation
 
-**Table Comment:** None provided
+**Table Comment**: Not provided
 
-**Column Comments:** None provided for any columns
+**Column Comments**: Not provided

@@ -10,85 +10,151 @@ columns:
 schema_hash: 21b4ce290adcb3be38013ddcaf50e8e9e32e404a658e7bda6ffac5b0bf98350b
 
 ---
-# Table Analysis Summary: compass-bigquery-demo.github_dataset.author_summary
+# Comprehensive Table Summary: compass-bigquery-demo.github_dataset.author_summary
 
-## Overall Dataset Characteristics
+## 1. Overall Dataset Characteristics
 
-- **Total Rows**: 2,173,918 records
-- **Data Quality**: Excellent - no null values in any column (0.00% null percentage across all fields)
-- **Dataset Scope**: This appears to be a GitHub author activity summary table covering the period from January 2015 to February 2024
-- **Pattern**: Most authors fall into lower activity categories, with "Rare (<30)" being the most common activity frequency and "Low (5-49)" being a common commit count bucket
+**Total Rows:** 2,173,918
 
-## Column Details
+**Dataset Purpose:** This table contains aggregated summary statistics about GitHub authors (developers/contributors), tracking their commit behavior, activity patterns, and contribution characteristics over time.
+
+**Data Quality:** 
+- Excellent data completeness - 0% null values across all columns
+- All data is pre-aggregated into categorical buckets for analysis convenience
+- Author identities are anonymized using hash values (SHA-256 format)
+- Time range spans from January 2015 (201501) to approximately April 2024 (224502)
+
+**Notable Patterns:**
+- Heavy skew toward low-activity authors: Most authors fall into "Rare (<30)" activity frequency
+- Majority of authors contribute to few repositories (Low 2-4 bucket most common)
+- Most commit messages are "Very Short (<50)" characters
+- Dataset captures ~1.8M unique authors, suggesting some aggregation (fewer unique authors than total rows)
+- The presence of future dates (204002, 224502) suggests either data quality issues or test data
+
+## 2. Column Details
 
 ### author_id (STRING)
-- **Data Type**: String (appears to be SHA-256 hash)
-- **Uniqueness**: 1,799,074 unique values out of 2,173,918 rows (~83% unique)
-- **Format**: 64-character hexadecimal hash values
-- **Purpose**: Primary identifier for GitHub authors (anonymized)
-
-### commit_count_bucket (STRING)  
-- **Data Type**: Categorical string with 5 predefined ranges
-- **Values**: "Low (5-49)", "Low-Medium (50-99)", "Medium (100-499)", "High (500-999)", "Very High (1000+)"
-- **Distribution**: Heavily skewed toward lower commit counts based on sample data
-- **Purpose**: Categorizes authors by total commit volume
+- **Type:** Hashed identifier (SHA-256 format, 64 hex characters)
+- **Uniqueness:** 1,799,074 unique values out of 2,173,918 rows (~83% unique)
+- **Nulls:** None (0%)
+- **Purpose:** Primary anonymized identifier for GitHub contributors
+- **Note:** Multiple rows per author suggest either temporal snapshots or different aggregation dimensions
 
 ### repo_diversity_bucket (STRING)
-- **Data Type**: Categorical string with 5 predefined ranges  
-- **Values**: "Low (2-4)", "Low-Medium (5-9)", "Medium (10-19)", "High (20-49)", "Very High (50+)"
-- **Distribution**: Most authors contribute to fewer repositories (Low category dominant)
-- **Purpose**: Measures how many different repositories an author contributes to
+- **Type:** Categorical (5 ordinal buckets)
+- **Nulls:** None (0%)
+- **Values:** 
+  - "Low (2-4)" - Author contributed to 2-4 repositories
+  - "Low-Medium (5-9)" - 5-9 repositories
+  - "Medium (10-19)" - 10-19 repositories
+  - "High (20-49)" - 20-49 repositories
+  - "Very High (50+)" - 50 or more repositories
+- **Distribution:** "Low (2-4)" appears most frequently in samples
+- **Use Case:** Measures author's breadth of contribution across different projects
+
+### commit_count_bucket (STRING)
+- **Type:** Categorical (5 ordinal buckets)
+- **Nulls:** None (0%)
+- **Values:**
+  - "Low (5-49)" - 5-49 total commits
+  - "Low-Medium (50-99)" - 50-99 commits
+  - "Medium (100-499)" - 100-499 commits
+  - "High (500-999)" - 500-999 commits
+  - "Very High (1000+)" - 1000+ commits
+- **Distribution:** "Low (5-49)" and "Low-Medium (50-99)" appear frequently
+- **Use Case:** Measures author's total volume of contributions
 
 ### first_commit_ym (INT64)
-- **Data Type**: Integer representing year-month (YYYYMM format)
-- **Range**: 201501 to 204002 (January 2015 to February 2040)
-- **Unique Values**: 101 distinct time periods
-- **Purpose**: Tracks when authors first became active
+- **Type:** Integer representing YYYYMM format
+- **Nulls:** None (0%)
+- **Range:** 201501 (January 2015) to 204002 (February 2040 - likely error)
+- **Format:** 6-digit integer (e.g., 201511 = November 2015)
+- **Unique Values:** 101
+- **Use Case:** Tracks when author first appeared in the dataset; useful for cohort analysis
+- **Note:** Values beyond current date suggest data quality issues
 
 ### last_commit_ym (INT64)
-- **Data Type**: Integer representing year-month (YYYYMM format)  
-- **Range**: 201501 to 224502 (January 2015 to February 2245)
-- **Unique Values**: 152 distinct time periods
-- **Purpose**: Tracks authors' most recent activity
-
-### message_length_bucket (STRING)
-- **Data Type**: Categorical string with 4 predefined ranges
-- **Values**: "Very Short (<50)", "Short (50-99)", "Medium (100-199)", "Long (200+)"
-- **Distribution**: "Very Short (<50)" appears to be the most common category
-- **Purpose**: Categorizes authors by typical commit message length
+- **Type:** Integer representing YYYYMM format
+- **Nulls:** None (0%)
+- **Range:** 201501 (January 2015) to 224502 (May 2245 - likely error)
+- **Format:** 6-digit integer (e.g., 201911 = November 2019)
+- **Unique Values:** 152
+- **Use Case:** Tracks author's most recent activity; useful for identifying active vs. dormant contributors
+- **Note:** Future dates present in data
 
 ### activity_frequency_bucket (STRING)
-- **Data Type**: Categorical string with 5 predefined ranges
-- **Values**: "Rare (<30)", "Occasional (30-89)", "Moderate (90-179)", "Active (180-364)", "Very Active (365+)"
-- **Distribution**: "Rare (<30)" is overwhelmingly common in sample data
-- **Purpose**: Measures how frequently authors commit (likely days per year)
+- **Type:** Categorical (5 ordinal buckets)
+- **Nulls:** None (0%)
+- **Values:**
+  - "Rare (<30)" - Active less than 30 days
+  - "Occasional (30-89)" - Active 30-89 days
+  - "Moderate (90-179)" - Active 90-179 days
+  - "Active (180-364)" - Active 180-364 days
+  - "Very Active (365+)" - Active 365+ days
+- **Distribution:** "Rare (<30)" dominates the sample rows
+- **Use Case:** Measures the span of days an author was active (not necessarily consecutive)
 
-## Potential Query Considerations
+### message_length_bucket (STRING)
+- **Type:** Categorical (4 ordinal buckets)
+- **Nulls:** None (0%)
+- **Values:**
+  - "Very Short (<50)" - Average message length under 50 characters
+  - "Short (50-99)" - 50-99 characters
+  - "Medium (100-199)" - 100-199 characters
+  - "Long (200+)" - 200+ characters
+- **Distribution:** "Very Short (<50)" appears most common
+- **Use Case:** Indicates commit message verbosity; may correlate with project documentation practices
 
-### Good for Filtering:
-- **Time-based filtering**: `first_commit_ym` and `last_commit_ym` for temporal analysis
-- **Activity level filtering**: All bucket columns for segmenting authors by behavior patterns
-- **Author identification**: `author_id` for individual author analysis
+## 3. Potential Query Considerations
 
-### Good for Grouping/Aggregation:
-- **All bucket columns** are excellent for GROUP BY operations and creating author behavior profiles
-- **Time periods** (`first_commit_ym`, `last_commit_ym`) for trend analysis
-- **Cross-tabulation** between different bucket categories to understand author patterns
+### Good Filtering Columns:
+- **activity_frequency_bucket**: Filter for active vs. inactive contributors
+- **commit_count_bucket**: Identify prolific vs. casual contributors
+- **repo_diversity_bucket**: Find specialists (low diversity) vs. generalists (high diversity)
+- **first_commit_ym / last_commit_ym**: Temporal filtering for specific time periods or cohorts
+- **message_length_bucket**: Filter by documentation quality/verbosity
+
+### Good Grouping/Aggregation Columns:
+- **All bucket columns**: Natural grouping for distribution analysis
+- **first_commit_ym**: Cohort analysis by onboarding period
+- **last_commit_ym**: Retention/churn analysis
+- **Combinations**: Cross-tabulations (e.g., activity frequency by repo diversity)
 
 ### Potential Join Keys:
-- **author_id**: Primary key for joining with other GitHub author-related tables
-- **Time fields**: Could join with temporal dimension tables
+- **author_id**: Primary key for joining with other author-related tables
+- **first_commit_ym / last_commit_ym**: Can join with time-series or calendar tables
 
 ### Data Quality Considerations:
-- **Excellent data quality** with no nulls
-- **Future dates warning**: Some `last_commit_ym` values extend to 2245, which may indicate data quality issues or placeholder values
-- **Bucket consistency**: All categorical values follow consistent naming patterns
-- **Author uniqueness**: ~17% of records represent duplicate authors, suggesting this may track authors across different time periods or contexts
 
-## Keywords
+1. **Future Dates**: Queries should filter out impossible future dates:
+   ```sql
+   WHERE first_commit_ym <= 202412 AND last_commit_ym <= 202412
+   ```
 
-GitHub, authors, commits, repository diversity, activity frequency, commit messages, temporal analysis, developer behavior, open source, version control, author metrics, coding activity, contribution patterns, developer engagement, software development analytics
+2. **Multiple Rows Per Author**: Since there are more rows than unique authors, queries counting authors should use `COUNT(DISTINCT author_id)` or understand the grain of the data
 
-## Table and Column Docs
+3. **Bucketed Data**: Original numeric values are not available, limiting precise calculations (medians, percentiles, etc.)
 
-No table comment or column comments were provided in the source data.
+4. **Activity Span Calculation**: To calculate tenure, convert YYYYMM format:
+   ```sql
+   CAST(last_commit_ym AS STRING) formatted as date
+   ```
+
+5. **Ordinal Bucket Comparisons**: When filtering buckets, be aware of string sorting vs. logical ordering
+
+## 4. Keywords
+
+GitHub, authors, contributors, developers, commits, commit frequency, repository diversity, contribution patterns, activity metrics, message length, tenure, cohort analysis, retention, churn, open source, version control, code contributions, developer behavior, commit history, temporal analysis, engagement metrics, contribution volume, project diversity, commit messages, developer activity, YYYYMM format, bucketed data, categorical analysis
+
+## 5. Table and Column Documentation
+
+**Table Comment:** Not provided
+
+**Column Comments:** 
+- author_id: No comment provided
+- repo_diversity_bucket: No comment provided
+- commit_count_bucket: No comment provided
+- first_commit_ym: No comment provided
+- last_commit_ym: No comment provided
+- activity_frequency_bucket: No comment provided
+- message_length_bucket: No comment provided

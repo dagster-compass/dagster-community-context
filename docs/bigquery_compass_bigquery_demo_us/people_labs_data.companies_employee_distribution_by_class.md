@@ -6,71 +6,104 @@ columns:
 schema_hash: 4ec24a365c9a3456a129cb767dfa91c019b0ce2f0616e25f58b04bc0bf5e7f13
 
 ---
-# Data Summary: people_labs_data.companies_employee_distribution_by_class
+# Table Summary: people_labs_data.companies_employee_distribution_by_class
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 17,813,054
-- **Data Quality**: Excellent - no null values detected across all columns
-- **Dataset Purpose**: This table captures employee distribution across different job classifications for companies
-- **Key Pattern**: Each row represents a specific company's employee count within a particular job class category
-- **Scale**: Covers over 10 million unique companies with employee counts ranging from small (1 employee) to very large organizations (306,179 employees)
+**Total Rows:** 17,813,054
+
+**General Description:** This table contains employee distribution data across different job classifications for companies. It represents a many-to-many relationship where each company can have multiple job class entries, showing how employees are distributed across functional areas within each organization.
+
+**Data Quality:** 
+- Excellent data quality with 0% null values across all columns
+- No missing data detected in any field
+- Complete dataset suitable for analytical queries
+
+**Notable Patterns:**
+- Dataset covers over 10 million unique companies
+- Small to medium-sized companies dominate (employee counts typically range 1-10 per job class)
+- Some very large organizations present (maximum 306,179 employees in a single job class)
+- Five distinct job classification categories standardized across all companies
 
 ## Column Details
 
-### job_class (STRING)
-- **Data Type**: String/categorical
-- **Null Values**: 0.00% (perfect data quality)
-- **Categories**: 5 distinct job classifications
-  - `general_and_administrative`
-  - `other_uncategorized` 
-  - `research_and_development`
-  - `sales_and_marketing`
-  - `services`
-- **Usage**: Primary dimension for analyzing workforce composition by functional area
+### 1. company_id (STRING)
+- **Data Type:** STRING identifier
+- **Null Pattern:** No nulls (0.00%)
+- **Cardinality:** 10,078,178 unique companies
+- **Format:** Alphanumeric hash-like identifiers (e.g., "UlpKeFqGGEoRDsCXZpOaGQZaVg9i")
+- **Characteristics:** Primary identifier for companies; each company typically appears multiple times (once per job class they have employees in)
+- **Average Records per Company:** ~1.77 job classes per company
 
-### employee_count (INT64)
-- **Data Type**: Integer
-- **Null Values**: 0.00% (perfect data quality)
-- **Range**: 1 to 306,179 employees
-- **Distribution**: 5,880 unique values indicating wide variety in company sizes
-- **Pattern**: Likely right-skewed distribution with many small companies (1-10 employees) and fewer large enterprises
-- **Usage**: Quantitative measure for aggregations and size-based analysis
+### 2. job_class (STRING)
+- **Data Type:** STRING (categorical)
+- **Null Pattern:** No nulls (0.00%)
+- **Cardinality:** 5 unique values (enumerated list)
+- **Possible Values:**
+  - `general_and_administrative` - Corporate support functions
+  - `other_uncategorized` - Employees not fitting standard classifications
+  - `research_and_development` - R&D and innovation roles
+  - `sales_and_marketing` - Revenue-generating functions
+  - `services` - Service delivery and operations roles
+- **Distribution:** Services appears frequently in samples, suggesting it may be a common category
+- **Use Case:** Categorical grouping variable for employee classification
 
-### company_id (STRING)
-- **Data Type**: String identifier
-- **Null Values**: 0.00% (perfect data quality)
-- **Uniqueness**: 10,078,178 unique companies
-- **Format**: Alphanumeric strings (appears to be base64-like encoding)
-- **Usage**: Primary key for company identification and potential joins
+### 3. employee_count (INT64)
+- **Data Type:** Integer
+- **Null Pattern:** No nulls (0.00%)
+- **Range:** 1 to 306,179 employees
+- **Cardinality:** 5,880 distinct values
+- **Distribution Characteristics:**
+  - Heavy concentration in low values (1-10 employees per job class)
+  - Long tail distribution with some extremely large counts
+  - Sample data shows predominantly small counts (1, 1, 1, 7, 1)
+- **Statistical Notes:** Represents employee headcount within a specific job classification for a given company
 
 ## Potential Query Considerations
 
-### Filtering Opportunities
-- **job_class**: Excellent for filtering by specific workforce categories
-- **employee_count**: Good for size-based filtering (small/medium/large companies)
-- **company_id**: For specific company lookups
+### Excellent for Filtering:
+- **job_class**: Perfect for filtering by functional area (5 distinct categories)
+- **company_id**: Ideal for company-specific analysis
+- **employee_count**: Good for range filters (e.g., WHERE employee_count > 100)
 
-### Grouping/Aggregation Potential
-- **Primary Grouping**: `job_class` for workforce composition analysis
-- **Secondary Grouping**: Employee count ranges (e.g., 1-10, 11-50, 51-200, 200+)
-- **Aggregations**: SUM(employee_count) for total workforce, COUNT(*) for company counts, AVG(employee_count) for size metrics
+### Excellent for Grouping/Aggregation:
+- **job_class**: Natural grouping dimension for organizational analysis
+- **company_id**: Group by company to get total workforce or distribution profiles
+- **Combined grouping**: GROUP BY company_id, job_class provides granular breakdowns
 
-### Join Considerations
-- **company_id**: Likely foreign key for joining with other company-related tables
-- **Potential Relationships**: Company details, industry classifications, geographic data, financial metrics
+### Aggregation Opportunities:
+- SUM(employee_count) by job_class for industry-wide workforce composition
+- COUNT(DISTINCT company_id) for company prevalence by job class
+- AVG(employee_count) for typical workforce size by classification
+- Percentile analysis of employee_count distributions
 
-### Data Quality Considerations
-- **Strengths**: No missing data, consistent formatting
-- **Query Reliability**: High - all aggregations and calculations will be accurate
-- **Performance**: Large dataset (17M+ rows) may require indexed queries for optimal performance
+### Join Key Capabilities:
+- **company_id**: Primary join key to other company-related tables
+- Likely joins to:
+  - Company master tables (company details, industry, location)
+  - Financial data tables
+  - Other employee-related datasets
+
+### Data Quality Considerations:
+- **No null handling required**: All fields are complete
+- **Small company bias**: Many companies have single-digit employee counts per class
+- **Outlier awareness**: Some extreme values (306K+) may skew averages
+- **Categorical stability**: Fixed set of 5 job classes ensures consistent queries
+- **Consider using MEDIAN instead of AVG** for employee_count due to long-tail distribution
+
+### Recommended Query Patterns:
+1. Total workforce by company: `SUM(employee_count) GROUP BY company_id`
+2. Workforce composition: `SUM(employee_count) GROUP BY job_class`
+3. Company size segmentation: Use CASE statements on summed employee_count
+4. Distribution analysis: Use percentile functions (PERCENTILE_CONT) for employee_count
+5. Classification prevalence: `COUNT(DISTINCT company_id) GROUP BY job_class`
 
 ## Keywords
 
-company workforce, employee distribution, job classification, organizational structure, company size analysis, workforce composition, employee count, business functions, company analytics, HR data, organizational analysis, company demographics
+employee distribution, workforce composition, job classification, company workforce, organizational structure, headcount analysis, functional areas, employee segmentation, R&D headcount, sales workforce, administrative staff, service employees, company demographics, workforce analytics, people data, HR analytics, employee categories, organizational breakdown, staffing levels, company size, workforce metrics
 
 ## Table and Column Documentation
 
-**Table Comment**: Not provided
+**Table Comment:** Not provided
 
-**Column Comments**: Not provided
+**Column Comments:** Not provided

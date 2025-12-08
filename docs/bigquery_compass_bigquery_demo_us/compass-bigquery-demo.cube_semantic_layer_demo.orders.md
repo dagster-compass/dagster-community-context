@@ -8,130 +8,119 @@ columns:
 schema_hash: ac6a2575da918ecb86264db94cfd6c9748e8ab331c35d72882d341f95d4af95a
 
 ---
-# Table Analysis Summary: compass-bigquery-demo.cube_semantic_layer_demo.orders
+# Table Summary: orders
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 40,000
-- **Data Quality**: Excellent - all columns have 0% null values at the column level
-- **Time Range**: Orders span from 2016 to 2027, suggesting this includes both historical data and future projections/test data
-- **Distribution**: Data appears to represent an e-commerce or order management system with order lifecycle tracking
-- **Notable Pattern**: The `completed_at` field contains the string "null" rather than actual NULL values for incomplete orders, which is an important data quality consideration
+- **Total Rows**: 40,000 orders
+- **Data Quality**: High quality with no null values in critical fields (status, created_at, user_id, id)
+- **Time Span**: Orders span from 2017 to 2029, suggesting this includes both historical and projected/future data
+- **Distribution**: 
+  - 4 distinct order statuses with relatively balanced distribution
+  - 22,185 unique users placing 40,000 orders (average ~1.8 orders per user)
+  - Near-unique created_at timestamps (39,999 unique values for 40,000 rows)
+  - Only ~50% of orders have completion dates (19,863 non-null completed_at values)
 
 ## Column Details
 
-### id (INT64) - Primary Key
-- **Type**: Integer (INT64)
+### id (INT64)
+- **Purpose**: Primary key / unique order identifier
 - **Range**: 1 to 40,000
-- **Uniqueness**: 100% unique (40,000 unique values)
-- **Null Pattern**: No nulls (0.00%)
-- **Purpose**: Primary identifier for orders
-- **Query Consideration**: Ideal for filtering specific orders, joining with other tables
+- **Characteristics**: Sequential integer, 100% unique, no nulls
+- **Query Use**: Primary key for joins, filtering specific orders
 
-### user_id (INT64) - Foreign Key
-- **Type**: Integer (INT64)
+### user_id (INT64)
+- **Purpose**: Foreign key linking to users/customers
 - **Range**: 2 to 30,000
-- **Unique Values**: 22,185 distinct users
-- **Null Pattern**: No nulls (0.00%)
-- **Distribution**: ~1.8 orders per user on average (40,000 orders / 22,185 users)
-- **Purpose**: Links orders to customers/users
-- **Query Consideration**: Excellent for grouping by customer, joining with user tables, customer segmentation analysis
+- **Characteristics**: 22,185 unique users, no nulls, some users have multiple orders
+- **Query Use**: Foreign key for joins, grouping by customer, filtering by user
 
-### status (STRING) - Categorical
-- **Type**: String
-- **Null Pattern**: No nulls (0.00%)
-- **Unique Values**: 4 statuses
-- **Possible Values**: 
+### status (STRING)
+- **Purpose**: Current state of the order
+- **Values**: 4 distinct statuses
   - `completed`
   - `processing`
   - `returned`
   - `shipped`
-- **Purpose**: Tracks order fulfillment stage
-- **Query Consideration**: Ideal for filtering (WHERE status = 'completed'), grouping/aggregation (COUNT by status), status funnel analysis
+- **Characteristics**: No nulls, categorical data, ~25% distribution per status
+- **Query Use**: Excellent for filtering, grouping, and aggregating order metrics by state
 
 ### created_at (TIMESTAMP)
-- **Type**: Timestamp with timezone
-- **Null Pattern**: No nulls (0.00%)
-- **Unique Values**: 39,999 (nearly unique - suggests high precision timestamps)
-- **Time Range**: 2020 to 2027
-- **Format**: ISO 8601 with timezone (e.g., "2020-07-26 16:14:35+00:00")
 - **Purpose**: Order creation timestamp
-- **Query Consideration**: Excellent for time-based filtering, date range queries, temporal analysis, trending, and time series grouping (by day/month/year)
+- **Format**: UTC timestamp (e.g., "2018-11-09 08:16:58+00:00")
+- **Characteristics**: 
+  - No nulls
+  - 39,999 unique values (near-unique per order)
+  - Range: 2017 to 2029
+- **Query Use**: Time-based filtering, date range queries, temporal aggregations, ordering results
 
-### completed_at (STRING) - **Data Quality Issue**
-- **Type**: String (not TIMESTAMP - important!)
-- **Null Pattern**: 0% at column level, but contains string "null" values
-- **Unique Values**: 19,863 unique values
-- **Format**: ISO 8601 string format (e.g., "2016-02-21T22:24:34.000Z") OR the string "null"
-- **Data Quality Issue**: Uses string literal "null" instead of actual NULL values for incomplete orders
+### completed_at (STRING)
 - **Purpose**: Order completion timestamp
-- **Query Consideration**: 
-  - Requires string comparison (`completed_at != 'null'` or `completed_at = 'null'`)
-  - Cannot use IS NULL / IS NOT NULL operators
-  - May need CAST/PARSE for date operations
-  - Should filter out "null" strings for completion time analysis
+- **Format**: ISO 8601 string (e.g., "2019-10-11T04:47:25.000Z") or string literal "null"
+- **Data Quality Issue**: Stored as STRING instead of TIMESTAMP/DATETIME
+  - Contains string "null" rather than actual NULL values
+  - Approximately 50% of records have string "null" value
+  - Only 19,863 unique non-null completion dates
+- **Characteristics**:
+  - 0% technical nulls (column always populated)
+  - ~50% semantic nulls (string "null" values)
+  - Represents logical state: orders with status "returned" or "shipped" likely have "null" completion
+- **Query Use**: 
+  - Requires string comparison (`WHERE completed_at != 'null'`) to filter completed orders
+  - Needs CAST/PARSE for date operations
+  - Calculate completion time (completed_at - created_at) for completed orders
 
 ## Potential Query Considerations
 
-### Good for Filtering:
-- **status**: Filter by order stage (e.g., `WHERE status = 'completed'`)
-- **id**: Filter specific orders
-- **created_at**: Date range filters (e.g., `WHERE created_at >= '2024-01-01'`)
-- **completed_at**: Filter completed orders (`WHERE completed_at != 'null'`)
-- **user_id**: Filter orders for specific customers
+### Good for Filtering
+- **status**: Filter by order state (e.g., only completed orders)
+- **created_at**: Date range filters, recent orders, historical analysis
+- **completed_at**: Filter completed vs in-progress orders (remember to check for "null" string)
+- **user_id**: Customer-specific order history
+- **id**: Specific order lookup
 
-### Good for Grouping/Aggregation:
-- **status**: Count/sum by order status, conversion funnel metrics
-- **user_id**: Customer-level metrics (orders per customer, customer segmentation)
-- **created_at**: Time-based aggregations (daily/monthly order counts, trends)
-- **DATE(created_at)**: Group by day/month/year for time series analysis
+### Good for Grouping/Aggregation
+- **status**: Count orders by status, status distribution analysis
+- **user_id**: Orders per customer, customer behavior analysis
+- **created_at**: Time-based aggregations (daily/monthly/yearly order counts, trends)
+- **Date extractions**: EXTRACT(YEAR/MONTH/DAY FROM created_at) for temporal grouping
 
-### Potential Join Keys:
-- **user_id**: Primary join key to user/customer dimension tables
-- **id**: Join to order line items, order details, payments tables
+### Potential Join Keys
+- **id**: Primary key for joining with order_items, payments, or shipment tables
+- **user_id**: Foreign key to join with users/customers table
 
-### Data Quality Considerations:
+### Data Quality Considerations
 
-1. **completed_at String Literal Issue**: 
+1. **completed_at String Format**: 
    - Must use `completed_at != 'null'` instead of `IS NOT NULL`
-   - Cannot directly perform date operations without parsing
-   - Approximately 50% of orders have actual completion dates (19,863 unique values vs 40,000 rows)
+   - Requires parsing/casting for date operations: `PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E3SZ', completed_at)`
+   - Consider filtering by status='completed' as alternative indicator
 
-2. **Future Dates Present**:
-   - Data extends to 2027, suggesting test/synthetic data or future-dated orders
-   - May need to filter for realistic date ranges depending on use case
+2. **Future Dates**: 
+   - Data extends to 2029, which may be projections or test data
+   - Consider filtering to current date for actual historical analysis
 
-3. **Status-Completion Consistency**:
-   - Orders with status='completed' should have non-"null" completed_at values
-   - Orders with status='processing' or 'shipped' likely have completed_at='null'
-   - Should validate this relationship in queries
+3. **Status Logic**:
+   - Orders with status 'completed' should have completed_at values
+   - Orders with status 'processing', 'shipped', or 'returned' likely have 'null' completion dates
+   - Validate this relationship when analyzing completion rates
 
-### Example Query Patterns:
-
-```sql
--- Completed orders only
-WHERE status = 'completed' AND completed_at != 'null'
-
--- Orders by month
-GROUP BY DATE_TRUNC(created_at, MONTH)
-
--- Customer order counts
-GROUP BY user_id
-
--- Current year orders (adjust year as needed)
-WHERE EXTRACT(YEAR FROM created_at) = 2024
-```
+4. **Calculated Metrics**:
+   - Order completion time: requires parsing completed_at and comparing with created_at
+   - Completion rate: filter where completed_at != 'null' or status = 'completed'
+   - Average orders per user: 40,000 orders / 22,185 users ≈ 1.8 orders
 
 ## Keywords
 
-e-commerce, orders, order management, order status, fulfillment, customer orders, transactions, order lifecycle, completed orders, shipped orders, processing orders, returned orders, order tracking, user orders, customer transactions, order timestamps, order completion, order creation, BigQuery semantic layer, Cube demo data, time series orders, order funnel, order analytics
+orders, e-commerce, transactions, order status, order lifecycle, customer orders, sales data, order management, order tracking, completed orders, shipped orders, returned orders, processing orders, order timestamps, order creation date, order completion date, user orders, customer purchases, order analytics, sales analytics, order metrics, BigQuery orders, transactional data, order history
 
-## Table and Column Docs
+## Table and Column Documentation
 
 **Table Comment**: Not provided
 
-**Column Comments**: Not provided
-
----
-
-**Critical Note**: The `completed_at` field storing string "null" instead of proper NULL values is the most significant data quality consideration and will require special handling in all SQL queries involving order completion status.
+**Column Comments**: 
+- id: Not provided
+- user_id: Not provided
+- status: Not provided
+- created_at: Not provided
+- completed_at: Not provided

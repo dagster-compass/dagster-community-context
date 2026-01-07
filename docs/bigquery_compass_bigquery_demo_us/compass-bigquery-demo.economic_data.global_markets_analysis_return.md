@@ -16,277 +16,249 @@ columns:
 - low_3mo (FLOAT64)
 - low_6mo (FLOAT64)
 - low_9mo (FLOAT64)
-- month_date (DATE)
-- monthly_avg_close (FLOAT64)
-- monthly_avg_high (FLOAT64)
-- monthly_avg_low (FLOAT64)
-- monthly_avg_open (FLOAT64)
-- monthly_avg_volume (FLOAT64)
 - pct_change_1mo (FLOAT64)
 - pct_change_1yr (FLOAT64)
 - pct_change_3mo (FLOAT64)
 - pct_change_6mo (FLOAT64)
 - pct_change_9mo (FLOAT64)
-- pct_change_q1_forward (FLOAT64)
-- pct_change_q2_forward (FLOAT64)
-- pct_change_q3_forward (FLOAT64)
-- pct_change_q4_forward (FLOAT64)
-- quarter_num (INT64)
-- quarterly_avg_close (FLOAT64)
-- quarterly_avg_high (FLOAT64)
-- quarterly_avg_low (FLOAT64)
-- quarterly_avg_open (FLOAT64)
-- quarterly_avg_volume (FLOAT64)
 - std_diff_1mo (FLOAT64)
 - std_diff_1yr (FLOAT64)
 - std_diff_3mo (FLOAT64)
 - std_diff_6mo (FLOAT64)
 - std_diff_9mo (FLOAT64)
 - symbol (STRING)
-- year_month (STRING)
-- year_quarter (STRING)
-- year_val (INT64)
-schema_hash: 91d6707310c607dd4be98ffa932c6e84cbe6494ca58762d292141382235612b2
+schema_hash: 000013a54dbaa630b1e53fb2064ec577bdd6dcaec2b7fbea1519c19737e95ce3
 
 ---
-# Data Summary: Global Markets Analysis Return Table
+# Table Summary: global_markets_analysis_return
 
 ## Overall Dataset Characteristics
 
-**Total Rows:** 2,197
+This table contains **45,797 rows** of time-series financial market data tracking daily performance metrics for international equity ETFs (Exchange-Traded Funds). The dataset spans **3,525 unique dates** and covers **13 different ETF symbols** traded on two exchanges (ARCX and XNAS).
 
-**Data Quality:** The dataset exhibits high quality for operational columns with 0% null values across all primary fields. However, there are two distinct column groups:
-- **Active columns** (26 columns): Complete data with no nulls, representing historical market performance metrics
-- **Inactive columns** (20 columns): 100% null values, likely placeholders for future data or deprecated fields
+**Data Quality Observations:**
+- Core fields (date, exchange, symbol, current_price, current_volume) have 0% null values, indicating strong data integrity for essential metrics
+- Historical comparison metrics show significant null percentages, particularly for percentage change fields (23-47% nulls), suggesting these calculations may not be available for all time periods
+- High/low values for different timeframes (1mo, 3mo, 6mo, 9mo, 1yr) show consistent null patterns (~4-11%), likely due to insufficient historical data for recent entries
+- Standard deviation fields (std_diff) are nearly complete with only 0.06% nulls
 
-**Time Range:** Data spans from 2012 to 2026 (15 years), with monthly granularity organized into 169 unique month periods and 57 quarters.
-
-**Geographic Coverage:** The dataset tracks 13 global market ETF symbols representing various international markets and emerging economies.
-
-**Table Comment:** Not provided.
-
----
+**Notable Patterns:**
+- The data tracks multiple time horizons (1 month, 3 months, 6 months, 9 months, and 1 year) for comparative analysis
+- ETFs represent various geographic markets (e.g., EWA=Australia, EWJ=Japan, EWG=Germany, EWY=South Korea, EEM=Emerging Markets)
+- Volume data shows extreme ranges (15 to 322+ million), indicating varying liquidity across symbols and dates
 
 ## Column Details
 
-### Dimension Columns
+### **date** (DATE)
+- **Format:** Standard SQL date format (YYYY-MM-DD)
+- **Null Pattern:** Complete (0% nulls)
+- **Distribution:** 3,525 unique dates from 2012 to 2023
+- **Use Case:** Primary time-series key for filtering and grouping
 
-#### **exchange** (STRING)
-- **Purpose:** Trading exchange identifier
-- **Values:** Only 2 exchanges - ARCX (NYSE Arca) and XNAS (NASDAQ)
-- **Quality:** Complete (0% null)
-- **Usage:** Filter by exchange, useful for exchange-specific analysis
+### **exchange** (STRING)
+- **Values:** ARCX (NYSE Arca), XNAS (NASDAQ)
+- **Null Pattern:** Complete (0% nulls)
+- **Distribution:** Binary categorical field
+- **Use Case:** Filter by trading venue; most ETFs trade on ARCX
 
-#### **symbol** (STRING)
-- **Purpose:** ETF ticker symbol
-- **Values:** 13 unique symbols including ACWI (global), EEM (emerging markets), country-specific ETFs (EWA, EWG, EWJ, EWQ, EWU, EWW, EWY, EPI)
-- **Quality:** Complete (0% null)
-- **Usage:** Primary dimension for ETF-specific queries, join key for ETF reference data
+### **symbol** (STRING)
+- **Values:** 13 unique ETF ticker symbols (ACWI, EEM, EPI, EWA, EWG, EWJ, EWQ, EWU, EWW, EWY, FXI, EZA, and one more)
+- **Null Pattern:** Complete (0% nulls)
+- **Use Case:** Primary identifier for specific ETFs; key for filtering and grouping by geographic market
 
-#### **year_month** (STRING)
-- **Purpose:** Period identifier in YYYY-MM format
-- **Values:** 169 unique months from 2012-06 to 2025-06
-- **Quality:** Complete (0% null)
-- **Usage:** Time-based filtering and grouping at monthly level
+### **current_price** (FLOAT64)
+- **Range:** $12.34 to $144.35
+- **Null Pattern:** Complete (0% nulls)
+- **Distribution:** 30,405 unique values indicating high precision
+- **Use Case:** Core metric for analysis; baseline for return calculations
 
-#### **month_date** (DATE)
-- **Purpose:** First day of the month representation
-- **Values:** 169 unique dates
-- **Quality:** Complete (0% null)
-- **Usage:** Date-based filtering, time series analysis, preferred for date range queries
+### **current_high** (FLOAT64)
+- **Range:** $12.54 to $144.70
+- **Null Pattern:** 10.98% nulls (likely for recent dates without intraday data)
+- **Distribution:** 32,355 unique values
+- **Use Case:** Intraday volatility analysis; day's trading range
 
-#### **year_quarter** (STRING)
-- **Purpose:** Quarter identifier in YYYY-QX format
-- **Values:** 57 unique quarters from 2012-Q1 through 2025+
-- **Quality:** Complete (0% null)
-- **Usage:** Quarterly aggregation and filtering
+### **current_low** (FLOAT64)
+- **Range:** $12.05 to $143.81
+- **Null Pattern:** 10.98% nulls (matches current_high)
+- **Distribution:** 32,590 unique values
+- **Use Case:** Intraday volatility analysis; paired with current_high
 
-#### **quarter_num** (INT64)
-- **Purpose:** Quarter number within year
-- **Range:** 1 to 4
-- **Quality:** Complete (0% null)
-- **Usage:** Seasonal analysis, quarter-based filtering
+### **current_volume** (FLOAT64)
+- **Range:** 15 to 322,620,100 shares
+- **Null Pattern:** Complete (0% nulls)
+- **Distribution:** 45,135 unique values (highly variable)
+- **Use Case:** Liquidity indicator; filter for significant trading activity
 
-#### **year_val** (INT64)
-- **Purpose:** Year as integer
-- **Range:** 2012 to 2026 (15 unique years)
-- **Quality:** Complete (0% null)
-- **Usage:** Year-over-year comparisons, annual aggregations
+### **high_1yr** (FLOAT64)
+- **Range:** $14.84 to $144.70
+- **Null Pattern:** 3.72% nulls (early dataset records)
+- **Distribution:** 3,537 unique values
+- **Use Case:** 52-week high benchmark; performance ceiling reference
 
----
+### **low_1yr** (FLOAT64)
+- **Range:** $12.05 to $104.29
+- **Null Pattern:** 3.72% nulls (matches high_1yr)
+- **Distribution:** 2,451 unique values
+- **Use Case:** 52-week low benchmark; support level reference
 
-### Monthly Metrics (Complete Data)
+### **pct_change_1yr** (FLOAT64)
+- **Range:** -55.15% to +127.9%
+- **Null Pattern:** 26.81% nulls (requires full year of historical data)
+- **Distribution:** 8,157 unique values
+- **Use Case:** Annual performance metric; year-over-year comparison
 
-#### **monthly_avg_close** (FLOAT64)
-- **Range:** $8.99 to $142.49
-- **Uniqueness:** 2,185 unique values (high variability)
-- **Quality:** Complete (0% null)
-- **Usage:** Primary price metric for monthly performance analysis
+### **std_diff_1yr** (FLOAT64)
+- **Range:** 0.0233 to 1.4709
+- **Null Pattern:** Nearly complete (0.06% nulls)
+- **Distribution:** 9,633 unique values
+- **Use Case:** Volatility measure; standardized deviation from mean over 1 year
 
-#### **monthly_avg_open** (FLOAT64)
-- **Range:** $8.99 to $142.77
-- **Quality:** Complete (0% null)
-- **Usage:** Opening price analysis, gap analysis
+### **high_9mo** (FLOAT64)
+- **Range:** $14.84 to $144.70
+- **Null Pattern:** 5.59% nulls
+- **Distribution:** 3,772 unique values
+- **Use Case:** 9-month high benchmark; intermediate-term peak
 
-#### **monthly_avg_high** (FLOAT64)
-- **Range:** $9.03 to $142.95
-- **Quality:** Complete (0% null)
-- **Usage:** High price analysis, volatility metrics
+### **low_9mo** (FLOAT64)
+- **Range:** $12.05 to $108.55
+- **Null Pattern:** 5.59% nulls (matches high_9mo)
+- **Distribution:** 2,521 unique values
+- **Use Case:** 9-month low benchmark; intermediate-term trough
 
-#### **monthly_avg_low** (FLOAT64)
-- **Range:** $8.94 to $141.49
-- **Quality:** Complete (0% null)
-- **Usage:** Low price analysis, support levels
+### **pct_change_9mo** (FLOAT64)
+- **Range:** -51.64% to +115.83%
+- **Null Pattern:** 46.71% nulls (requires 9+ months of data)
+- **Distribution:** 6,866 unique values
+- **Use Case:** 9-month performance metric
 
-#### **monthly_avg_volume** (FLOAT64)
-- **Range:** 93,155 to 112,784,014 shares
-- **High Variability:** 2,197 unique values (all unique)
-- **Quality:** Complete (0% null)
-- **Usage:** Liquidity analysis, trading activity patterns
+### **std_diff_9mo** (FLOAT64)
+- **Range:** 0.0233 to 1.5547
+- **Null Pattern:** Nearly complete (0.06% nulls)
+- **Distribution:** 9,893 unique values
+- **Use Case:** 9-month volatility measure
 
----
+### **high_6mo** (FLOAT64)
+- **Range:** $14.84 to $144.70
+- **Null Pattern:** 7.35% nulls
+- **Distribution:** 4,514 unique values
+- **Use Case:** 6-month high benchmark
 
-### Quarterly Aggregated Metrics (Complete Data)
+### **low_6mo** (FLOAT64)
+- **Range:** $12.05 to $127.77
+- **Null Pattern:** 7.35% nulls (matches high_6mo)
+- **Distribution:** 3,501 unique values
+- **Use Case:** 6-month low benchmark
 
-#### **quarterly_avg_close** (FLOAT64)
-- **Range:** $9.17 to $142.49
-- **Uniqueness:** 740 unique values
-- **Quality:** Complete (0% null)
-- **Usage:** Quarterly performance benchmarking
+### **std_diff_6mo** (FLOAT64)
+- **Range:** 0.0233 to 1.802
+- **Null Pattern:** Nearly complete (0.06% nulls)
+- **Distribution:** 10,051 unique values
+- **Use Case:** 6-month volatility measure
 
-#### **quarterly_avg_open** (FLOAT64)
-- **Range:** $9.17 to $142.77
-- **Uniqueness:** 741 unique values
-- **Quality:** Complete (0% null)
-- **Usage:** Quarterly opening analysis
+### **pct_change_6mo** (FLOAT64)
+- **Range:** -49.65% to +90.21%
+- **Null Pattern:** 43.80% nulls
+- **Distribution:** 6,043 unique values
+- **Use Case:** 6-month performance metric
 
-#### **quarterly_avg_high** (FLOAT64)
-- **Range:** $9.21 to $142.95
-- **Uniqueness:** 740 unique values
-- **Quality:** Complete (0% null)
-- **Usage:** Quarterly peak analysis
+### **high_3mo** (FLOAT64)
+- **Range:** $14.84 to $144.70
+- **Null Pattern:** 9.14% nulls
+- **Distribution:** 6,019 unique values
+- **Use Case:** Quarterly high benchmark
 
-#### **quarterly_avg_low** (FLOAT64)
-- **Range:** $9.14 to $141.49
-- **Uniqueness:** 741 unique values
-- **Quality:** Complete (0% null)
-- **Usage:** Quarterly trough analysis
+### **low_3mo** (FLOAT64)
+- **Range:** $12.05 to $135.23
+- **Null Pattern:** 9.14% nulls (matches high_3mo)
+- **Distribution:** 5,381 unique values
+- **Use Case:** Quarterly low benchmark
 
-#### **quarterly_avg_volume** (FLOAT64)
-- **Range:** 137,927 to 96,886,293 shares
-- **Uniqueness:** 741 unique values
-- **Quality:** Complete (0% null)
-- **Usage:** Quarterly liquidity trends
+### **std_diff_3mo** (FLOAT64)
+- **Range:** 0.0233 to 2.3322
+- **Null Pattern:** Nearly complete (0.06% nulls)
+- **Distribution:** 10,288 unique values
+- **Use Case:** Quarterly volatility measure
 
----
+### **pct_change_3mo** (FLOAT64)
+- **Range:** -55.29% to +64.8%
+- **Null Pattern:** 23.21% nulls
+- **Distribution:** 5,245 unique values
+- **Use Case:** Quarterly performance metric
 
-### Forward-Looking Performance Metrics
+### **high_1mo** (FLOAT64)
+- **Range:** $14.56 to $144.70
+- **Null Pattern:** 10.33% nulls
+- **Distribution:** 8,439 unique values
+- **Use Case:** Monthly high benchmark
 
-#### **pct_change_q1_forward** (FLOAT64)
-- **Purpose:** Percentage change one quarter ahead
-- **Range:** -32.92% to +188.32%
-- **Null Percentage:** 2.37% (52 rows)
-- **Uniqueness:** 624 unique values
-- **Usage:** Next quarter performance prediction, forward returns analysis
-- **Note:** Nulls likely represent most recent data where future quarter is unknown
+### **low_1mo** (FLOAT64)
+- **Range:** $12.05 to $138.51
+- **Null Pattern:** 10.33% nulls (matches high_1mo)
+- **Distribution:** 7,739 unique values
+- **Use Case:** Monthly low benchmark
 
-#### **pct_change_q2_forward** (FLOAT64)
-- **Purpose:** Percentage change two quarters ahead
-- **Range:** -40.39% to +320.35%
-- **Null Percentage:** 4.14% (91 rows)
-- **Uniqueness:** 645 unique values
-- **Usage:** 6-month forward returns analysis
+### **std_diff_1mo** (FLOAT64)
+- **Range:** 0.0233 to 3.573
+- **Null Pattern:** Nearly complete (0.06% nulls)
+- **Distribution:** 10,706 unique values
+- **Use Case:** Monthly volatility measure
 
-#### **pct_change_q3_forward** (FLOAT64)
-- **Purpose:** Percentage change three quarters ahead
-- **Range:** -39.40% to +339.59%
-- **Null Percentage:** 5.92% (130 rows)
-- **Uniqueness:** 649 unique values
-- **Usage:** 9-month forward returns analysis
-
-#### **pct_change_q4_forward** (FLOAT64)
-- **Purpose:** Percentage change four quarters ahead
-- **Range:** -46.23% to +354.65%
-- **Null Percentage:** 7.69% (169 rows)
-- **Uniqueness:** 638 unique values
-- **Usage:** 12-month (annual) forward returns analysis
-- **Note:** Increasing null percentages in forward metrics indicate data recency constraints
-
----
-
-### Inactive/Placeholder Columns (100% Null)
-
-The following 20 columns contain no data and should be excluded from queries:
-
-**Current Snapshot Metrics:**
-- `date`, `current_price`, `current_high`, `current_low`, `current_volume`
-
-**Historical Lookback Metrics (1-year):**
-- `high_1yr`, `low_1yr`, `std_diff_1yr`, `pct_change_1yr`
-
-**Historical Lookback Metrics (9-month):**
-- `high_9mo`, `low_9mo`, `std_diff_9mo`, `pct_change_9mo`
-
-**Historical Lookback Metrics (6-month):**
-- `high_6mo`, `low_6mo`, `std_diff_6mo`, `pct_change_6mo`
-
-**Historical Lookback Metrics (3-month):**
-- `high_3mo`, `low_3mo`, `std_diff_3mo`, `pct_change_3mo`
-
-**Historical Lookback Metrics (1-month):**
-- `high_1mo`, `low_1mo`, `std_diff_1mo`, `pct_change_1mo`
-
----
+### **pct_change_1mo** (FLOAT64)
+- **Range:** -49.15% to +41.88%
+- **Null Pattern:** 42.18% nulls
+- **Distribution:** 3,291 unique values
+- **Use Case:** Monthly performance metric
 
 ## Query Considerations
 
-### Optimal Filtering Columns
-1. **symbol**: Primary filter for specific ETF analysis (13 values)
-2. **exchange**: Exchange-specific queries (2 values)
-3. **year_val**: Annual filtering and comparisons (2012-2026)
-4. **year_quarter**: Quarterly analysis
-5. **quarter_num**: Seasonal pattern analysis (1-4)
-6. **month_date** or **year_month**: Time range filtering
+### **Optimal Filtering Columns:**
+- `symbol` - Filter by specific ETF or geographic market
+- `exchange` - Filter by trading venue (though limited to 2 values)
+- `date` - Time-based filtering (range queries, specific periods)
+- `current_volume` - Filter for liquid trading days (e.g., > 1 million shares)
 
-### Optimal Grouping/Aggregation Columns
-1. **symbol**: ETF-level aggregations
-2. **year_val**: Annual trends
-3. **year_quarter**: Quarterly trends
-4. **quarter_num**: Cross-year seasonal patterns
-5. **exchange**: Exchange-level comparisons
+### **Good Grouping/Aggregation Columns:**
+- `symbol` - Aggregate metrics by ETF
+- `date` - Time-series aggregations (daily, monthly, yearly)
+- `exchange` - Compare performance across venues
+- Date extracts (YEAR, MONTH, QUARTER) - Temporal aggregations
 
-### Join Keys
-- **symbol**: Join to ETF reference data (country, sector, asset class)
-- **month_date** or **year_month**: Join to economic indicators, market indices
-- **year_quarter**: Join to quarterly economic data
+### **Potential Join Keys:**
+- `symbol` - Join with ETF metadata, holdings, expense ratios
+- `date` - Join with market indices, economic indicators, events
+- `exchange` - Join with exchange metadata or trading hours
 
-### Data Quality Considerations for Queries
+### **Data Quality Considerations:**
 
-1. **Forward Return Nulls**: Queries using `pct_change_qX_forward` columns should:
-   - Filter out nulls or use `COALESCE` for aggregations
-   - Understand that nulls increase with longer forward periods (2.37% → 7.69%)
-   - Most recent periods will have incomplete forward returns
+1. **Handle Nulls Appropriately:**
+   - Percentage change fields have 23-47% nulls - use COALESCE or filter WHERE IS NOT NULL
+   - Intraday high/low have ~11% nulls - consider whether analysis requires complete intraday data
+   - Historical metrics (1yr, 9mo, etc.) have increasing nulls for older timeframes
 
-2. **Avoid Null Columns**: Explicitly exclude the 20 columns with 100% nulls
+2. **Time Period Awareness:**
+   - Early date records may lack sufficient lookback data for longer-term metrics
+   - Percentage change calculations require complete historical periods
+   - Consider date-based filtering to ensure data completeness
 
-3. **Price Range Awareness**: Wide price ranges ($8.99 to $142.49) suggest different ETF price points; percentage-based comparisons more appropriate than absolute price comparisons
+3. **Volatility Metric Usage:**
+   - `std_diff_*` fields are nearly complete and more reliable than percentage changes
+   - Standardized deviation increases with shorter timeframes (1mo > 3mo > 6mo > 9mo > 1yr)
 
-4. **Volume Variability**: Extremely wide volume ranges (93K to 112M) indicate different ETF liquidity profiles; volume metrics should be analyzed relative to each symbol's baseline
+4. **Volume Considerations:**
+   - Extreme volume outliers exist - consider log transformations or percentile-based filtering
+   - Very low volumes (< 1000) may indicate data quality issues or illiquid periods
 
-5. **Time Period Coverage**: While data spans 2012-2026, verify actual date ranges per symbol as not all symbols may have complete coverage
-
-6. **Forward Returns Distribution**: Extreme positive returns (up to +354%) suggest some high-volatility periods or emerging market exposures; consider outlier handling in statistical analyses
-
----
+5. **Price Consistency:**
+   - Current price should fall within current_high and current_low when both are present
+   - Use for data validation queries
 
 ## Keywords
 
-Global markets, ETF analysis, international equities, market returns, forward returns, quarterly performance, monthly averages, trading volume, OHLC data, emerging markets, country ETFs, ACWI, EEM, stock exchange data, NASDAQ, NYSE Arca, time series analysis, percentage change, market forecasting, investment returns, quarterly metrics, monthly metrics, market volatility, trading activity, price performance, global equity funds, iShares, regional ETFs, Asia Pacific markets, European markets, Latin American markets, market aggregations, financial returns
-
----
+International ETFs, Exchange-Traded Funds, Market Analysis, Time Series, Stock Prices, Trading Volume, Price Returns, Performance Metrics, Volatility Analysis, Standard Deviation, Geographic Markets, Emerging Markets, ARCX, XNAS, NYSE Arca, NASDAQ, 52-Week High, 52-Week Low, Intraday Prices, Historical Returns, Percentage Change, Price Range, Multi-Timeframe Analysis, Daily Trading Data, Financial Markets, Global Equities, Market Performance, Investment Returns, Risk Metrics
 
 ## Table and Column Documentation
 
 **Table Comment:** Not provided
 
-**Column Comments:** Not provided for any columns
+**Column Comments:** No column-level comments are present in the schema.

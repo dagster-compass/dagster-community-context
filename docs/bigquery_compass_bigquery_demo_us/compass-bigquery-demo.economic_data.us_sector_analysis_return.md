@@ -1,195 +1,244 @@
 ---
 columns:
+- current_high (FLOAT64)
+- current_low (FLOAT64)
+- current_price (FLOAT64)
+- current_volume (FLOAT64)
+- date (DATE)
 - exchange (STRING)
-- month_date (DATE)
-- monthly_avg_close (FLOAT64)
-- monthly_avg_high (FLOAT64)
-- monthly_avg_low (FLOAT64)
-- monthly_avg_open (FLOAT64)
-- monthly_avg_volume (FLOAT64)
-- pct_change_q1_forward (FLOAT64)
-- pct_change_q2_forward (FLOAT64)
-- pct_change_q3_forward (FLOAT64)
-- pct_change_q4_forward (FLOAT64)
-- quarter_num (INT64)
-- quarterly_avg_close (FLOAT64)
-- quarterly_avg_high (FLOAT64)
-- quarterly_avg_low (FLOAT64)
-- quarterly_avg_open (FLOAT64)
-- quarterly_avg_volume (FLOAT64)
+- high_1mo (FLOAT64)
+- high_1yr (FLOAT64)
+- high_3mo (FLOAT64)
+- high_6mo (FLOAT64)
+- high_9mo (FLOAT64)
+- low_1mo (FLOAT64)
+- low_1yr (FLOAT64)
+- low_3mo (FLOAT64)
+- low_6mo (FLOAT64)
+- low_9mo (FLOAT64)
+- pct_change_1mo (FLOAT64)
+- pct_change_1yr (FLOAT64)
+- pct_change_3mo (FLOAT64)
+- pct_change_6mo (FLOAT64)
+- pct_change_9mo (FLOAT64)
+- std_diff_1mo (FLOAT64)
+- std_diff_1yr (FLOAT64)
+- std_diff_3mo (FLOAT64)
+- std_diff_6mo (FLOAT64)
+- std_diff_9mo (FLOAT64)
 - symbol (STRING)
-- year_month (STRING)
-- year_quarter (STRING)
-- year_val (INT64)
-schema_hash: ca13aab0a3e34c6baa11c8cbd6bdf61ed004c023101b0570d9cbd2c31d7bdf9d
+schema_hash: 000013a54dbaa630b1e53fb2064ec577bdd6dcaec2b7fbea1519c19737e95ce3
 
 ---
-# Table Summary: US Sector Analysis Return
+# Table Summary: us_sector_analysis_return
 
 ## Overall Dataset Characteristics
 
-This table contains **1,343 rows** of financial market data tracking US sector ETF performance over time. The dataset spans from **2012 to 2025** (14 years) and covers **11 sector ETFs** traded on the ARCX exchange. 
+**Total Rows:** 28,154
 
-**Data Quality:** Excellent overall quality with 0% null values for core columns. Forward-looking percentage change columns show increasing null percentages (2.46% to 9.83%) which is expected for more distant future quarters, particularly for recent data where future quarters haven't occurred yet.
+**General Description:** This table contains comprehensive financial performance data for US sector ETFs traded on the NYSE Arca exchange. The dataset tracks 11 sector-specific ETFs across approximately 3,525 unique dates, providing detailed price movements, volatility metrics, and performance comparisons across multiple time horizons (1-month to 1-year).
 
-**Key Patterns:**
-- Monthly granularity with 168 unique months across ~14 years
-- Each sector ETF has consistent time-series coverage
-- Quarterly aggregations and forward-looking returns are pre-calculated
-- Volume ranges significantly from ~2.5M to ~93M, suggesting varying liquidity across sectors and time periods
+**Data Quality Observations:**
+- Core identifying columns (symbol, date, exchange) have no null values
+- Variable null percentages across performance metrics, with higher nulls in percentage change columns (23-48%)
+- Most recent time period metrics (1-month, 3-month) have higher null rates, likely due to data collection timing
+- Price and volume data is complete (0% nulls)
+- Standard deviation metrics are highly complete (0.08% nulls)
+
+**Notable Patterns:**
+- Data spans multiple years (2012-2026 based on sample dates)
+- All trading occurs on ARCX (NYSE Arca) exchange
+- Volume ranges dramatically (34 to 233M), suggesting varying liquidity periods
+- Price ranges vary significantly by sector (20.61 to 304.13)
 
 ## Column Details
 
-### Temporal Columns
+### Identifying Columns
 
-**year_month** (STRING)
-- Primary time identifier in YYYY-MM format
-- 168 unique values representing complete monthly coverage
-- No null values, consistent formatting
-- Useful for time-based filtering and ordering
-
-**month_date** (DATE)
-- Date representation of the first day of each month
-- 168 unique values matching year_month
-- Enables proper date-based calculations and filtering
-
-**year_quarter** (STRING)
-- Formatted as YYYY-Q# (e.g., "2019-Q2")
-- 56 unique quarters spanning the dataset period
-- Useful for quarterly aggregations and grouping
-
-**year_val** (INT64)
-- Integer year values from 2012 to 2025
-- 14 unique years
-- Ideal for year-over-year comparisons
-
-**quarter_num** (INT64)
-- Quarter number within year (1-4)
-- Useful for seasonal analysis and quarter-based filtering
-
-### Security Identifiers
-
-**symbol** (STRING)
-- 11 unique sector ETF symbols
+**symbol (STRING)**
+- Represents sector ETF ticker symbols
+- 11 unique values covering major market sectors
 - Values: XLB (Materials), XLC (Communication), XLE (Energy), XLF (Financials), XLI (Industrials), XLK (Technology), XLP (Consumer Staples), XLRE (Real Estate), XLU (Utilities), XLV (Healthcare)
-- No null values - essential join/filter key
+- No nulls - reliable for filtering and grouping
+- **Primary dimension for sector-based analysis**
 
-**exchange** (STRING)
-- Single value: "ARCX" (NYSE Arca)
-- Indicates all ETFs trade on the same exchange
+**date (DATE)**
+- Trading date with 3,525 unique values
+- No nulls - complete date coverage
+- Range includes historical data from 2012 through 2026
+- **Primary time dimension for temporal analysis**
+
+**exchange (STRING)**
+- Single value: ARCX (NYSE Arca)
+- No variation in dataset
 - Not useful for filtering but provides context
 
-### Monthly Price Metrics
+### Current Trading Metrics
 
-**monthly_avg_close** (FLOAT64)
-- Range: $23.73 to $289.54
-- 1,342 unique values (nearly one per row)
-- Average closing price for the month
-- Key metric for price trend analysis
+**current_price (FLOAT64)**
+- Daily closing or current price
+- Range: $20.61 to $304.13
+- No nulls - complete price data
+- 23,044 unique values indicating granular price movements
+- **Key metric for current valuation**
 
-**monthly_avg_open** (FLOAT64)
-- Range: $23.74 to $289.94
-- Similar distribution to close prices
-- Useful for gap analysis and intraday movement
+**current_high (FLOAT64)**
+- Intraday high price
+- 6.89% nulls (1,939 records)
+- Range: $22.02 to $305.99
+- Slightly higher unique value count (23,393) than current_price
 
-**monthly_avg_high** (FLOAT64)
-- Range: $23.93 to $291.74
-- Represents average high prices during the month
-- Useful for volatility and range analysis
+**current_low (FLOAT64)**
+- Intraday low price
+- 6.89% nulls (matching current_high)
+- Range: $19.62 to $301.87
+- 23,488 unique values
 
-**monthly_avg_low** (FLOAT64)
-- Range: $23.49 to $287.35
-- Represents average low prices during the month
-- Combined with high for range calculations
+**current_volume (FLOAT64)**
+- Daily trading volume
+- No nulls - complete volume data
+- Extreme range: 34 to 233,067,911 shares
+- 28,033 unique values (nearly unique per row)
+- **Key liquidity indicator**
 
-**monthly_avg_volume** (FLOAT64)
-- Range: 2.5M to 93.2M shares
-- 1,343 unique values (one per row)
-- Significant variation suggests differing sector popularity
-- Important for liquidity analysis
+### 1-Year Performance Metrics
 
-### Quarterly Aggregated Metrics
+**high_1yr (FLOAT64)**
+- 52-week high price
+- 2.33% nulls (656 records)
+- Range: $22.09 to $305.99
+- 2,832 unique values
 
-**quarterly_avg_close** (FLOAT64)
-- Range: $24.06 to $264.96
-- 451 unique values
-- Pre-aggregated quarterly average closing prices
-- Useful for smoothed trend analysis
+**low_1yr (FLOAT64)**
+- 52-week low price
+- 2.33% nulls
+- Range: $19.62 to $190.75
+- 1,778 unique values
 
-**quarterly_avg_open/high/low** (FLOAT64)
-- Similar ranges and patterns to quarterly_avg_close
-- 450-451 unique values
-- Pre-calculated quarterly aggregations
+**std_diff_1yr (FLOAT64)**
+- Standard deviation of price differences over 1 year
+- Only 0.08% nulls (23 records) - highly complete
+- Range: 0.0061 to 9.9359
+- 13,001 unique values
+- **Key volatility metric**
 
-**quarterly_avg_volume** (FLOAT64)
-- Range: 2.9M to 93.2M
-- 451 unique values
-- Quarterly averaged trading volumes
+**pct_change_1yr (FLOAT64)**
+- Percentage change over 1 year
+- 28.91% nulls (8,140 records)
+- Range: -62.03% to +120.25%
+- **Important performance comparison metric**
 
-### Forward-Looking Performance Metrics
+### 9-Month Performance Metrics
 
-**pct_change_q1_forward** (FLOAT64)
-- **Null Percentage: 2.46%** (33 rows)
-- Range: -22.34% to +32.94%
-- Percentage change to the next quarter
-- Most recent data naturally has nulls
+**high_9mo, low_9mo (FLOAT64)**
+- 3.50% nulls (985 records each)
+- Similar ranges to 1-year metrics
+- Intermediate timeframe for trend analysis
 
-**pct_change_q2_forward** (FLOAT64)
-- **Null Percentage: 4.91%** (66 rows)
-- Range: -37.42% to +50.80%
-- Two-quarter forward return
+**std_diff_9mo (FLOAT64)**
+- 0.08% nulls
+- Range: 0.0061 to 11.2954
+- 13,178 unique values
 
-**pct_change_q3_forward** (FLOAT64)
-- **Null Percentage: 7.37%** (99 rows)
-- Range: -40.22% to +61.82%
-- Three-quarter forward return
+**pct_change_9mo (FLOAT64)**
+- 47.83% nulls (13,463 records) - **highest null rate**
+- Range: -60.23% to +99.43%
+- Only 5,365 unique values
 
-**pct_change_q4_forward** (FLOAT64)
-- **Null Percentage: 9.83%** (132 rows)
-- Range: -41.97% to +64.03%
-- Four-quarter (one-year) forward return
+### 6-Month Performance Metrics
+
+**high_6mo, low_6mo (FLOAT64)**
+- 4.60% nulls (1,295 records each)
+- Price ranges narrow compared to 1-year
+
+**std_diff_6mo (FLOAT64)**
+- 0.08% nulls
+- Range: 0.0061 to 13.3179
+- Higher volatility range than 9-month
+
+**pct_change_6mo (FLOAT64)**
+- 44.57% nulls (12,549 records)
+- Range: -59.7% to +85.57%
+
+### 3-Month Performance Metrics
+
+**high_3mo, low_3mo (FLOAT64)**
+- 5.72% nulls (1,610 records each)
+- More unique values (4,223 and 3,708) due to shorter timeframe
+
+**std_diff_3mo (FLOAT64)**
+- 0.08% nulls
+- Range: 0.0061 to 18.7177 - **widest volatility range**
+- 13,371 unique values
+
+**pct_change_3mo (FLOAT64)**
+- 23.72% nulls (6,678 records)
+- Range: -59.95% to +75.18%
+
+### 1-Month Performance Metrics
+
+**high_1mo, low_1mo (FLOAT64)**
+- 6.46% nulls (1,819 records each)
+- Highest unique value counts (6,212 and 5,422)
+- Most granular short-term price tracking
+
+**std_diff_1mo (FLOAT64)**
+- 0.08% nulls
+- Range: 0.0061 to 32.604 - **extreme volatility range**
+- Most unique values (13,426)
+
+**pct_change_1mo (FLOAT64)**
+- 42.32% nulls (11,913 records)
+- Range: -52.85% to +44.74%
+- Only 2,674 unique values - **most constrained percentage change metric**
 
 ## Query Considerations
 
-### Ideal Filtering Columns
-- **symbol**: Filter by specific sector ETFs
-- **year_val**: Year-based filtering for trend analysis
-- **year_quarter**: Quarterly time period filtering
-- **quarter_num**: Seasonal pattern analysis (Q1 vs Q4 performance)
-- **month_date**: Precise date range filtering
+### Optimal Filtering Columns
+- **symbol**: Perfect for sector-specific analysis (11 distinct sectors)
+- **date**: Essential for time-based filtering and trend analysis
+- **current_volume**: For liquidity-based filtering
+- **pct_change_*** columns: For performance-based filtering (mind the null rates)
 
-### Ideal Grouping/Aggregation Columns
-- **symbol**: Compare performance across sectors
-- **year_val**: Annual performance comparisons
-- **year_quarter**: Quarterly trends
-- **quarter_num**: Seasonal pattern identification
+### Optimal Grouping/Aggregation Columns
+- **symbol**: Primary grouping dimension for sector comparisons
+- **date** (with time bucketing): For temporal aggregations
+- Consider date ranges (year, quarter, month) for trend analysis
 
 ### Potential Join Keys
-- **symbol**: Join with other ETF/security tables
-- **year_month** or **month_date**: Join with economic indicators or market data
-- **year_quarter**: Join with quarterly financial data
+- **symbol + date**: Composite key for joining with other financial datasets
+- **symbol**: For joining with sector metadata or company constituent tables
+- **exchange**: Less useful given single value, but could join with exchange information tables
 
-### Data Quality Considerations
-1. **Forward-looking nulls**: Queries using pct_change columns should handle nulls appropriately or filter to complete periods
-2. **Time series completeness**: Verify continuous monthly coverage when analyzing trends
-3. **Volume variations**: Wide range suggests some periods/sectors may have thin trading
-4. **Price normalization**: Prices vary significantly across sectors; percentage returns are more comparable than absolute prices
-5. **Recent data**: 2025 data appears to be present (possibly projected), verify data currency for analysis
+### Data Quality Considerations for Queries
 
-### Recommended Query Patterns
-- Time-series analysis with ORDER BY month_date
-- Sector comparison using GROUP BY symbol
-- Seasonal analysis using quarter_num
-- Forward return prediction using historical pct_change columns
-- Volatility analysis using (high - low) calculations
-- Volume-weighted analyses for liquidity considerations
+1. **Null Handling Critical:**
+   - Percentage change columns have 23-48% nulls - always use `IS NOT NULL` filters or COALESCE
+   - 9-month percentage change has highest null rate (47.83%)
+   - Current price columns (high/low) have 6.89% nulls - recent data may be incomplete
+   - Standard deviation metrics are nearly complete (0.08% nulls) - most reliable volatility measures
+
+2. **Timeframe Analysis:**
+   - Longer timeframes (1yr) have better data completeness for pct_change metrics
+   - Shorter timeframes (1mo, 3mo) have higher null percentages - may indicate rolling calculation windows
+
+3. **Volatility Analysis:**
+   - std_diff columns are highly complete and show increasing ranges for shorter periods
+   - 1-month std_diff has extreme range (0.0061 to 32.604) - consider outlier handling
+
+4. **Volume Considerations:**
+   - Extreme volume range suggests periods of high/low liquidity
+   - Consider log transformations for volume-based analysis
+
+5. **Date Range:**
+   - Dataset includes future dates (2026) - verify if these are projections or data errors
+   - Historical depth goes back to at least 2012
 
 ## Keywords
-
-US sector ETFs, SPDR sectors, XLB, XLC, XLE, XLF, XLI, XLK, XLP, XLRE, XLU, XLV, sector rotation, monthly returns, quarterly returns, forward returns, stock market performance, sector analysis, NYSE Arca, ARCX, time series financial data, ETF performance, trading volume, price momentum, quarterly forecasting, sector trends, materials sector, communication sector, energy sector, financial sector, industrial sector, technology sector, consumer staples, real estate sector, utilities sector, healthcare sector
+sector ETFs, XL sectors, SPDR sectors, stock market performance, financial returns, volatility analysis, price movements, trading volume, percentage change, standard deviation, time series data, 52-week high/low, NYSE Arca, ARCX, XLK technology, XLV healthcare, XLF financials, XLE energy, XLI industrials, XLB materials, XLP consumer staples, XLU utilities, XLRE real estate, XLC communication, sector rotation, market analysis, ETF performance, investment returns, historical prices
 
 ## Table and Column Documentation
 
 **Table Comment:** Not provided in the analysis report.
 
-**Column Comments:** Not provided in the analysis report.
+**Column Comments:** No specific column comments were provided in the analysis report. The column names are self-descriptive following a consistent naming pattern for timeframe-based metrics.

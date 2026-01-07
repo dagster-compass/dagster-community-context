@@ -1,12 +1,32 @@
 ---
 columns:
+- current_high (FLOAT64)
+- current_low (FLOAT64)
+- current_price (FLOAT64)
+- current_volume (FLOAT64)
+- date (DATE)
 - exchange (STRING)
+- high_1mo (FLOAT64)
+- high_1yr (FLOAT64)
+- high_3mo (FLOAT64)
+- high_6mo (FLOAT64)
+- high_9mo (FLOAT64)
+- low_1mo (FLOAT64)
+- low_1yr (FLOAT64)
+- low_3mo (FLOAT64)
+- low_6mo (FLOAT64)
+- low_9mo (FLOAT64)
 - month_date (DATE)
 - monthly_avg_close (FLOAT64)
 - monthly_avg_high (FLOAT64)
 - monthly_avg_low (FLOAT64)
 - monthly_avg_open (FLOAT64)
 - monthly_avg_volume (FLOAT64)
+- pct_change_1mo (FLOAT64)
+- pct_change_1yr (FLOAT64)
+- pct_change_3mo (FLOAT64)
+- pct_change_6mo (FLOAT64)
+- pct_change_9mo (FLOAT64)
 - pct_change_q1_forward (FLOAT64)
 - pct_change_q2_forward (FLOAT64)
 - pct_change_q3_forward (FLOAT64)
@@ -17,202 +37,266 @@ columns:
 - quarterly_avg_low (FLOAT64)
 - quarterly_avg_open (FLOAT64)
 - quarterly_avg_volume (FLOAT64)
+- std_diff_1mo (FLOAT64)
+- std_diff_1yr (FLOAT64)
+- std_diff_3mo (FLOAT64)
+- std_diff_6mo (FLOAT64)
+- std_diff_9mo (FLOAT64)
 - symbol (STRING)
 - year_month (STRING)
 - year_quarter (STRING)
 - year_val (INT64)
-schema_hash: ca13aab0a3e34c6baa11c8cbd6bdf61ed004c023101b0570d9cbd2c31d7bdf9d
+schema_hash: 91d6707310c607dd4be98ffa932c6e84cbe6494ca58762d292141382235612b2
 
 ---
-# Table Summary: major_indicies_analysis_return
+# Table Documentation Summary: major_indicies_analysis_return
 
 ## Overall Dataset Characteristics
 
-This table contains **840 rows** of financial market data tracking major market indices across monthly and quarterly timeframes from 2012 to 2025. The dataset appears to be a comprehensive analysis of market returns and performance metrics with good data quality overall.
+**Total Rows:** 845
 
-**Key Observations:**
-- Data spans approximately 168 unique months across 14 years (2012-2025)
-- Tracks 5 major market symbols/indices
-- Contains both monthly and quarterly aggregated metrics
-- Includes forward-looking percentage change indicators
-- Generally complete data with minimal nulls except for volume metrics (~7% nulls) and forward percentage changes (1.79%-7.14% nulls)
-- No table comment provided
+**General Description:**
+This table contains historical time-series analysis of major market indices and ETFs with monthly and quarterly aggregations. The dataset spans from 2012 to 2026 (with future projections), tracking 5 different financial instruments across 169 unique months and 57 quarters.
+
+**Data Quality Observations:**
+- Core data fields (symbol, exchange, dates, price averages) have 100% completeness
+- Forward-looking percentage change metrics have 2-8% null values (expected for most recent periods)
+- Volume data has ~7% null values, primarily for the VIX index (which is an index, not a traded security)
+- Multiple columns (26 total) related to current prices and trailing period metrics are 100% null, suggesting these are placeholder columns not yet populated or calculated
+
+**Notable Patterns:**
+- Data is structured for both monthly and quarterly analysis with parallel metric sets
+- Forward-looking return calculations (pct_change_q1/q2/q3/q4_forward) suggest this table is used for predictive modeling or performance tracking
+- Price ranges vary significantly across symbols (VIX: ~10-40, ETFs: ~85-686)
 
 ## Column Details
 
+### Identification & Taxonomy Columns
+
+**symbol (STRING)**
+- No null values (100% complete)
+- 5 unique values: DIA, IWM, QQQ, SPY, VIX.INDX
+- Represents major market indices/ETFs:
+  - SPY: S&P 500 ETF
+  - QQQ: NASDAQ-100 ETF
+  - DIA: Dow Jones Industrial Average ETF
+  - IWM: Russell 2000 ETF
+  - VIX.INDX: Volatility Index
+- **Usage:** Primary filtering column for symbol-specific queries
+
+**exchange (STRING)**
+- No null values (100% complete)
+- 3 unique values: ARCX, INDX, XNAS
+- Exchange codes where instruments are listed
+- **Usage:** Can filter by exchange or join with exchange reference tables
+
 ### Temporal Columns
 
-**month_date** (DATE)
-- Primary temporal key at monthly granularity
+**month_date (DATE)**
 - No null values (100% complete)
-- 168 unique months covered
-- Date format represents the first day of each month
-- Good for time-series filtering and trending
+- 169 unique values spanning 2012-2026
+- Represents the first day of each month
+- **Usage:** Primary date filter for monthly analysis, trending, and time-series queries
 
-**year_month** (STRING)
-- String representation of year-month (format: "YYYY-MM")
-- 168 unique values matching month_date
-- Useful for text-based date filtering and grouping
+**year_month (STRING)**
+- No null values (100% complete)
+- 169 unique values
+- Format: "YYYY-MM" (e.g., "2014-09")
+- **Usage:** Human-readable date grouping, alternative to month_date for filtering
 
-**year_quarter** (STRING)
-- Quarter representation (format: "YYYY-QN", e.g., "2017-Q4")
-- 56 unique quarters
-- Useful for quarterly analysis and grouping
+**year_quarter (STRING)**
+- No null values (100% complete)
+- 57 unique values
+- Format: "YYYY-QN" (e.g., "2015-Q4")
+- **Usage:** Quarterly aggregation and filtering
 
-**year_val** (INT64)
-- Integer year values ranging from 2012 to 2025
-- 14 distinct years
-- Excellent for year-over-year comparisons
+**quarter_num (INT64)**
+- No null values (100% complete)
+- Values: 1, 2, 3, 4
+- **Usage:** Seasonality analysis, quarter-specific filtering
 
-**quarter_num** (INT64)
-- Quarter number within year (1-4)
-- All four quarters represented
-- Useful for seasonal analysis
-
-### Identifier Columns
-
-**symbol** (STRING)
-- 5 unique market indices/ETFs tracked:
-  - DIA (Dow Jones Industrial Average ETF)
-  - IWM (Russell 2000 Small Cap ETF)
-  - QQQ (NASDAQ-100 ETF)
-  - SPY (S&P 500 ETF)
-  - VIX.INDX (Volatility Index)
-- No null values
-- Primary dimension for cross-index comparisons
-
-**exchange** (STRING)
-- 3 unique exchanges: ARCX (NYSE Arca), INDX (Index), XNAS (NASDAQ)
-- No null values
-- VIX.INDX trades on INDX exchange; ETFs primarily on ARCX and XNAS
+**year_val (INT64)**
+- No null values (100% complete)
+- Range: 2012-2026 (15 unique years)
+- **Usage:** Year-over-year comparisons, annual aggregations
 
 ### Monthly Price Metrics
 
-**monthly_avg_close** (FLOAT64)
-- Average closing price for the month
-- Range: 10.13 to 683.38
-- No nulls, 839 unique values
-- Wide range reflects different price scales of tracked securities
+**monthly_avg_close (FLOAT64)**
+- No null values (100% complete)
+- 844 unique values
+- Range: 10.1255 to 683.6027
+- Average closing price for each month
+- **Usage:** Primary metric for monthly performance analysis
 
-**monthly_avg_open** (FLOAT64)
-- Average opening price for the month
-- Range: 10.12 to 683.55
-- 839 unique values, no nulls
-- Useful for intraday movement analysis when compared to close
+**monthly_avg_open (FLOAT64)**
+- No null values (100% complete)
+- 844 unique values
+- Range: 10.1232 to 685.71
+- **Usage:** Opening price analysis, gap analysis
 
-**monthly_avg_high** (FLOAT64)
-- Average high price for the month
-- Range: 10.63 to 685.95
-- 840 unique values (all unique), no nulls
-- Represents monthly volatility ceiling
+**monthly_avg_low (FLOAT64)**
+- No null values (100% complete)
+- 845 unique values (more unique than rows - suggests high precision)
+- Range: 9.7365 to 681.0538
+- **Usage:** Support level analysis, volatility calculations
 
-**monthly_avg_low** (FLOAT64)
-- Average low price for the month
-- Range: 9.74 to 680.39
-- 840 unique values, no nulls
-- Represents monthly volatility floor
+**monthly_avg_high (FLOAT64)**
+- No null values (100% complete)
+- 845 unique values
+- Range: 10.6259 to 686.87
+- **Usage:** Resistance level analysis, trading range calculations
 
-**monthly_avg_volume** (FLOAT64)
-- Average trading volume for the month
-- Range: 0.0 to 269.4M
-- **6.90% null values** - data quality consideration
-- Nulls likely correspond to VIX.INDX (index, not traded security)
+**monthly_avg_volume (FLOAT64)**
+- **6.98% null values** (59 nulls out of 845)
+- 677 unique values
+- Range: 0.0 to 269,395,925.0
+- Nulls likely correspond to VIX.INDX (not a traded instrument)
+- **Usage:** Liquidity analysis, volume-price relationships (exclude VIX or handle nulls)
 
 ### Quarterly Price Metrics
 
-**quarterly_avg_close** (FLOAT64)
-- Average closing price for the quarter
-- Range: 10.31 to 675.72
-- 280 unique values, no nulls
-- Smoothed metric for longer-term trends
+**quarterly_avg_close (FLOAT64)**
+- No null values (100% complete)
+- 285 unique values
+- Range: 10.3102 to 683.17
+- **Usage:** Quarterly trend analysis, longer-term performance metrics
 
-**quarterly_avg_open** (FLOAT64)
-- Average opening price for the quarter
-- Range: 10.28 to 676.07
-- 280 unique values, no nulls
+**quarterly_avg_open (FLOAT64)**
+- No null values (100% complete)
+- 285 unique values
+- Range: 10.2771 to 685.71
 
-**quarterly_avg_high** (FLOAT64)
-- Average high price for the quarter
-- Range: 10.86 to 679.17
-- 280 unique values, no nulls
+**quarterly_avg_high (FLOAT64)**
+- No null values (100% complete)
+- 285 unique values
+- Range: 10.8594 to 686.87
 
-**quarterly_avg_low** (FLOAT64)
-- Average low price for the quarter
-- Range: 9.87 to 672.13
-- 280 unique values, no nulls
+**quarterly_avg_low (FLOAT64)**
+- No null values (100% complete)
+- 285 unique values
+- Range: 9.8672 to 679.82
 
-**quarterly_avg_volume** (FLOAT64)
-- Average trading volume for the quarter
-- Range: 0.0 to 169.1M
-- **6.79% null values** - similar pattern to monthly volume
+**quarterly_avg_volume (FLOAT64)**
+- **6.86% null values**
+- 229 unique values
+- Range: 0.0 to 169,119,830.0
+- Similar null pattern to monthly volume
 
 ### Forward-Looking Return Metrics
 
-**pct_change_q1_forward** (FLOAT64)
-- Percentage change one quarter forward
+**pct_change_q1_forward (FLOAT64)**
+- **2.37% null values** (20 nulls)
+- 254 unique values
 - Range: -32.56% to 118.72%
-- **1.79% nulls** (likely most recent data without future values)
-- Critical for predictive analysis
+- Percentage change one quarter forward
+- **Usage:** Predictive modeling, performance forecasting
 
-**pct_change_q2_forward** (FLOAT64)
-- Percentage change two quarters forward
+**pct_change_q2_forward (FLOAT64)**
+- **4.14% null values** (35 nulls)
+- 260 unique values
 - Range: -35.93% to 147.85%
-- **3.57% nulls**
-- Useful for medium-term return projections
+- Two quarters forward performance
 
-**pct_change_q3_forward** (FLOAT64)
-- Percentage change three quarters forward
+**pct_change_q3_forward (FLOAT64)**
+- **5.92% null values** (50 nulls)
+- 258 unique values
 - Range: -40.11% to 116.27%
-- **5.36% nulls**
+- Three quarters forward performance
 
-**pct_change_q4_forward** (FLOAT64)
-- Percentage change four quarters forward (annual)
+**pct_change_q4_forward (FLOAT64)**
+- **7.69% null values** (65 nulls)
+- 252 unique values
 - Range: -47.66% to 127.57%
-- **7.14% nulls**
-- Year-over-year return metric
+- Four quarters (1 year) forward performance
+- **Usage:** All forward metrics useful for return prediction, backtesting strategies
 
-## Query Considerations
+### Placeholder/Unpopulated Columns (100% NULL)
 
-### Excellent for Filtering:
-- **symbol**: Compare performance across different indices
-- **year_val**: Year-over-year analysis
-- **year_quarter**: Quarterly comparisons
-- **month_date**: Precise time-range queries
-- **exchange**: Exchange-specific analysis
+The following 26 columns are entirely null and appear to be reserved for future calculations:
+- **date** (DATE)
+- **current_price, current_high, current_low, current_volume** (FLOAT64)
+- **high_1yr, low_1yr, pct_change_1yr, std_diff_1yr** (FLOAT64) - 1-year metrics
+- **high_9mo, low_9mo, pct_change_9mo, std_diff_9mo** (FLOAT64) - 9-month metrics
+- **high_6mo, low_6mo, pct_change_6mo, std_diff_6mo** (FLOAT64) - 6-month metrics
+- **high_3mo, low_3mo, pct_change_3mo, std_diff_3mo** (FLOAT64) - 3-month metrics
+- **high_1mo, low_1mo, pct_change_1mo, std_diff_1mo** (FLOAT64) - 1-month metrics
 
-### Excellent for Grouping/Aggregation:
-- **symbol**: Cross-index performance comparison
-- **year_val**: Annual trends and aggregations
-- **quarter_num**: Seasonal pattern analysis
-- **year_quarter**: Quarterly performance metrics
-- **exchange**: Exchange-level statistics
+**Note:** These columns should be excluded from queries or require special handling to avoid null-related issues.
 
-### Potential Join Keys:
-- **symbol**: Join with other symbol-level data
-- **month_date** or **year_month**: Temporal joins with other monthly datasets
-- **year_quarter**: Quarterly financial data joins
-- Composite keys: (symbol, month_date) for unique identification
+## Potential Query Considerations
 
-### Data Quality Considerations:
+### Optimal Filtering Columns
+- **symbol**: Essential for instrument-specific analysis
+- **year_val**: Efficient for year-based filtering
+- **year_quarter**: Natural for quarterly analysis
+- **month_date**: Best for date range queries
+- **exchange**: For exchange-specific queries
 
-1. **Volume Metrics**: ~7% nulls in volume fields - filter or handle appropriately, likely relates to VIX.INDX which is an index, not a traded security
+### Grouping/Aggregation Columns
+- **symbol**: Group by instrument
+- **year_val**: Annual aggregations
+- **year_quarter** or **quarter_num**: Quarterly patterns
+- **year_month**: Monthly trends
+- Combination groupings (e.g., symbol + year) for comparative analysis
 
-2. **Forward Returns**: Increasing null percentages (1.79% to 7.14%) for longer-term projections - expected behavior for recent data with no future values yet
+### Join Considerations
+- **symbol + exchange**: Potential join key to instrument master tables
+- **month_date** or **year_month**: Time-based joins to other economic data
+- No apparent foreign key relationships defined in this analysis
 
-3. **Price Scales**: Wide variation in price ranges (10-680) across different symbols - consider percentage changes rather than absolute values for comparisons
+### Data Quality Considerations for Queries
 
-4. **VIX Behavior**: VIX.INDX is a volatility index with different characteristics (low prices 10-40 range, no volume) - may require separate analysis
+1. **Volume Handling**: ~7% null values in volume columns
+   - Filter out VIX.INDX when analyzing volume
+   - Use COALESCE or NULL-safe functions
+   - Example: `WHERE monthly_avg_volume IS NOT NULL`
 
-5. **Data Recency**: Extends to 2025, suggesting some forward-looking or projected data
+2. **Forward Returns**: Increasing null percentages (2.37% to 7.69%)
+   - Most recent periods naturally lack forward-looking data
+   - Use appropriate WHERE clauses or LAG/LEAD functions
+   - Consider filtering: `WHERE pct_change_q1_forward IS NOT NULL`
 
-6. **Complete Temporal Coverage**: No gaps in monthly data for the covered period
+3. **Null Columns**: 26 columns are 100% null
+   - Exclude from SELECT statements
+   - Do not use in WHERE, GROUP BY, or ORDER BY clauses
+
+4. **Date Handling**: Multiple date representations
+   - Choose appropriate format: DATE (month_date) vs STRING (year_month)
+   - DATE type preferred for arithmetic and range comparisons
+
+5. **Price Scale Variance**: 
+   - VIX ranges 10-40 (volatility index)
+   - ETFs range 85-686 (price levels)
+   - Consider symbol-specific normalization for cross-instrument comparisons
+
+### Example Query Patterns
+
+**Best for time-series trending:**
+```sql
+WHERE symbol = 'SPY' 
+  AND month_date BETWEEN '2020-01-01' AND '2023-12-31'
+ORDER BY month_date
+```
+
+**Best for quarterly performance:**
+```sql
+WHERE year_quarter = '2023-Q2'
+GROUP BY symbol
+```
+
+**Best for forward-looking analysis:**
+```sql
+WHERE pct_change_q1_forward IS NOT NULL
+  AND symbol IN ('SPY', 'QQQ')
+```
 
 ## Keywords
 
-Financial markets, stock indices, ETF analysis, market returns, time series data, S&P 500 (SPY), NASDAQ-100 (QQQ), Dow Jones (DIA), Russell 2000 (IWM), VIX volatility index, quarterly returns, monthly averages, forward returns, percentage change, trading volume, OHLC data (Open High Low Close), market performance, investment analysis, index tracking, NYSE Arca (ARCX), NASDAQ (XNAS), seasonal patterns, year-over-year returns, quarterly forecasting
+market indices, ETF, stock market, SPY, QQQ, DIA, IWM, VIX, volatility index, time series, monthly data, quarterly data, financial analysis, returns, performance metrics, forward returns, predictive analysis, S&P 500, NASDAQ, Dow Jones, Russell 2000, price data, OHLC, open high low close, volume, trading volume, exchange data, ARCX, XNAS, INDX, historical prices, market trends, seasonality, quarterly performance, annual returns, backtesting, forecasting, economic data, market indicators
 
 ## Table and Column Documentation
 
-**Table Comment**: None provided
+**Table Comment:** Not provided in the analysis
 
-**Column Comments**: None provided for any columns
+**Column Comments:** No column-level comments were provided in the original analysis. The column names are self-documenting (e.g., monthly_avg_close, pct_change_q1_forward), suggesting this is a derived/analytical table rather than a source system table.

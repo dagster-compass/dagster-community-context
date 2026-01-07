@@ -14,192 +14,228 @@ columns:
 - low_3mo (NUMERIC)
 - low_6mo (NUMERIC)
 - low_9mo (NUMERIC)
-- month_date (DATE)
-- monthly_avg_price (FLOAT64)
 - pct_change_1mo (FLOAT64)
 - pct_change_1yr (FLOAT64)
 - pct_change_3mo (FLOAT64)
 - pct_change_6mo (FLOAT64)
 - pct_change_9mo (FLOAT64)
-- pct_change_q1_forward (FLOAT64)
-- pct_change_q2_forward (FLOAT64)
-- pct_change_q3_forward (FLOAT64)
-- pct_change_q4_forward (FLOAT64)
-- quarter_num (INT64)
-- quarterly_avg_price (FLOAT64)
 - std_diff_1mo (FLOAT64)
 - std_diff_1yr (FLOAT64)
 - std_diff_3mo (FLOAT64)
 - std_diff_6mo (FLOAT64)
 - std_diff_9mo (FLOAT64)
-- year_month (STRING)
-- year_quarter (STRING)
-- year_val (INT64)
-schema_hash: 2f89993243d76eabec0df8b2daa33363458c90038b1770f9bdb39461bd165a8c
+schema_hash: fa5f61622dc3fbbc589bdddb5a4882bc3b7515101f1ed67fa7fd1fb2118449f9
 
 ---
-# Comprehensive Data Summary: energy_commodities_analysis_return
+# Comprehensive Summary: Energy Commodities Analysis Return Table
 
 ## Overall Dataset Characteristics
 
-**Total Rows:** 1,008
+**Total Rows:** 21,903
 
-**General Description:**
-This table contains monthly energy commodity price data with forward-looking quarterly percentage change analysis. The dataset spans from 2012 to 2025 (14 years) and tracks 6 different energy commodities. The table appears to be specifically designed for analyzing quarterly price movements and returns in energy markets.
+**General Description:** This table contains time-series analysis data for energy commodity prices with rolling return metrics across multiple time periods (1 month, 3 months, 6 months, 9 months, and 1 year). The data tracks six different energy commodities with their current prices, historical high/low values, percentage changes, and standard deviation differences.
 
 **Data Quality Observations:**
-- Core pricing and temporal data is complete (0% nulls)
-- Forward-looking percentage change columns have minimal nulls (0.60% to 2.38%)
-- A significant portion of columns (21 columns) are completely empty (100% null), suggesting they may be placeholder columns for future data or deprecated fields
-- The populated data shows high data quality with consistent formatting and valid ranges
+- Very high data quality overall with minimal null values in most columns
+- Percentage change columns have significant null percentages (21-42%), likely representing initial periods where historical data isn't available for comparison
+- Only 0.05% null values in standard deviation columns
+- All core columns (commodity_name, current_price, date, commodity_unit) have 0% null values
+- Date range spans from at least 2016 to 2025 (approximately 9 years)
 
 **Notable Patterns:**
-- 168 unique months across 14 years suggest complete monthly coverage
-- 56 quarters (14 years × 4 quarters) align perfectly with the year range
-- Even distribution across commodities (1008 rows ÷ 6 commodities = 168 months per commodity)
-- Price ranges vary significantly by commodity type and unit
+- Data appears to be daily or near-daily observations (3,862 unique dates for 21,903 rows suggests multiple commodities tracked per date)
+- High variability in price ranges across different commodities (e.g., coal ranging from $169-457.8 vs natural gas from $0.866-4.463)
+- Extreme percentage changes observed (ranging from -167% to +512%), indicating high volatility in energy markets
 
 ## Column Details
 
-### Identification & Classification Columns
+### Categorical/Identifier Columns
 
 **commodity_name (STRING)**
-- 6 energy commodities tracked: brent, coal, crude oil, gasoline, heating oil, natural gas
-- Complete data (0% nulls)
-- Primary grouping dimension for analysis
-- Represents different energy market segments
+- Data Type: Categorical identifier
+- Null Values: 0%
+- Unique Values: 6 commodities
+- Values: brent, coal, crude oil, gasoline, heating oil, natural gas
+- Purpose: Primary grouping dimension for commodity type
 
 **commodity_unit (STRING)**
-- 4 different units of measurement: USD/Bbl (barrel), USD/Gal (gallon), USD/MMBtu (million BTU), USD/T (ton)
-- Complete data (0% nulls)
-- Critical for understanding price scales and comparisons
-- Liquid fuels typically in Bbl/Gal, gas in MMBtu, coal in tons
+- Data Type: Categorical measurement unit
+- Null Values: 0%
+- Unique Values: 4 units
+- Values: USD/Bbl (barrels), USD/Gal (gallons), USD/MMBtu (million British thermal units), USD/T (tons)
+- Purpose: Indicates pricing measurement standard for each commodity
+- Pattern: Direct relationship with commodity_name (e.g., coal always in USD/T, natural gas in USD/MMBtu)
 
-### Temporal Dimensions
+**date (DATE)**
+- Data Type: Temporal dimension
+- Null Values: 0%
+- Unique Values: 3,862 dates
+- Range: 2016-01-04 to 2025-04-24
+- Purpose: Time-series tracking key
+- Pattern: Approximately 5.7 records per date on average (21,903/3,862), consistent with 6 commodities
 
-**year_month (STRING)**
-- 168 unique values representing monthly periods
-- Format: YYYY-MM (e.g., "2025-07", "2012-06")
-- Complete data (0% nulls)
-- Useful for time-series filtering and sorting
+### Price Columns
 
-**month_date (DATE)**
-- 168 unique dates (first day of each month)
-- Format: YYYY-MM-01
-- Complete data (0% nulls)
-- Primary date field for temporal queries and joins
+**current_price (NUMERIC)**
+- Data Type: Decimal number
+- Null Values: 0%
+- Unique Values: 9,485 distinct prices
+- Sample Range: $2.334 to $457.8 (varies by commodity)
+- Purpose: Current/spot price for the commodity on the given date
+- Pattern: High precision decimal values reflecting market prices
 
-**year_quarter (STRING)**
-- 56 unique values representing quarterly periods
-- Format: YYYY-Q# (e.g., "2019-Q1", "2024-Q4")
-- Complete data (0% nulls)
-- Useful for quarterly aggregations and comparisons
+### Rolling High/Low Price Columns
 
-**quarter_num (INT64)**
-- Values: 1, 2, 3, 4 (representing Q1-Q4)
-- Complete data (0% nulls)
-- Useful for seasonal analysis and quarter-based filtering
+**high_1yr / low_1yr (NUMERIC)**
+- Null Values: 0%
+- Unique Values: 1,441 (high), 1,384 (low)
+- Purpose: 1-year rolling maximum and minimum prices
 
-**year_val (INT64)**
-- Range: 2012 to 2025 (14 unique years)
-- Complete data (0% nulls)
-- Primary year dimension for annual aggregations
+**high_9mo / low_9mo (NUMERIC)**
+- Null Values: 0%
+- Unique Values: 1,584 (high), 1,491 (low)
+- Purpose: 9-month rolling maximum and minimum prices
 
-### Price Metrics
+**high_6mo / low_6mo (NUMERIC)**
+- Null Values: 0%
+- Unique Values: 1,918 (high), 1,864 (low)
+- Purpose: 6-month rolling maximum and minimum prices
 
-**monthly_avg_price (FLOAT64)**
-- Range: 0.7354 to 439.075
-- 998 unique values (high granularity)
-- Complete data (0% nulls)
-- Represents average commodity price for the month in specified units
-- Wide range reflects different commodity types and market conditions
+**high_3mo / low_3mo (NUMERIC)**
+- Null Values: 0%
+- Unique Values: 2,783 (high), 2,621 (low)
+- Purpose: 3-month rolling maximum and minimum prices
 
-**quarterly_avg_price (FLOAT64)**
-- Range: 0.9609 to 417.5469
-- 334 unique values
-- Complete data (0% nulls)
-- Aggregated quarterly price metric
-- Useful for smoothing monthly volatility
+**high_1mo / low_1mo (NUMERIC)**
+- Null Values: 0%
+- Unique Values: 3,732 (high), 3,661 (low)
+- Purpose: 1-month rolling maximum and minimum prices
 
-### Forward-Looking Return Metrics
+Pattern: More unique values for shorter time periods (indicating more granular price variations)
 
-**pct_change_q1_forward (FLOAT64)**
-- Range: -55.42% to 68.18%
-- 0.60% nulls (6 rows)
-- Percentage change one quarter forward
-- Shows both significant gains and losses
+### Statistical Measures - Standard Deviation Differences
 
-**pct_change_q2_forward (FLOAT64)**
-- Range: -55.42% to 68.18%
-- 1.19% nulls (12 rows)
-- Percentage change two quarters forward
-- Increasing nulls suggest end-of-period limitations
+**std_diff_1yr (FLOAT64)**
+- Null Values: 0.05%
+- Unique Values: 9,139
+- Range: 0.0226 to 13.597
+- Purpose: Standard deviation of price differences over 1 year
 
-**pct_change_q3_forward (FLOAT64)**
-- Range: -55.42% to 68.18%
-- 1.79% nulls (18 rows)
-- Percentage change three quarters forward
-- Pattern continues with more recent data lacking forward visibility
+**std_diff_9mo (FLOAT64)**
+- Null Values: 0.05%
+- Unique Values: 9,327
+- Range: 0.0221 to 14.0946
+- Purpose: Standard deviation of price differences over 9 months
 
-**pct_change_q4_forward (FLOAT64)**
-- Range: -65.14% to 96.97% (widest range)
-- 2.38% nulls (24 rows)
-- Percentage change four quarters (1 year) forward
-- Higher nulls and wider range reflect longer-term uncertainty
-- 619 unique values suggest high variability
+**std_diff_6mo (FLOAT64)**
+- Null Values: 0.05%
+- Unique Values: 9,381
+- Range: 0.0211 to 15.8354
+- Purpose: Standard deviation of price differences over 6 months
 
-### Empty Columns (100% Null)
+**std_diff_3mo (FLOAT64)**
+- Null Values: 0.05%
+- Unique Values: 9,780
+- Range: 0.0182 to 20.3103
+- Purpose: Standard deviation of price differences over 3 months
 
-The following columns contain no data and may be deprecated or reserved for future use:
-- **date** (DATE) - possibly redundant with month_date
-- **current_price** (NUMERIC) - may be for real-time data
-- **high_1yr, low_1yr, high_9mo, low_9mo, high_6mo, low_6mo, high_3mo, low_3mo, high_1mo, low_1mo** (NUMERIC) - high/low price tracking over various periods
-- **std_diff_1yr, std_diff_9mo, std_diff_6mo, std_diff_3mo, std_diff_1mo** (FLOAT64) - standard deviation metrics
-- **pct_change_1yr, pct_change_9mo, pct_change_6mo, pct_change_3mo, pct_change_1mo** (FLOAT64) - backward-looking percentage changes
+**std_diff_1mo (FLOAT64)**
+- Null Values: 0.05%
+- Unique Values: 10,256
+- Range: 0.0118 to 33.4104
+- Purpose: Standard deviation of price differences over 1 month
+
+Pattern: Higher maximum std_diff values for shorter periods, suggesting short-term volatility can be more extreme
+
+### Percentage Change Columns
+
+**pct_change_1yr (FLOAT64)**
+- Null Values: 26.08% (5,711 rows)
+- Unique Values: 9,193
+- Range: -158.33% to +512.89%
+- Purpose: Year-over-year percentage change in price
+
+**pct_change_9mo (FLOAT64)**
+- Null Values: 42.10% (9,221 rows)
+- Unique Values: 7,599
+- Range: -167.17% to +309.0%
+- Purpose: 9-month percentage change in price
+
+**pct_change_6mo (FLOAT64)**
+- Null Values: 40.61% (8,895 rows)
+- Unique Values: 7,013
+- Range: -167.23% to +196.3%
+- Purpose: 6-month percentage change in price
+
+**pct_change_3mo (FLOAT64)**
+- Null Values: 21.86% (4,787 rows)
+- Unique Values: 6,670
+- Range: -164.47% to +307.69%
+- Purpose: 3-month percentage change in price
+
+**pct_change_1mo (FLOAT64)**
+- Null Values: 38.93% (8,527 rows)
+- Unique Values: 4,202
+- Range: -153.73% to +238.86%
+- Purpose: 1-month percentage change in price
+
+Pattern: High null percentages indicate insufficient historical data for early observations in the time series
 
 ## Query Considerations
 
-### Optimal Filtering Columns
-- **commodity_name**: Filter by specific energy commodities
-- **year_val**: Filter by year for annual analysis
-- **year_quarter**: Filter by quarterly periods
-- **month_date**: Use for date range queries
-- **quarter_num**: Filter by seasonal quarters
+### Excellent Columns for Filtering:
+- **commodity_name**: Only 6 values, perfect for WHERE clauses to analyze specific commodities
+- **date**: Ideal for time-based filtering (date ranges, specific years, quarters)
+- **commodity_unit**: Can filter by pricing unit if analyzing specific measurement types
+- **pct_change_*** columns: Can filter for significant price movements (e.g., WHERE pct_change_1yr > 50)
 
-### Optimal Grouping/Aggregation Columns
-- **commodity_name**: Group by commodity type for comparative analysis
-- **year_val**: Annual aggregations and trends
-- **year_quarter**: Quarterly performance analysis
-- **quarter_num**: Seasonal pattern analysis
-- **commodity_unit**: Group by measurement unit
+### Excellent Columns for Grouping/Aggregation:
+- **commodity_name**: Primary grouping dimension for commodity comparisons
+- **date** (with DATE_TRUNC): Can group by year, quarter, month for trend analysis
+- **commodity_unit**: Secondary grouping if analyzing by pricing methodology
+- Time-based aggregations of price metrics (AVG, MIN, MAX of current_price by commodity)
 
-### Potential Join Keys
-- **month_date**: Join with other monthly time-series data
-- **year_quarter**: Join with quarterly economic indicators
-- **commodity_name**: Join with commodity reference tables
-- Composite key: (commodity_name, month_date) for unique row identification
+### Potential Join Keys:
+- **commodity_name + date**: Composite key for joining with other commodity-related tables
+- **date**: Can join with general economic indicators, market indices, or event data
+- No obvious foreign keys present, but commodity_name could link to a commodity master table
 
-### Data Quality Considerations
-- **Forward-looking metrics**: Nulls increase with longer forward periods (Q1: 0.6% → Q4: 2.38%), likely due to data availability at dataset boundaries
-- **Empty columns**: 21 columns are entirely empty; queries should avoid these to prevent confusion
-- **Price ranges**: Vary dramatically by commodity unit; always filter or group by commodity_unit when comparing prices
-- **Time coverage**: Complete monthly data from 2012-2025, but forward-looking metrics may be incomplete for most recent periods
-- **Zero values**: Some pct_change columns contain 0.0, which may represent no change or the current quarter (no forward movement yet)
+### Data Quality Considerations for Queries:
 
-### Best Practices for Queries
-1. Always include commodity_name and commodity_unit together when analyzing prices
-2. Use month_date for temporal filtering rather than year_month string
-3. Be aware of null patterns in forward-looking metrics when analyzing recent data
-4. Avoid using the 21 completely empty columns
-5. Consider the relationship between monthly and quarterly averages when aggregating
-6. Account for different units (USD/Bbl, USD/Gal, etc.) when comparing commodities
+1. **Null Handling Required:**
+   - Always check for nulls in pct_change_* columns (21-42% null)
+   - Use COALESCE or WHERE IS NOT NULL when aggregating percentage changes
+   - Consider whether nulls represent missing data or insufficient history
+
+2. **Time Series Gaps:**
+   - Verify date continuity if performing time-based calculations
+   - Use window functions carefully with potential date gaps
+   - Consider the ~26% null rate in pct_change_1yr means early records lack full year history
+
+3. **Price Comparability:**
+   - Always filter or group by commodity_unit when comparing prices
+   - Coal ($169-$457) vs Natural Gas ($0.866-$4.463) have vastly different scales
+   - Consider normalizing prices or using percentage changes for cross-commodity comparisons
+
+4. **Volatility Analysis:**
+   - std_diff columns provide volatility metrics but vary by time period
+   - Extreme values in pct_change suggest outliers or market shocks worth investigating
+   - Consider filtering out extreme percentages for typical analysis
+
+5. **Current vs Historical:**
+   - current_price is point-in-time; high/low columns are rolling windows
+   - Ensure queries account for the rolling nature of high/low metrics
+   - Be careful with edge cases where current_price might equal high or low values
 
 ## Keywords
 
-energy commodities, oil prices, natural gas, coal, brent crude, WTI crude oil, gasoline prices, heating oil, commodity analysis, quarterly returns, price forecasting, forward returns, percentage change, energy markets, commodity trading, price volatility, time series analysis, quarterly performance, energy economics, commodity futures, price trends, seasonal analysis, energy sector, commodity pricing, market analysis, USD per barrel, USD per gallon, USD per ton, USD per MMBtu, monthly averages, quarterly averages, forward-looking metrics, return analysis, energy data
+energy commodities, oil prices, natural gas, coal, gasoline, heating oil, Brent crude, price analysis, volatility, percentage change, rolling returns, time series, commodity trading, energy markets, price movements, standard deviation, historical prices, price highs, price lows, market analysis, commodity units, USD per barrel, USD per gallon, USD per MMBtu, USD per ton, 1-year returns, 9-month returns, 6-month returns, 3-month returns, 1-month returns, price volatility, energy sector, commodity pricing, financial analysis, market metrics, trading analysis
 
 ## Table and Column Documentation
 
-**Table Comment:** Not provided
+**Table Comment:** Not provided in the analysis report.
 
-**Column Comments:** Not provided for any columns
+**Column Comments:** No column-level comments were provided in the analysis report. The column names are self-descriptive, following a consistent naming pattern:
+- Base metric + time period (e.g., high_1yr, low_3mo)
+- Calculated metrics prefixed with metric type (pct_change_*, std_diff_*)
+- Core columns use standard naming (commodity_name, date, current_price, commodity_unit)

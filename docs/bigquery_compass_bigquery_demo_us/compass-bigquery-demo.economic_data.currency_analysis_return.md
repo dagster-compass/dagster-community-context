@@ -16,222 +16,278 @@ columns:
 - low_3mo (FLOAT64)
 - low_6mo (FLOAT64)
 - low_9mo (FLOAT64)
-- month_date (DATE)
-- monthly_avg_close (FLOAT64)
-- monthly_avg_high (FLOAT64)
-- monthly_avg_low (FLOAT64)
-- monthly_avg_open (FLOAT64)
-- monthly_avg_volume (FLOAT64)
 - pct_change_1mo (FLOAT64)
 - pct_change_1yr (FLOAT64)
 - pct_change_3mo (FLOAT64)
 - pct_change_6mo (FLOAT64)
 - pct_change_9mo (FLOAT64)
-- pct_change_q1_forward (FLOAT64)
-- pct_change_q2_forward (FLOAT64)
-- pct_change_q3_forward (FLOAT64)
-- pct_change_q4_forward (FLOAT64)
-- quarter_num (INT64)
-- quarterly_avg_close (FLOAT64)
-- quarterly_avg_high (FLOAT64)
-- quarterly_avg_low (FLOAT64)
-- quarterly_avg_open (FLOAT64)
-- quarterly_avg_volume (FLOAT64)
 - std_diff_1mo (FLOAT64)
 - std_diff_1yr (FLOAT64)
 - std_diff_3mo (FLOAT64)
 - std_diff_6mo (FLOAT64)
 - std_diff_9mo (FLOAT64)
 - symbol (STRING)
-- year_month (STRING)
-- year_quarter (STRING)
-- year_val (INT64)
-schema_hash: 91d6707310c607dd4be98ffa932c6e84cbe6494ca58762d292141382235612b2
+schema_hash: 000013a54dbaa630b1e53fb2064ec577bdd6dcaec2b7fbea1519c19737e95ce3
 
 ---
-# Currency Analysis Return Table - Comprehensive Summary
+# Currency Analysis Return Table Documentation
 
 ## Overall Dataset Characteristics
 
-**Total Rows:** 1,120
+**Total Rows:** 23,282
 
-**General Description:** This table contains aggregated currency/ETF trading data with monthly and quarterly metrics, including forward-looking percentage change indicators. The dataset spans from 2012 to 2026 with 169 unique months of data across 8 different currency-related symbols traded on 3 exchanges.
+**General Description:** This table contains historical currency exchange-traded fund (ETF) and cryptocurrency performance data with daily price snapshots and rolling time-period analytics. The dataset tracks 8 different currency-related securities across 3 exchanges over approximately 3,524 distinct trading dates (roughly 10 years of data based on sample dates from 2013-2024).
 
 **Data Quality Observations:**
-- Core trading data (prices, volumes, dates) has 0% null values and is highly reliable
-- Forward-looking percentage change metrics have moderate nulls (2.95% to 9.38%), increasing with longer time horizons
-- Approximately half of the columns (26 out of 49) are completely empty (100% null), suggesting these are placeholder columns for future use or deprecated fields
-- High cardinality in price fields (1,116-1,119 unique values) indicates detailed, granular data
+- Core fields (date, symbol, exchange, current_price, current_volume) have 100% completeness
+- Significant null percentages in percentage change columns (ranging from 23% to 47%)
+- Current high/low values have 13.43% nulls
+- Rolling period high/low values show increasing null percentages with shorter timeframes
+- Very low null percentage (0.07%) in standard deviation metrics
+- Data appears well-structured with consistent formatting across numeric fields
 
 **Notable Patterns:**
-- Data is organized hierarchically: monthly aggregations feed into quarterly aggregations
-- Forward-looking metrics (pct_change_q1_forward through q4_forward) suggest this is used for predictive/forecasting analysis
-- Price ranges vary significantly by symbol (from ~$5 to ~$261), indicating diverse currency pairs or asset types
+- Trading volume varies dramatically (0 to 168M), suggesting different liquidity profiles
+- Price ranges span from ~$5 to $580, indicating diverse asset types
+- Percentage changes show extreme volatility, particularly in cryptocurrency assets (ranging from -94.5% to +692%)
+- Standard deviation metrics are consistently populated, enabling volatility analysis
 
 ## Column Details
 
-### Identification & Categorization Columns
+### Identifiers and Temporal Data
 
-**exchange (STRING)**
-- Three exchange types: ARCX (NYSE Arca), INDX (Index), OTCM (OTC Markets)
-- No nulls - reliable for filtering and grouping
-- Primary categorization dimension
+**date (DATE)**
+- Format: YYYY-MM-DD
+- Complete coverage (0% nulls)
+- Spans approximately 2013-2024
+- 3,524 unique dates suggests daily trading data with some gaps
+- **Query Use:** Primary temporal filter, grouping by date/time periods
 
 **symbol (STRING)**
-- 8 unique currency/crypto ETF symbols
-- Includes: CEW, ETHE (Ethereum), FXA (Australian Dollar), FXB (British Pound), FXC (Canadian Dollar), FXE (Euro), FXY (Japanese Yen), IBIT.INDX (Bitcoin Index)
-- No nulls - excellent join key and filter dimension
+- 8 distinct securities tracked:
+  - **CEW**: Currency Shares Emerging Markets ETF
+  - **ETHE**: Grayscale Ethereum Trust
+  - **FXA**: Australian Dollar ETF
+  - **FXB**: British Pound ETF  
+  - **FXC**: Canadian Dollar ETF
+  - **FXE**: Euro Currency ETF
+  - **FXY**: Japanese Yen ETF
+  - **IBIT.INDX**: Bitcoin-related index
+- **Query Use:** Essential grouping field, join key for security master tables
 
-### Temporal Dimensions
+**exchange (STRING)**
+- 3 distinct values:
+  - **ARCX**: NYSE Arca (most currency ETFs)
+  - **OTCM**: OTC Markets (ETHE)
+  - **INDX**: Index (IBIT.INDX)
+- **Query Use:** Filtering by market type, regulatory analysis
 
-**year_month (STRING)**
-- Format: "YYYY-MM" (e.g., "2024-12")
-- 169 unique months spanning the dataset
-- No nulls - reliable for time-based filtering
+### Current Day Price/Volume Data
 
-**month_date (DATE)**
-- First day of each month
-- Parallel to year_month but in DATE format
-- Better for date arithmetic and SQL date functions
+**current_price (FLOAT64)**
+- Range: $4.72 to $580.00
+- Complete data (0% nulls)
+- High precision decimal values
+- Wide range suggests mix of traditional currency ETFs (lower prices) and crypto assets (higher prices)
+- **Query Use:** Price-based filtering, current valuation calculations
 
-**year_quarter (STRING)**
-- Format: "YYYY-QN" (e.g., "2024-Q3")
-- 57 unique quarters
-- Useful for quarterly aggregations and comparisons
+**current_volume (FLOAT64)**
+- Range: 0 to 168,213,523
+- Complete data (0% nulls)
+- Zero volume days present (illiquid periods or data artifacts)
+- Extreme variance indicates very different liquidity profiles
+- **Query Use:** Liquidity analysis, volume-weighted calculations
 
-**year_val (INT64)**
-- Range: 2012-2026 (15 years)
-- No nulls - good for year-over-year analysis
+**current_high (FLOAT64)**
+- Range: $4.84 to $169.06
+- 13.43% nulls (likely for INDX exchange or specific symbols)
+- Intraday high price
+- **Query Use:** Intraday volatility analysis, high/low spreads
 
-**quarter_num (INT64)**
-- Values: 1, 2, 3, 4
-- Represents quarter within year
-- Useful for seasonal analysis
+**current_low (FLOAT64)**
+- Range: $4.62 to $168.76
+- 13.43% nulls (matches current_high pattern)
+- Intraday low price
+- **Query Use:** Intraday volatility analysis, support/resistance levels
 
-### Monthly Trading Metrics
+### 1-Year Rolling Metrics
 
-**monthly_avg_close (FLOAT64)**
-- Range: $5.72 to $171.27
-- 1,118 unique values
-- Average closing price for the month
-- No nulls - reliable for analysis
+**high_1yr (FLOAT64)**
+- Range: $8.69 to $169.06
+- 5.76% nulls (early data points lacking full year history)
+- 52-week high
+- **Query Use:** Comparing current price to 52-week range
 
-**monthly_avg_open (FLOAT64)**
-- Range: $5.80 to $210.90
-- 1,119 unique values
-- Note: Maximum significantly higher than close, suggesting volatility
+**low_1yr (FLOAT64)**
+- Range: $4.62 to $156.65
+- 5.76% nulls
+- 52-week low
+- **Query Use:** Price range analysis, support levels
 
-**monthly_avg_low (FLOAT64)**
-- Range: $5.59 to $167.79
-- Lowest average price in month
+**pct_change_1yr (FLOAT64)**
+- Range: -89.47% to +623.26%
+- 28.02% nulls (highest among return metrics)
+- Extreme positive values suggest cryptocurrency assets
+- **Query Use:** Annual performance ranking, volatility screening
 
-**monthly_avg_high (FLOAT64)**
-- Range: $5.91 to $261.45
-- Highest value across all price metrics
-- Critical for understanding price volatility
+**std_diff_1yr (FLOAT64)**
+- Range: 0.0 to 259.17
+- Only 0.07% nulls (most complete metric)
+- Standard deviation from mean price
+- **Query Use:** Volatility analysis, risk metrics
 
-**monthly_avg_volume (FLOAT64)**
-- Range: 1.0 to 75,840,296
-- Extremely wide range indicates different liquidity levels across symbols
-- ETHE and IBIT.INDX likely have highest volumes (crypto ETFs)
+### 9-Month Rolling Metrics
 
-### Quarterly Trading Metrics
+**high_9mo (FLOAT64)**
+- Range: $8.69 to $169.06
+- 7.74% nulls
+- **Query Use:** Medium-term resistance levels
 
-**quarterly_avg_close (FLOAT64)**
-- Range: $7.46 to $171.27
-- 380 unique values
-- Aggregated from monthly data
+**low_9mo (FLOAT64)**
+- Range: $4.62 to $159.90
+- 7.74% nulls
+- **Query Use:** Medium-term support levels
 
-**quarterly_avg_high (FLOAT64)**
-- Range: $7.71 to $261.45
-- Mirrors monthly high patterns
+**std_diff_9mo (FLOAT64)**
+- Range: 0.0 to 259.17
+- 0.07% nulls
+- **Query Use:** Medium-term volatility comparison
 
-**quarterly_avg_open (FLOAT64)**
-- Range: $7.42 to $210.90
+**pct_change_9mo (FLOAT64)**
+- Range: -93.29% to +518.56%
+- 47.34% nulls (highest null percentage)
+- **Query Use:** 3-quarter performance analysis
 
-**quarterly_avg_low (FLOAT64)**
-- Range: $7.18 to $165.56
+### 6-Month Rolling Metrics
 
-**quarterly_avg_volume (FLOAT64)**
-- Range: 1.0 to 65,968,849
-- Slightly lower maximum than monthly (expected with averaging)
+**high_6mo (FLOAT64)**
+- Range: $8.69 to $169.06
+- 9.61% nulls
+- **Query Use:** Semi-annual price range analysis
 
-### Forward-Looking Percentage Changes
+**low_6mo (FLOAT64)**
+- Range: $4.62 to $162.24
+- 9.61% nulls
+- **Query Use:** Semi-annual support levels
 
-**pct_change_q1_forward (FLOAT64)**
-- 2.95% nulls (33 missing values)
-- Range: -75.36% to +125.22%
-- Represents 1-quarter forward return
-- Lowest null rate among forward metrics
+**pct_change_6mo (FLOAT64)**
+- Range: -94.5% to +692.44%
+- 44.25% nulls
+- Contains most extreme positive return (692.44%)
+- **Query Use:** Semi-annual performance screening
 
-**pct_change_q2_forward (FLOAT64)**
-- 5.09% nulls (57 missing values)
-- Range: -81.87% to +285.32%
-- Widest range - most volatile forward metric
-- 2-quarter forward return
+**std_diff_6mo (FLOAT64)**
+- Range: 0.0 to 259.17
+- 0.07% nulls
+- **Query Use:** Semi-annual volatility metrics
 
-**pct_change_q3_forward (FLOAT64)**
-- 7.23% nulls (81 missing values)
-- Range: -86.16% to +169.62%
-- 3-quarter forward return
+### 3-Month Rolling Metrics
 
-**pct_change_q4_forward (FLOAT64)**
-- 9.38% nulls (105 missing values)
-- Range: -80.40% to +222.00%
-- Highest null rate - limited by data horizon
-- 4-quarter (1-year) forward return
+**high_3mo (FLOAT64)**
+- Range: $8.69 to $169.06
+- 11.50% nulls
+- **Query Use:** Quarterly resistance analysis
 
-### Deprecated/Unused Columns (100% NULL)
+**low_3mo (FLOAT64)**
+- Range: $4.62 to $164.38
+- 11.50% nulls
+- **Query Use:** Quarterly support analysis
 
-The following columns contain no data and should be excluded from queries:
-- date, current_price, current_high, current_low, current_volume
-- All historical lookback metrics: low_1yr, high_1yr, std_diff_1yr, pct_change_1yr
-- 9-month lookback: low_9mo, high_9mo, pct_change_9mo, std_diff_9mo
-- 6-month lookback: high_6mo, low_6mo, std_diff_6mo, pct_change_6mo
-- 3-month lookback: high_3mo, low_3mo, pct_change_3mo, std_diff_3mo
-- 1-month lookback: high_1mo, low_1mo, std_diff_1mo, pct_change_1mo
+**std_diff_3mo (FLOAT64)**
+- Range: 0.0 to 259.17
+- 0.07% nulls
+- **Query Use:** Short-term volatility analysis
+
+**pct_change_3mo (FLOAT64)**
+- Range: -92.95% to +369.62%
+- 23.52% nulls
+- **Query Use:** Quarterly performance tracking
+
+### 1-Month Rolling Metrics
+
+**high_1mo (FLOAT64)**
+- Range: $6.55 to $169.06
+- 12.77% nulls
+- **Query Use:** Monthly price range analysis
+
+**low_1mo (FLOAT64)**
+- Range: $4.62 to $166.96
+- 12.77% nulls
+- **Query Use:** Monthly support levels
+
+**std_diff_1mo (FLOAT64)**
+- Range: 0.0 to 259.17
+- 0.07% nulls
+- **Query Use:** Monthly volatility screening
+
+**pct_change_1mo (FLOAT64)**
+- Range: -91.99% to +297.01%
+- 42.29% nulls
+- **Query Use:** Monthly momentum analysis
 
 ## Query Considerations
 
-### Optimal Filtering Columns
-- **symbol**: Filter by specific currency/ETF (8 options)
-- **exchange**: Filter by trading venue (3 options)
-- **year_val**: Year-based filtering (2012-2026)
-- **year_quarter**: Quarterly analysis
-- **month_date**: Date range queries using standard SQL date functions
+### Excellent Filtering Columns
+- **symbol**: Essential for security-specific analysis
+- **exchange**: Market segmentation
+- **date**: Time-based filtering and trending
+- **current_volume**: Liquidity screening (exclude zero/low volume)
+- **pct_change_*** fields: Performance-based screening
 
-### Grouping/Aggregation Opportunities
-- **symbol**: Compare performance across currencies
-- **exchange**: Analyze by trading venue
-- **year_val**: Year-over-year trends
-- **quarter_num**: Seasonal patterns
-- **year_quarter**: Quarterly performance analysis
+### Good Grouping/Aggregation Columns
+- **symbol**: Security-level aggregations
+- **exchange**: Market-level summaries
+- **date** (with DATE_TRUNC): Time-series aggregations
+- Combined grouping (symbol + time period) for cohort analysis
 
 ### Potential Join Keys
-- **symbol + exchange**: Unique identifier for instrument
-- **symbol + month_date**: Time-series joins
-- **year_quarter**: Join with other quarterly economic data
+- **(date, symbol)**: Composite key for joining with other financial datasets
+- **symbol**: Join to security master tables for metadata
+- **exchange**: Join to exchange/market reference data
 
 ### Data Quality Considerations
-1. **Forward-looking metrics**: Nulls increase with time horizon - use COALESCE or WHERE clauses to handle
-2. **Empty columns**: 26 columns are 100% null - avoid in SELECT statements
-3. **Volume outliers**: Crypto ETFs (ETHE, IBIT.INDX) have 1000x+ volume vs currency ETFs
-4. **Price scales**: Wide price ranges ($5-$261) - consider percentage changes rather than absolute values
-5. **Time coverage**: Not all symbols have data for all time periods - verify data availability for specific date ranges
 
-### Analytical Use Cases
-- **Performance analysis**: Compare returns across currency pairs using pct_change metrics
-- **Volatility studies**: Use high/low spreads and volume patterns
-- **Forecasting validation**: Compare quarterly averages against forward-looking percentage changes
-- **Seasonal patterns**: Group by quarter_num to identify seasonal trends
-- **Liquidity analysis**: Volume metrics by symbol and time period
+**High Null Percentage Fields:**
+- Percentage change metrics have 23-47% nulls - use COALESCE or filter out nulls
+- Consider that nulls may represent:
+  - Insufficient historical data for calculation
+  - Non-trading periods
+  - Data collection gaps
+
+**Zero Values:**
+- current_volume can be 0 (consider filtering WHERE current_volume > 0)
+- std_diff metrics can be 0 (no volatility periods)
+
+**Extreme Values:**
+- Cryptocurrency assets (ETHE, IBIT.INDX) show extreme percentage changes
+- Consider separate analysis or outlier handling for crypto vs. traditional currency ETFs
+
+**Time-Based Queries:**
+- Early dates may have incomplete rolling metrics
+- Consider WHERE clauses that ensure minimum data availability
+- Account for market holidays/non-trading days in date-based aggregations
+
+**Recommended Filters:**
+```sql
+-- For reliable percentage change analysis
+WHERE pct_change_1yr IS NOT NULL
+
+-- For liquid securities only  
+WHERE current_volume > 1000
+
+-- For complete daily data
+WHERE current_high IS NOT NULL AND current_low IS NOT NULL
+
+-- Exclude early bootstrap periods
+WHERE date >= '2014-01-01'
+```
 
 ## Keywords
 
-Currency ETFs, forex, foreign exchange, Bitcoin ETF, Ethereum ETF, cryptocurrency, ARCX, NYSE Arca, trading analysis, quarterly returns, monthly averages, forward returns, percentage change, price analysis, volume analysis, FXA Australian Dollar, FXB British Pound, FXC Canadian Dollar, FXE Euro, FXY Japanese Yen, IBIT Bitcoin, ETHE Ethereum, CEW currency basket, time series data, economic data, financial markets, technical analysis, predictive metrics, return forecasting, trading volume, OHLC data (open high low close)
+currency exchange rates, ETF performance, forex, cryptocurrency, ETHE Ethereum, Bitcoin IBIT, currency pairs, FX trading, rolling returns, volatility analysis, standard deviation, price momentum, intraday trading, 52-week high/low, percentage returns, trading volume, liquidity analysis, Australian dollar FXA, British pound FXB, Canadian dollar FXC, Euro FXE, Japanese yen FXY, emerging markets CEW, time series analysis, financial markets, technical indicators, price ranges
 
-## Table and Column Documentation
+## Table and Column Docs
 
-**Table Comment:** Not provided in the analysis report.
+**Table Comment:** Not provided
 
-**Column Comments:** No individual column comments were provided in the analysis report. The column names are self-descriptive, following standard financial data conventions (avg for average, pct for percentage, q1/q2/q3/q4 for quarters, mo for month, yr for year).
+**Column Comments:** Not provided

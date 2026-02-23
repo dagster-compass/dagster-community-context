@@ -15,183 +15,150 @@ columns:
 schema_hash: 7ce6771a8189046e3ab12b9d6df2bb072c7cc17522c5955fddfad895d2cb3943
 
 ---
-# Table Summary: Financial Conditions Index
+# Financial Conditions Index Dataset Summary
 
 ## Overall Dataset Characteristics
 
 **Total Rows:** 87
 
-**General Description:** This table contains monthly financial conditions index (FCI) data spanning from 2016 to 2024. The FCI is a composite metric derived from multiple economic indicators including the Federal Funds Rate (FFR), equity markets, housing markets, and 10-year Treasury yields. The data represents a time series analysis of financial conditions with normalized scores for each component.
+**General Description:** This dataset contains time-series data tracking financial market conditions through various economic indicators. The data spans from 2016 to 2025, with monthly observations. All records were created on the same timestamp (2025-11-24), suggesting a batch import or historical data compilation.
 
 **Data Quality Observations:**
-- The dataset has consistent nulls (~12.64%) in all score columns (ffr_score, equity_score, housing_score, _10yr_score) for the same records
-- These nulls likely represent an initial baseline period or records where scores couldn't be calculated
-- All other fields have complete data except equity (13.79% nulls)
-- The `created_at` and `index_name` fields are constant across all records, suggesting batch processing
+- Generally high quality with minimal nulls in most columns
+- Notable exception: `equity` column has 13.79% null values, and all score columns have 12.64% null values
+- Consistent temporal coverage with one record per month
+- All records share the same `index_name` value, indicating this is a single index dataset
 
 **Notable Patterns:**
-- Monthly time series data with 87 unique dates
-- The FCI ranges from -0.55 to 0.19, indicating both contractionary and expansionary financial conditions
-- All component scores are normalized around zero, suggesting standardization was applied
-- The housing component shows the widest range (5.48 units)
+- The Financial Conditions Index (FCI) ranges from -0.55 to 0.19, suggesting standardized/normalized values
+- All component metrics (ffr, equity, housing, _10yr) appear to be normalized or percentage-based
+- Score columns appear to be weighted or adjusted versions of their base metrics
 
 ## Column Details
 
-### date (DATE)
-- **Type:** Date field, monthly granularity
-- **Completeness:** 100% (0% nulls)
-- **Uniqueness:** All 87 values are unique (one record per month)
-- **Pattern:** Monthly economic data points from 2016-03 to 2024-04
-- **Query Use:** Primary time dimension for filtering and ordering
+### Temporal Column
 
-### ffr (FLOAT64)
-- **Description:** Federal Funds Rate (monthly average or change)
-- **Completeness:** 100% (0% nulls)
+**`date` (DATE)**
+- **Format:** Monthly frequency (first day of each month)
+- **Nulls:** None (0.00%)
+- **Coverage:** 87 unique months from 2016 to 2025
+- **Usage:** Primary time dimension for temporal analysis and trending
+
+### Raw Financial Metrics
+
+**`ffr` (FLOAT64) - Federal Funds Rate**
 - **Range:** -0.052 to 0.066
-- **Distribution:** 65 unique values, suggesting rate changes and periods of stability
-- **Pattern:** Values cluster around zero with both positive and negative values
-- **Query Use:** Economic indicator for monetary policy analysis
+- **Nulls:** None (0.00%)
+- **Distribution:** 65 unique values across 87 records
+- **Interpretation:** Likely represents month-over-month changes or normalized FFR values
+- **Pattern:** Includes negative values, suggesting rate decreases or normalized deviations
 
-### equity (FLOAT64)
-- **Description:** Equity market indicator/index
-- **Completeness:** 86.21% (13.79% nulls)
+**`equity` (FLOAT64) - Equity Market Indicator**
 - **Range:** -4.37 to 3.77
-- **Distribution:** 75 unique values with wide dispersion
-- **Pattern:** Large range suggests significant market volatility captured
-- **Note:** Higher null percentage than other components
-- **Query Use:** Stock market conditions filter
+- **Nulls:** 13.79% (12 missing values)
+- **Distribution:** 75 unique values
+- **Pattern:** Widest range among metrics, indicating higher volatility
+- **Data Quality Note:** Missing values may impact certain time periods
 
-### housing (FLOAT64)
-- **Description:** Housing market indicator
-- **Completeness:** 100% (0% nulls)
+**`housing` (FLOAT64) - Housing Market Indicator**
 - **Range:** -1.01 to 5.48
-- **Distribution:** 87 unique values (all unique), highest range among components
-- **Pattern:** Predominantly positive values, showing housing market strength
-- **Query Use:** Real estate market conditions analysis
+- **Nulls:** None (0.00%)
+- **Distribution:** All 87 values are unique
+- **Pattern:** Positive skew with maximum at 5.48, suggesting strong housing market periods
 
-### _10yr (FLOAT64)
-- **Description:** 10-year Treasury yield metric (likely change or spread)
-- **Completeness:** 100% (0% nulls)
+**`_10yr` (FLOAT64) - 10-Year Treasury Indicator**
 - **Range:** -0.038 to 0.038
-- **Distribution:** 86 unique values, tightly bounded around zero
-- **Pattern:** Small magnitude changes indicating yield movements
-- **Query Use:** Fixed income/interest rate analysis
+- **Nulls:** None (0.00%)
+- **Distribution:** 86 unique values (nearly all unique)
+- **Pattern:** Symmetric distribution around zero, likely yield changes
 
-### housing_score (FLOAT64)
-- **Description:** Normalized/weighted score for housing component
-- **Completeness:** 87.36% (12.64% nulls)
-- **Range:** -0.516 to 0.230
-- **Distribution:** 76 unique values
-- **Pattern:** Standardized contribution to final FCI
-- **Query Use:** Component contribution analysis
+### Weighted Score Columns
 
-### _10yr_score (FLOAT64)
-- **Description:** Normalized/weighted score for 10-year Treasury component
-- **Completeness:** 87.36% (12.64% nulls)
-- **Range:** -0.0044 to 0.0044
-- **Distribution:** 76 unique values, smallest magnitude scores
-- **Pattern:** Minimal contribution to overall FCI
-- **Query Use:** Interest rate impact analysis
-
-### equity_score (FLOAT64)
-- **Description:** Normalized/weighted score for equity component
-- **Completeness:** 87.36% (12.64% nulls)
+**`equity_score` (FLOAT64)**
 - **Range:** -0.157 to 0.092
+- **Nulls:** 12.64% (11 missing values)
 - **Distribution:** 76 unique values
-- **Pattern:** Asymmetric range (more negative potential)
-- **Query Use:** Equity market contribution analysis
+- **Purpose:** Weighted contribution of equity to FCI
 
-### ffr_score (FLOAT64)
-- **Description:** Normalized/weighted score for Federal Funds Rate
-- **Completeness:** 87.36% (12.64% nulls)
+**`housing_score` (FLOAT64)**
+- **Range:** -0.516 to 0.230
+- **Nulls:** 12.64%
+- **Distribution:** 76 unique values
+- **Pattern:** Largest range among score columns, suggesting housing has highest weight in FCI
+
+**`_10yr_score` (FLOAT64)**
+- **Range:** -0.0044 to 0.0044
+- **Nulls:** 12.64%
+- **Distribution:** 76 unique values
+- **Pattern:** Smallest magnitude, suggesting lower weight in FCI calculation
+
+**`ffr_score` (FLOAT64)**
 - **Range:** -0.0085 to 0.0093
+- **Nulls:** 12.64%
 - **Distribution:** 76 unique values
-- **Pattern:** Small contribution magnitudes
-- **Query Use:** Monetary policy impact analysis
+- **Pattern:** Small magnitude similar to _10yr_score
 
-### fci (FLOAT64)
-- **Description:** **Financial Conditions Index** - composite metric combining all components
-- **Completeness:** 100% (0% nulls)
+### Composite Index
+
+**`fci` (FLOAT64) - Financial Conditions Index**
 - **Range:** -0.546 to 0.188
+- **Nulls:** None (0.00%)
 - **Distribution:** 77 unique values
-- **Pattern:** Negative values = tight conditions, positive = loose conditions
-- **Key Metric:** This is the primary output/target variable
-- **Query Use:** Primary metric for filtering and trending financial conditions
+- **Interpretation:** Aggregate measure of financial conditions; negative = tighter, positive = looser conditions
+- **Usage:** Primary output metric for analysis
 
-### index_name (STRING)
-- **Description:** Constant identifier for the index type
-- **Completeness:** 100% (0% nulls)
-- **Unique Value:** "Financial Conditions Index" (all records)
-- **Query Use:** Metadata field, likely for multi-index tables
+### Metadata Columns
 
-### created_at (TIMESTAMP)
-- **Description:** Data load/creation timestamp
-- **Completeness:** 100% (0% nulls)
-- **Unique Value:** 2025-11-24 18:50:32.747108+00:00 (all records)
-- **Pattern:** Batch processing timestamp
-- **Query Use:** Data lineage tracking
+**`created_at` (TIMESTAMP)**
+- **Value:** Single timestamp: 2025-11-24 18:50:32.747108+00:00
+- **Nulls:** None
+- **Usage:** Data provenance tracking
 
-## Potential Query Considerations
+**`index_name` (STRING)**
+- **Value:** Single value: "Financial Conditions Index"
+- **Nulls:** None
+- **Usage:** Dataset identifier (constant across all rows)
 
-### Good Columns for Filtering:
-- **date**: Primary time-based filtering (WHERE date >= '2020-01-01')
-- **fci**: Threshold filtering for tight/loose conditions (WHERE fci < 0)
-- **equity, housing, ffr, _10yr**: Component-specific analysis
+## Query Considerations
 
-### Good Columns for Grouping/Aggregation:
-- **date**: Time series aggregations (monthly, quarterly, yearly)
-- Extract components: EXTRACT(YEAR FROM date), EXTRACT(MONTH FROM date)
-- **index_name**: If combined with other index tables
+### Filtering Recommendations
+- **Primary filter:** `date` column for time-based queries
+- **Value filters:** `fci` for identifying tight/loose financial conditions
+- **Null handling:** Always account for nulls in `equity` and score columns
 
-### Potential Join Keys:
-- **date**: Can join to other economic time series on month/date
-- Could join to company financial data, market indices, or other economic indicators by date
+### Grouping/Aggregation Opportunities
+- **Temporal aggregations:** By year, quarter, or custom date ranges
+- **Threshold-based grouping:** Categorize periods by FCI levels (e.g., tight/neutral/loose)
+- **Metric correlations:** Compare raw metrics vs. their scores
 
-### Data Quality Considerations:
+### Join Considerations
+- **Primary key:** `date` column (unique per row)
+- **Potential joins:** Other economic time-series data on date
+- **Index name:** Could join to metadata tables describing index methodology
 
-1. **Null Handling:**
-   - 11 records (~12.64%) have null score values but non-null raw values
-   - These appear to be earlier records (e.g., 2016-03-01 sample)
-   - Queries should use COALESCE or WHERE score IS NOT NULL when analyzing scores
-   - The fci value is 0.0 for these records, suggesting a baseline period
+### Data Quality Considerations
+1. **Missing equity data:** 12 records (13.79%) lack equity values; queries using equity should handle nulls
+2. **Missing scores:** 11 records (12.64%) missing all score columns; likely corresponds to early/late periods
+3. **Score calculation:** FCI appears to be sum of score columns; verify this relationship in queries
+4. **Temporal completeness:** Check for any missing months if doing sequential analysis
+5. **Static metadata:** `created_at` and `index_name` are constant; don't use for filtering
 
-2. **Time Series Gaps:**
-   - Verify monthly continuity with date-based queries
-   - 87 rows suggests ~7 years of monthly data
-
-3. **Score Calculations:**
-   - Score columns appear to be standardized components that sum to FCI
-   - Null scores align across all four score columns
-   - When querying scores, filter out nulls or treat separately
-
-4. **Outlier Awareness:**
-   - Housing component has extreme values (5.48 max)
-   - Equity component has wide range (-4.37 to 3.77)
-   - May need outlier handling for statistical analysis
-
-### Recommended Query Patterns:
-
-```sql
--- Time series analysis
-WHERE date BETWEEN '2020-01-01' AND '2023-12-31'
-
--- Complete records only
-WHERE housing_score IS NOT NULL
-
--- Financial conditions classification
-WHERE fci > 0  -- Loose conditions
-WHERE fci < -0.2  -- Tight conditions
-
--- Component contribution analysis
-WHERE ABS(equity_score) > 0.1  -- Significant equity impact
-```
+### Analytical Use Cases
+- **Trend analysis:** Track FCI evolution over time
+- **Component contribution:** Analyze which metrics drive FCI changes
+- **Threshold analysis:** Identify periods of extreme financial conditions
+- **Leading indicators:** Compare raw metrics to scores to understand weighting
+- **Volatility analysis:** Equity shows highest variance; housing most complete
 
 ## Keywords
 
-Financial Conditions Index, FCI, Federal Funds Rate, FFR, equity markets, housing market, 10-year Treasury, interest rates, monetary policy, economic indicators, financial markets, time series, monthly data, market conditions, Treasury yields, composite index, economic analysis, financial stability, market sentiment, macroeconomic data
+Financial conditions, economic indicators, federal funds rate, FFR, equity markets, housing market, treasury yields, 10-year treasury, interest rates, monetary policy, financial markets, time series, economic data, market conditions, financial stress, credit conditions, liquidity, economic index, normalized indicators, weighted scores, financial stability, macroeconomic data, monthly data, economic indicators aggregation
 
-## Table and Column Docs
+## Table and Column Documentation
 
-**Table Comment:** Not provided
+**Table Comment:** Not provided in the analysis report
 
-**Column Comments:** Not provided
+**Column Comments:** No column-level comments were provided in the analysis report. The column names and data patterns suggest:
+- Raw metrics (ffr, equity, housing, _10yr) represent underlying financial indicators
+- Score columns appear to be weighted/normalized versions contributing to the composite FCI
+- The FCI is the primary output representing overall financial conditions

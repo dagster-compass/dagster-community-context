@@ -22,213 +22,199 @@ columns:
 schema_hash: 942ae01f6861b9b9f63e3b0c99a821c2db446de299de149a365410555a5ba07e
 
 ---
-# Comprehensive Data Summary: stg_global_markets
+# Table Documentation Summary: stg_global_markets
 
 ## Overall Dataset Characteristics
 
-**Total Records:** 45,628 rows
+**Total Rows:** 46,044
 
-**General Description:** This table contains historical market data for global ETFs (Exchange-Traded Funds), tracking daily price movements, trading volumes, and corporate actions (dividends and stock splits). The dataset appears to be a staging table for financial market data analysis.
+**General Description:** This table contains daily stock market data for global market ETFs, primarily tracking various country-specific and regional market indices. The data includes standard OHLCV (Open, High, Low, Close, Volume) metrics along with adjusted values that account for corporate actions like splits and dividends.
 
 **Data Quality Observations:**
-- Core price and volume data is complete (0% nulls)
-- Significant metadata sparsity: 92.88% null values in descriptive fields (name, exchange_code, asset_type, price_currency)
-- Adjusted price fields show 11.02% null values
-- All records contain essential trading data (date, symbol, exchange, OHLC prices)
+- Core trading metrics (open, high, low, close, volume) have 0% null values
+- Adjusted metrics (adj_open, adj_high, adj_low, adj_volume) have 10.94% null values
+- Metadata columns (name, exchange_code, asset_type, price_currency) have 92.06% null values
+- Date range spans from approximately 2013 to 2025, covering over a decade of market data
 
 **Notable Patterns:**
-- Covers 13 distinct ETF symbols tracking various global markets
-- Date range spans 3,512 unique trading dates
-- Volume ranges from minimal (15.0) to extremely high (322.6M), indicating varied liquidity
-- Most stock splits are standard 1:1 (no split), with rare events (0.25, 0.5, 60.0 splits)
-- Dividends present but mostly zero (340 unique values suggest regular dividend payments)
+- Most records represent ETF trading data across two exchanges (ARCX and XNAS)
+- 13 different ETF symbols are tracked, representing various global markets
+- Split factors are rare (mostly 1.0, with only 4 unique values)
+- Dividends are present but sparse (333 unique values with most being 0.0)
 
 ## Column Details
 
-### Price Columns
+### Trading Price Metrics
 
 **open (FLOAT64)**
 - Opening price for the trading day
-- Complete data (0% nulls)
-- Range: $8.74 to $143.14
-- 8,445 unique values
-- Good for: Daily price analysis, gap detection, opening range strategies
+- Range: $8.74 to $147.39
+- No null values - complete data
+- 8,522 unique values indicating diverse price points
 
 **high (FLOAT64)**
-- Highest price during the trading day
-- Complete data (0% nulls)
-- Range: $8.75 to $143.235
-- 12,653 unique values
-- Good for: Volatility analysis, resistance levels, range calculations
+- Highest price reached during trading day
+- Range: $8.75 to $147.43
+- No null values - complete data
+- 12,756 unique values
 
 **low (FLOAT64)**
-- Lowest price during the trading day
-- Complete data (0% nulls)
-- Range: $8.64 to $142.2
-- 12,701 unique values
-- Good for: Support levels, risk assessment, range calculations
+- Lowest price reached during trading day
+- Range: $8.64 to $146.44
+- No null values - complete data
+- 12,801 unique values
 
 **close (FLOAT64)**
 - Closing price for the trading day
-- Complete data (0% nulls)
-- Range: $8.65 to $143.18
-- 8,435 unique values
-- Good for: End-of-day analysis, trend calculations, performance metrics
+- Range: $8.65 to $147.06
+- No null values - complete data
+- 8,526 unique values
 
-### Adjusted Price Columns
-
-**adj_close (FLOAT64)**
-- Split and dividend-adjusted closing price
-- Complete data (0% nulls)
-- Range: $12.34 to $143.18
-- 30,369 unique values (highest uniqueness among price columns)
-- **Primary use:** Long-term performance analysis, historical comparisons
+### Adjusted Price Metrics
 
 **adj_open (FLOAT64)**
-- Adjusted opening price
-- 11.02% null values
-- Range: $12.07 to $143.14
-- 29,654 unique values
+- Dividend and split-adjusted opening price
+- Range: $12.07 to $147.39
+- 10.94% null values
+- 29,792 unique values - more granular due to adjustment calculations
 
 **adj_high (FLOAT64)**
-- Adjusted high price
-- 11.02% null values
-- Range: $12.54 to $143.235
-- 32,280 unique values
+- Adjusted highest price
+- Range: $12.54 to $147.43
+- 10.94% null values
+- 32,483 unique values
 
 **adj_low (FLOAT64)**
-- Adjusted low price
-- 11.02% null values
-- Range: $12.05 to $142.195
-- 32,508 unique values (highest uniqueness)
+- Adjusted lowest price
+- Range: $12.05 to $146.44
+- 10.94% null values
+- 32,719 unique values
 
-### Volume Columns
+**adj_close (FLOAT64)**
+- Adjusted closing price (most commonly used for analysis)
+- Range: $12.34 to $147.06
+- No null values - complete data
+- 30,480 unique values
+
+### Volume Metrics
 
 **volume (FLOAT64)**
 - Raw trading volume
-- Complete data (0% nulls)
-- Range: 15.0 to 322,620,100.0 shares
-- 44,982 unique values (extremely high uniqueness)
-- Good for: Liquidity analysis, volume trends, unusual activity detection
+- Range: 15 to 322,620,100 shares
+- No null values - complete data
+- 45,363 unique values indicating high variability
+- Examples: 538,382 / 32,694,247 / 5,036,600
 
 **adj_volume (FLOAT64)**
 - Split-adjusted trading volume
-- 11.02% null values
-- Range: 11,400.0 to 322,806,886.0 shares
-- 40,486 unique values
-- Good for: Historical volume comparisons
+- Range: 11,400 to 322,806,886 shares
+- 10.94% null values
+- 40,891 unique values
 
-### Corporate Action Columns
+### Corporate Actions
 
 **dividend (FLOAT64)**
 - Dividend amount paid
-- Complete data (0% nulls)
-- Range: $0.0 to $4.705
-- 340 unique values
-- Mostly zero (no dividend), with periodic payments
-- Good for: Income analysis, ex-dividend date identification
+- Range: 0.0 to $4.705
+- No null values but mostly zeros
+- 333 unique values
+- Most common value: 0.0 (indicating no dividend)
 
 **split_factor (FLOAT64)**
 - Stock split multiplier
-- Complete data (0% nulls)
 - Only 4 unique values: 0.25, 0.5, 1.0, 60.0
+- No null values
 - Predominantly 1.0 (no split)
-- Good for: Identifying split events, data adjustment validation
 
-### Identifier Columns
+### Asset Identification
 
 **symbol (STRING)**
 - ETF ticker symbol
-- Complete data (0% nulls)
-- 13 unique symbols
-- Values include: ACWI, EEM, EPI, EWA, EWG, EWJ, EWQ, EWU, EWW, EWY, EWZ, FXI
-- **Primary key component** (with date)
-- Good for: Filtering specific ETFs, grouping by security
+- 13 unique symbols: ACWI, EEM, EPI, EWA, EWG, EWJ, EWQ, EWU, EWW, EWY, EZA, EWZ, FXI
+- No null values - complete data
+- Primary key component for filtering
 
 **exchange (STRING)**
-- Trading exchange code
-- Complete data (0% nulls)
-- 2 unique values: ARCX (NYSE Arca), XNAS (Nasdaq)
-- Good for: Exchange-based analysis
+- Exchange where traded
+- 2 values: ARCX (NYSE Arca), XNAS (NASDAQ)
+- No null values - complete data
 
 **date (DATE)**
 - Trading date
-- Complete data (0% nulls)
-- 3,512 unique dates
-- **Primary key component** (with symbol)
-- Good for: Time-series analysis, date filtering, trend analysis
+- 3,544 unique dates
+- No null values - complete data
+- Spans multiple years of trading data
 
-### Metadata Columns (High Null Percentage)
+### Metadata (Sparse Coverage)
 
 **name (STRING)**
-- Full ETF name
-- 92.88% null values
-- 13 unique values when present
-- Examples: "ISHARES MSCI JAPAN ETF", "ISHARES CHINA LARGE-CAP ETF"
-- Limited utility for queries due to sparsity
+- Full ETF name (e.g., "ISHARES MSCI JAPAN ETF")
+- 13 unique values
+- 92.06% null values - only populated for ~8% of records
 
 **exchange_code (STRING)**
-- Full exchange name
-- 92.88% null values
+- Alternative exchange identifier
 - 2 unique values: NASDAQ, NYSE ARCA
-- Redundant with 'exchange' column
+- 92.06% null values
 
 **asset_type (STRING)**
-- Type of security
-- 92.88% null values
-- Only value: "ETF"
-- All securities are ETFs when data is present
+- Type of financial instrument
+- Only 1 unique value: "ETF"
+- 92.06% null values
 
 **price_currency (STRING)**
 - Currency denomination
-- 92.88% null values
-- 2 unique values: USD, usd (inconsistent casing)
-- All prices appear to be in USD
+- 2 unique values: USD, usd
+- 92.06% null values
 
-## Potential Query Considerations
+## Query Considerations
 
 ### Excellent for Filtering:
-- **symbol**: Filter by specific ETF (13 options)
-- **date**: Time-range queries (date ranges, specific dates)
-- **exchange**: Filter by trading venue (2 options)
-- **dividend > 0**: Identify dividend payment dates
-- **split_factor != 1.0**: Identify stock split events
+- **symbol**: Primary identifier for specific ETF selection
+- **date**: Time-based filtering and range queries
+- **exchange**: Filter by trading venue
+- **dividend**: Filter dividend-paying periods (WHERE dividend > 0)
 
-### Good for Grouping/Aggregation:
-- **symbol**: Aggregate metrics by ETF
-- **date**: Time-series aggregations (daily, monthly, yearly)
+### Excellent for Grouping/Aggregation:
+- **symbol**: Calculate metrics per ETF
+- **date** (or date functions): Time-series analysis, daily/monthly/yearly aggregations
 - **exchange**: Compare performance across exchanges
-- Date functions: EXTRACT(YEAR), EXTRACT(MONTH) for temporal grouping
+- **split_factor**: Identify corporate action periods
 
 ### Potential Join Keys:
-- **(symbol, date)**: Composite primary key for joining with other market data
+- **(symbol, date)**: Composite primary key for joins with other market data
 - **symbol**: Join with ETF metadata tables
-- **date**: Join with economic indicators, market indices
+- **exchange**: Join with exchange information tables
 
-### Data Quality Considerations for Queries:
+### Data Quality Considerations:
 
-1. **Adjusted vs Unadjusted Prices**: Use adjusted prices (adj_close, etc.) for historical analysis to account for splits and dividends; use unadjusted for intraday or recent analysis
+1. **Adjusted vs Raw Values**: Query choice depends on use case:
+   - Use adjusted values for historical price comparisons
+   - Use raw values for actual trading day analysis
+   - Note 10.94% nulls in some adjusted columns
 
-2. **Null Handling**: 
-   - Adjusted volume/price fields have 11.02% nulls - queries should use COALESCE or filter these out
-   - Metadata fields (name, exchange_code, etc.) are 92.88% null - avoid relying on these unless necessary
+2. **Metadata Sparsity**: 92% null rate in descriptive fields means:
+   - Cannot rely on name, exchange_code, asset_type for filtering
+   - Use symbol + external lookup table for enrichment
 
-3. **Volume Outliers**: Extreme volume range (15 to 322M) may require outlier handling or logarithmic scaling for analysis
+3. **Volume Interpretation**: 
+   - High variability suggests different liquidity profiles
+   - Consider filtering outliers for meaningful averages
 
-4. **Date Continuity**: Not all trading days may be present for all symbols (holidays, trading halts) - use date series joins carefully
+4. **Date Coverage**: 
+   - 3,544 unique dates across 13 symbols suggests ~273 trading days per symbol
+   - Check for gaps in time series if continuity is important
 
-5. **Price Precision**: Prices stored as FLOAT64 may have floating-point precision issues - consider rounding for comparisons
-
-6. **Currency Consistency**: While price_currency shows USD/usd, the sparsity and inconsistent casing suggest all prices are USD - queries can assume USD denomination
+5. **Price Ranges**: 
+   - Wide range ($8-$147) suggests different ETF types
+   - Consider normalization for cross-symbol comparisons
 
 ## Keywords
 
-Financial data, stock market, ETF data, iShares, global markets, trading data, OHLC prices, open high low close, volume analysis, dividend history, stock splits, adjusted prices, NYSE Arca, Nasdaq, market data warehouse, time series data, international ETFs, emerging markets, MSCI indices, daily trading data, exchange-traded funds, market analysis, quantitative finance, price history, trading volume, corporate actions
+ETF, exchange-traded fund, stock market, OHLCV, open high low close volume, adjusted prices, dividends, stock splits, NYSE Arca, NASDAQ, iShares, MSCI, international markets, emerging markets, country ETFs, daily trading data, financial time series, market data, equity data, price history, trading volume, corporate actions, ARCX, XNAS, ACWI, EEM, EWA, EWG, EWJ, EWU, Brazil, Japan, Germany, France, Australia, China, Mexico, Korea, global markets, split factor, dividend yield
 
 ## Table and Column Documentation
 
-**Table Comment:** None provided
+**Table Comment:** Not provided
 
 **Column Comments:** None provided for any columns
-
-The absence of formal documentation suggests this is a staging table where data transformations or validations may occur before moving to production analytical tables. The "stg_" prefix (staging) in the table name confirms this pattern.

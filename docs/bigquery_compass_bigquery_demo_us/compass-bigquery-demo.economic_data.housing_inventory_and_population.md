@@ -8,117 +8,109 @@ columns:
 schema_hash: 47028a747be5120be35a64e9b949de265b115bb3d9e32aadead7034b94c6d1df
 
 ---
-# Table Documentation Summary: housing_inventory_and_population
+# Table Summary: housing_inventory_and_population
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 270 records
-- **Time Span**: 2001-2025 (14 distinct years across 38 unique dates)
-- **Data Quality**: Generally good with no nulls in active columns, though `number_of_households` is completely unpopulated
-- **Structure**: Time-series data tracking housing inventory metrics across different occupancy categories
-- **Notable Pattern**: Data appears to be quarterly snapshots (based on date samples like 2020-01-01, 2013-04-01, 2017-07-01) with 270 rows across 38 dates and 3 series suggests approximately 7-8 records per time period
+- **Total Rows**: 270
+- **Data Quality**: Generally good quality with no null values in key columns, though `number_of_households` column is completely empty (100% null)
+- **Time Period Coverage**: 2001 to 2025 (24-year span)
+- **Data Granularity**: Quarterly observations based on date patterns (e.g., 2006-01-01, 2006-04-01)
+- **Notable Patterns**: 
+  - Contains 3 distinct housing series tracked over time
+  - Each series has approximately 90 rows (270 rows ÷ 3 series)
+  - Values range from ~15K to ~87K units, indicating this likely tracks a specific geographic region
+  - Data appears to be time-series housing inventory data
 
 ## Column Details
 
-### time_date (DATE)
-- **Type**: DATE
-- **Nulls**: 0% (Complete data)
-- **Cardinality**: 38 unique dates
-- **Pattern**: Quarterly snapshots (Q1, Q2, Q3, Q4 observations)
-- **Sample Dates**: 2020-01-01, 2013-04-01, 2017-07-01
-- **Usage**: Primary temporal dimension for time-series analysis
-
 ### series_name (STRING)
-- **Type**: STRING (Categorical)
-- **Nulls**: 0% (Complete data)
-- **Cardinality**: 3 distinct categories
-- **Categories**:
-  1. Owner Occupied Units
-  2. Renter Occupied Units
-  3. Total Vacant Housing Units
-- **Usage**: Key dimension for breaking down housing inventory by occupancy type
-- **Note**: These three categories likely represent mutually exclusive housing classifications
+- **Description**: Categorical identifier for the type of housing unit being measured
+- **Data Type**: STRING (text)
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 3 unique values (low cardinality)
+- **Values**:
+  - "Owner Occupied Units" - Housing units occupied by owners
+  - "Renter Occupied Units" - Housing units occupied by renters
+  - "Total Vacant Housing Units" - Unoccupied housing units
+- **Query Use**: Excellent for filtering and grouping operations; primary dimension for analyzing different housing types
 
-### series_value (FLOAT64)
-- **Type**: FLOAT64 (Numeric measure)
-- **Nulls**: 0% (Complete data)
-- **Range**: 15,262 to 86,839 units
-- **Cardinality**: 45 unique values
-- **Samples**: 72,565.0, 76,544.0, 17,684.0
-- **Usage**: Primary metric representing housing unit counts
-- **Interpretation**: Values likely represent thousands of housing units in a specific geographic area
+### time_date (DATE)
+- **Description**: The observation date for the housing inventory measurement
+- **Data Type**: DATE
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 38 unique dates
+- **Date Range**: 2001-01-01 to 2024-07-01 (with some 2025 dates)
+- **Frequency**: Quarterly observations (dates appear on 01-01, 04-01, 07-01, 10-01)
+- **Query Use**: Primary time dimension for temporal analysis, trending, and time-based filtering
 
 ### number_of_households (FLOAT64)
-- **Type**: FLOAT64
-- **Nulls**: 100% (Completely unpopulated)
-- **Status**: Inactive column - no data present
-- **Recommendation**: Exclude from queries as it contains no information
+- **Description**: Appears intended to track household counts but is unused
+- **Data Type**: FLOAT64 (decimal number)
+- **Completeness**: 0% populated (100% null)
+- **Status**: **DEFUNCT COLUMN** - Contains no data and should not be used in queries
+- **Query Use**: None - column should be excluded from analysis
+
+### series_value (FLOAT64)
+- **Description**: The numeric measurement of housing units for each series
+- **Data Type**: FLOAT64 (decimal number)
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 45 unique values
+- **Value Range**: 15,262 to 86,839 units
+- **Distribution**: Wide range suggesting different scales for each series type
+- **Query Use**: Primary metric for aggregation, trending, and calculations (SUM, AVG, MIN, MAX)
 
 ### year (INT64)
-- **Type**: INT64
-- **Nulls**: 0% (Complete data)
-- **Range**: 2001-2025
-- **Cardinality**: 14 distinct years
-- **Sample Years**: 2001, 2003, 2005, 2006, 2010, 2011, 2013, 2016, 2017, 2020
-- **Usage**: Simplified temporal dimension for year-over-year analysis
-- **Note**: Extracted/derived from time_date for easier annual aggregations
+- **Description**: Extracted year component from time_date
+- **Data Type**: INT64 (integer)
+- **Completeness**: 100% populated (0% null)
+- **Cardinality**: 14 unique years
+- **Year Range**: 2001 to 2025
+- **Query Use**: Convenient for year-level grouping and filtering without date manipulation; redundant with time_date but useful for simplified queries
 
-## Query Considerations
+## Potential Query Considerations
 
-### Good Filtering Columns
-- **time_date**: Filter by specific dates, date ranges, quarters
-- **year**: Filter by specific years or year ranges
-- **series_name**: Filter by occupancy type (owner/renter/vacant)
+### Excellent for Filtering:
+- **series_name**: Filter by housing type (owner/renter/vacant)
+- **year**: Simple year-based filtering
+- **time_date**: Date range queries, specific quarters, or time periods
 
-### Good Grouping/Aggregation Columns
-- **series_name**: Group by housing type to compare occupancy categories
-- **year**: Group by year for annual trends
-- **time_date**: Group by date for time-series analysis (can use DATE_TRUNC for quarterly/annual rollups)
+### Excellent for Grouping/Aggregation:
+- **series_name**: Compare metrics across housing types
+- **year**: Annual trends and year-over-year analysis
+- **time_date**: Quarterly or monthly trends (using date functions)
 
-### Aggregation Metrics
-- **series_value**: Use SUM, AVG, MIN, MAX to analyze housing inventory levels
-- Example calculations:
-  - Total housing units = SUM(series_value)
-  - Occupancy rate = (Owner + Renter) / (Owner + Renter + Vacant)
-  - Year-over-year growth rates
+### Aggregation Metrics:
+- **series_value**: Primary measure for:
+  - Total housing units (SUM)
+  - Average units over time (AVG)
+  - Min/Max values (MIN/MAX)
+  - Growth rates and trends
+  - Occupancy calculations (Owner + Renter vs Total)
 
-### Potential Relationships
-- No explicit foreign keys visible
-- Could potentially join to:
-  - Population tables (by time_date)
-  - Economic indicator tables (by time_date, year)
-  - Geographic/regional tables if region identifiers exist elsewhere
+### Potential Join Keys:
+- **time_date** or **year**: Could join with other economic datasets on date/year
+- **series_name**: Could potentially join with housing category lookup tables
+- Geographic identifier appears to be missing - this may be a region-specific table
 
-### Data Quality Considerations
-1. **number_of_households** is completely null - ignore this column
-2. **series_value ranges** suggest aggregate geographic level (county, metro area, or state level)
-3. **Date granularity** appears quarterly - be aware when doing monthly analysis
-4. **Future dates** present (up to 2025) may indicate projections or forecasts
-5. **Year coverage gaps**: Non-continuous (2001, 2003, 2005... 2020) - check for data completeness when doing trend analysis
+### Data Quality Considerations:
+1. **Avoid `number_of_households`**: Column is entirely null and should be excluded
+2. **Year Redundancy**: `year` duplicates information from `time_date` - choose based on query needs
+3. **Complete Series Check**: When querying, verify all three series_name values exist for each time period to ensure data completeness
+4. **Quarterly Gaps**: Check for missing quarters when doing time-series analysis
+5. **Unit Validation**: Total occupied (Owner + Renter) plus Vacant should logically represent total housing stock - validate this relationship in queries
 
-### Common Query Patterns
-```sql
--- Time series by housing type
-SELECT time_date, series_name, series_value
-FROM table
-ORDER BY time_date, series_name
-
--- Annual totals
-SELECT year, series_name, SUM(series_value) as total_units
-FROM table
-GROUP BY year, series_name
-
--- Vacancy rate calculation
-SELECT time_date,
-  SUM(CASE WHEN series_name = 'Total Vacant Housing Units' THEN series_value END) /
-  SUM(series_value) as vacancy_rate
-FROM table
-GROUP BY time_date
-```
+### Common Query Patterns:
+- Time-series trending by housing type
+- Year-over-year growth calculations
+- Occupancy rate analysis (Occupied vs Vacant)
+- Owner vs Renter comparisons
+- Quarterly seasonal patterns
 
 ## Keywords
-housing inventory, occupied units, vacant housing, owner occupied, renter occupied, housing units, time series, quarterly data, housing stock, occupancy rates, housing trends, real estate data, residential units, economic data, housing market, population housing, vacancy rates
+housing inventory, occupied units, vacant housing, owner occupied, renter occupied, time series, economic data, housing stock, quarterly data, housing trends, real estate inventory, housing units, residential property, occupancy rates, housing market
 
 ## Table and Column Documentation
-- **Table Comment**: Not provided
-- **Column Comments**: Not provided
+**Table Comment**: Not provided
+
+**Column Comments**: Not provided

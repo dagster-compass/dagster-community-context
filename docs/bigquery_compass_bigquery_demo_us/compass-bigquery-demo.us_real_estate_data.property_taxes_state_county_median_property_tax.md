@@ -6,94 +6,109 @@ columns:
 schema_hash: ff4c4d9126f8ac82b4a56d344f64cdefa61b08063949cfbe8f312bd99b8c0a9c
 
 ---
-# Table Summary: property_taxes_state_county_median_property_tax
+# Table Summary: Property Taxes by State and County
 
 ## Overall Dataset Characteristics
 
 **Total Rows:** 3,221
 
-**Dataset Description:** This table contains median property tax data at the county level across the United States, based on 2021 5-year estimates. The dataset provides comprehensive coverage with 1,955 unique counties across 52 states/territories (including District of Columbia and likely other territories).
+**General Description:** This table contains median property tax data at the county level across the United States, including Puerto Rico and the District of Columbia. The data represents 5-year estimates from 2021, providing a comprehensive view of property tax burdens across different geographic areas.
 
 **Data Quality:** 
-- High quality dataset with minimal missing data
-- Only 0.56% null values in the property tax column (18 records)
-- Complete coverage for state and county identifiers (0% null)
-- Consistent formatting and structure
+- Excellent overall data quality with minimal null values (only 0.56% in the tax amount column)
+- Complete coverage for geographic identifiers (state and county)
+- 1,955 unique counties across 52 states/territories
 
 **Notable Patterns:**
-- Wide range of property tax values from $200 to $10,000 annually
-- Represents median values, suggesting typical property tax burden per county
-- Geographic distribution spans all 50 states plus DC and territories
+- Wide variation in property taxes, ranging from $200 (Puerto Rico) to $10,000
+- Geographic diversity with representation from all US states plus Puerto Rico and DC
+- Some states/counties may have multiple entries or variations in naming conventions
+
+---
 
 ## Column Details
 
-### state (STRING)
-- **Data Type:** Text string
-- **Null Patterns:** No null values (0.00%)
-- **Distribution:** 52 unique states/territories
-- **Common Values:** All US states including Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware, District of Columbia, Florida, Georgia, New Hampshire, Texas, etc.
+### 1. **county** (STRING)
+- **Data Type:** String/Text
+- **Null Values:** 0% (complete data)
+- **Unique Values:** 1,955 distinct counties
+- **Format:** Full county names (e.g., "Hardin County", "Madison County", "Lares Municipio")
+- **Patterns:** 
+  - Most entries include "County" suffix
+  - Puerto Rico uses "Municipio" designation
+  - Some entries may be parishes (Louisiana) or boroughs (Alaska)
+  - Examples: "DeKalb County", "Red River", "Meigs County"
+
+### 2. **state** (STRING)
+- **Data Type:** String/Text
+- **Null Values:** 0% (complete data)
+- **Unique Values:** 52 states/territories
 - **Format:** Full state names (not abbreviations)
-- **Column Purpose:** Geographic identifier for state-level grouping
+- **Coverage:** All 50 US states plus District of Columbia and Puerto Rico
+- **Common Values:** Includes Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware, District of Columbia, Florida, Georgia, Minnesota, Montana, New York, Ohio, Iowa, Puerto Rico
 
-### county (STRING)
-- **Data Type:** Text string
-- **Null Patterns:** No null values (0.00%)
-- **Distribution:** 1,955 unique counties
-- **Format:** County names typically include "County" suffix (e.g., "Haywood County", "Johnson County")
-- **Common Values:** Examples include Tuscaloosa County, Northumberland County, Richmond County, Hernando County, Billings County, East Feliciana
-- **Column Purpose:** Geographic identifier for county-level granularity
-
-### median_property_taxes_paid_by_county_2021_5_year_estimate (INT64)
+### 3. **median_property_taxes_paid_by_county_2021_5_year_estimate** (INT64)
 - **Data Type:** Integer (whole numbers)
-- **Null Patterns:** 0.56% null values (approximately 18 records)
-- **Value Range:** $200 to $10,000
-- **Distribution Examples:** 
-  - Lower range: $665 (Tuscaloosa County, Alabama)
-  - Mid range: $1,201-$1,601 (various counties)
-  - Upper range: $5,429 (Richmond County, New York)
-- **Statistical Nature:** Median values representing typical property tax burden
-- **Time Period:** 5-year estimate centered on 2021
-- **Column Purpose:** Primary metric for analysis of property tax burden by geography
+- **Null Values:** 0.56% (18 rows missing)
+- **Unique Values:** 1,946 distinct tax amounts
+- **Range:** $200 to $10,000
+- **Format:** Dollar amounts represented as integers (no decimal places)
+- **Statistical Characteristics:**
+  - Minimum: $200 (Puerto Rico - Lares Municipio)
+  - Maximum: $10,000
+  - High variability indicating significant regional differences
+- **Examples:** $913, $1,025, $1,612, $2,266, $2,479, $3,656
+
+---
 
 ## Potential Query Considerations
 
-### Filtering Opportunities
-- **By State:** Excellent for state-level analysis and comparisons
-- **By County:** Specific county lookups and comparisons
-- **By Tax Range:** Filter low/medium/high tax counties (e.g., WHERE tax > 5000 for high-tax areas)
-- **Non-null Values:** Consider filtering out the 18 records with null tax values for accurate statistics
+### **Filtering Opportunities:**
+- **By State:** Excellent for state-level comparisons and regional analysis
+- **By Tax Range:** Filter properties by tax burden (low: <$1000, medium: $1000-$3000, high: >$3000)
+- **By County:** Direct lookup of specific counties
+- **NULL handling:** Consider excluding the 18 rows with null tax values for accurate calculations
 
-### Grouping/Aggregation Potential
-- **State-level aggregation:** Calculate average, min, max property taxes by state
-- **Regional analysis:** Group multiple states for regional comparisons
-- **Tax bracket analysis:** Create bins/categories of tax levels (low/medium/high)
-- **Statistical summaries:** Percentiles, quartiles across counties or states
+### **Grouping/Aggregation Use Cases:**
+- **State-level aggregations:** Calculate average, median, min, max property taxes by state
+- **Regional analysis:** Group states by region (requires external mapping)
+- **Tax burden categories:** Create buckets for low, medium, high tax areas
+- **Top/Bottom rankings:** Identify highest and lowest tax counties/states
 
-### Join Considerations
-- **Primary Keys:** Combination of (state, county) forms natural composite key
-- **Join Candidates:** 
-  - Census data tables using state/county identifiers
-  - Property value tables for tax-to-value ratio analysis
-  - Demographic tables for tax burden vs. income analysis
-  - Geographic/mapping tables for spatial analysis
-- **Foreign Key Pattern:** State and county names suitable for joining with other geographic datasets
+### **Potential Join Keys:**
+- **state + county:** Composite key for joining with other demographic or real estate datasets
+- **state:** Can join with state-level datasets (economic indicators, population, etc.)
+- **county name:** May require standardization for joins (watch for "Parish" vs "County" variations)
 
-### Data Quality Considerations
-- **Null Handling:** Account for 18 records (0.56%) with null tax values in aggregations
-- **Outlier Analysis:** The $200-$10,000 range suggests potential outliers at both extremes
-- **Name Matching:** County names include "County" suffix - may need string manipulation for joins
-- **Estimation Period:** Data represents 5-year estimates, not single-year snapshots
-- **Median vs. Mean:** Remember this is median data - half of properties pay more, half pay less
+### **Data Quality Considerations:**
+- **NULL values:** 18 records (0.56%) have missing tax data - decide whether to exclude or handle separately
+- **County name variations:** Be aware of naming inconsistencies (County, Parish, Municipio, Borough)
+- **Integer precision:** Tax amounts are rounded to whole dollars; no cents available
+- **5-year estimate:** Data represents an average over 5 years ending in 2021, not a single year snapshot
+- **Puerto Rico data:** May have different tax structures; consider separate analysis if needed
+
+### **Common Query Patterns:**
+1. State rankings by median property tax
+2. Finding counties with taxes above/below certain thresholds
+3. Comparing urban vs rural counties (requires additional demographic data)
+4. Regional variations in property tax burden
+5. Identifying outliers (unusually high or low tax jurisdictions)
+
+---
 
 ## Keywords
 
-property tax, real estate tax, county taxes, state taxes, median tax, property taxes by county, US counties, geographic tax data, 2021 tax data, tax burden analysis, real estate data, census data, county-level data, state-level aggregation, tax comparison, housing costs, property assessment, local taxation, fiscal data, American Community Survey, ACS estimates
+property tax, median property tax, county property tax, state property tax, real estate tax, property taxes by county, property taxes by state, tax burden, 2021 property tax, ACS 5-year estimate, American Community Survey, county-level data, geographic tax data, tax comparison, real estate, housing costs, county data, state data, US property data, municipal finance
+
+---
 
 ## Table and Column Documentation
 
-**Table Comment:** Not provided in the analysis report.
+**Table Comment:** Not provided
 
-**Column Comments:** Not provided in the analysis report.
+**Column Comments:**
+- `county`: No comment provided
+- `state`: No comment provided  
+- `median_property_taxes_paid_by_county_2021_5_year_estimate`: No comment provided
 
-**Column Name Interpretation:**
-- `median_property_taxes_paid_by_county_2021_5_year_estimate` - Self-documenting name indicating this represents the median amount of property taxes paid, aggregated at the county level, based on a 5-year estimate period centered on 2021 (likely from American Community Survey data)
+*Note: While no explicit documentation comments exist in the schema, the column name is self-documenting and indicates this represents median property taxes paid at the county level, using 2021 American Community Survey 5-year estimates.*

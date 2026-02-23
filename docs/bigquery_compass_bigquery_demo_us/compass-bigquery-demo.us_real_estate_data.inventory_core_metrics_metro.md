@@ -50,220 +50,187 @@ columns:
 schema_hash: 6270d365685bef4b40bf9d4f9061148c6ee6c0642b9d6a5bf4f5860252556ccf
 
 ---
-# Data Summary: US Real Estate Inventory Core Metrics by Metro Area
+# Table Documentation Summary: compass-bigquery-demo.us_real_estate_data.inventory_core_metrics_metro
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 102,675 records
-- **Dataset Type**: Time-series real estate inventory metrics at the CBSA (Core Based Statistical Area/Metro) level
-- **Data Quality**: Generally high quality with systematic null patterns
-- **Notable Issue**: The `month_date_yyyymm` column is 100% null, which is problematic as this appears to be time-series data
-- **Coverage**: 925 unique metro areas (CBSAs) across the United States
-- **Temporal Granularity**: Monthly data (despite the date column being null, the presence of _mm (month-over-month) and _yy (year-over-year) columns confirms this)
+- **Total Rows**: 102,675
+- **Dataset Type**: Real estate inventory metrics aggregated at the metro/CBSA (Core Based Statistical Area) level
+- **Time Series Data**: Contains monthly snapshots with month-over-month (mm) and year-over-year (yy) comparisons
+- **Geographic Coverage**: 925 unique metropolitan areas across the United States
+- **Data Quality**: Generally high quality with systematic null patterns primarily in comparison metrics (mm/yy fields showing ~10-11% nulls, likely for earliest time periods)
+- **Critical Issue**: The `month_date_yyyymm` column is 100% null, making temporal analysis challenging without additional date context
 
-## Column-by-Column Analysis
+## Column Details
 
-### Identifier & Geographic Columns
+### Geographic Identifiers
 
 **cbsa_code** (INT64)
-- Primary identifier for metro areas
-- 925 unique values (range: 10100 to 49820)
-- No nulls, perfectly populated
-- Use for: Filtering by specific metro areas, joining with geographic reference tables
+- Unique identifier for metropolitan areas
+- Range: 10100 to 49820
+- 925 unique codes
+- No nulls - reliable join key
+- Standard Census Bureau CBSA codes
 
 **cbsa_title** (STRING)
-- Human-readable metro area names (e.g., "McAllen-Edinburg-Mission, TX")
+- Human-readable metro area names (e.g., "Indianapolis-Carmel-Greenwood, IN")
 - 925 unique values matching cbsa_code count
 - No nulls
-- Use for: Display purposes, text-based filtering
+- Format: City-SubCity-Region, STATE
 
 **householdrank** (INT64)
-- Ranking metric for metro areas (1-925)
-- Likely ranks by household/population size
-- Lower numbers = larger/more important markets
-- Use for: Filtering top markets, market size analysis
+- Ranking metric (1-925, presumably by household count/market size)
+- Lower numbers = larger markets (e.g., rank 1 = largest metro)
+- No nulls
 
-**month_date_yyyymm** (STRING)
-- **CRITICAL ISSUE**: 100% null - temporal dimension is missing
-- Should contain YYYYMM format dates but completely unpopulated
-- This limits time-based analysis despite having temporal metrics
-
-### Price Metrics
+### Pricing Metrics
 
 **median_listing_price** (FLOAT64)
-- Current median listing price by metro
+- Core pricing metric
 - Range: $19,900 to $5,508,750
-- No nulls (0.00%)
-- 25,318 unique values indicate high granularity
-- Use for: Price comparisons, market affordability analysis
+- No nulls - highly reliable
+- 25,318 unique values indicating granular pricing data
 
 **median_listing_price_mm** (FLOAT64)
-- Month-over-month price change (proportional)
-- Range: -55.35% to +298.55%
-- 10.81% nulls (likely early periods without prior data)
-- Negative values = price decreases
+- Month-over-month change (decimal format: 0.0817 = 8.17% increase)
+- 10.81% nulls (likely earliest months lacking comparison data)
+- Range: -55.35% to +298.55% (extreme volatility in some markets)
 
 **median_listing_price_yy** (FLOAT64)
-- Year-over-year price change (proportional)
-- Range: -77.58% to +498.48%
+- Year-over-year change
 - 10.81% nulls
-- Use for: Identifying appreciating/depreciating markets
+- Range: -77.58% to +498.48%
 
 **average_listing_price** (FLOAT64)
-- Mean listing price (vs median)
+- Mean price (vs median)
 - Range: $44,444 to $23,524,874
-- 93,676 unique values (higher than median, indicating more variability)
-- Use with median to identify markets with extreme price outliers
+- 93,676 unique values (very granular)
+- Includes mm/yy comparison columns with similar null patterns
 
 **median_listing_price_per_square_foot** (FLOAT64)
-- Price efficiency metric
+- Normalized pricing metric
 - Range: $22 to $1,778 per sq ft
-- No nulls
-- Use for: Cross-market price comparisons normalized for size
+- 1,084 unique values
+- No nulls in base metric
 
-### Inventory Count Metrics
+**median_square_feet** (FLOAT64)
+- Property size metric
+- Range: 892 to 6,000 sq ft
+- 2,075 unique values
+
+### Inventory Counts
 
 **active_listing_count** (INT64)
-- Current available listings
+- Current active listings
 - Range: 0 to 69,796
 - No nulls
 - 7,310 unique values
-- Use for: Supply analysis, market activity assessment
 
 **new_listing_count** (INT64)
 - New listings added in period
 - Range: 0 to 27,262
 - No nulls
-- Use for: Market momentum, seller activity
+- 3,520 unique values
 
 **total_listing_count** (INT64)
-- Total listings (active + pending)
+- Total listings (active + pending presumably)
 - Range: 1 to 83,125
 - No nulls
-- Use for: Overall market size
+- 9,160 unique values
 
 **pending_listing_count** (FLOAT64)
 - Listings under contract
 - Range: 0 to 28,578
-- 2.70% nulls (relatively low)
-- Use for: Demand indicator, buyer activity
+- 2.70% nulls (slightly higher than other metrics)
+- Critical for market velocity analysis
 
-### Market Dynamics Metrics
+### Market Velocity Metrics
 
 **median_days_on_market** (FLOAT64)
-- How long listings stay active
+- Time to sale/contract
 - Range: 3 to 322 days
-- Only 0.01% nulls (excellent coverage)
+- 0.01% nulls (nearly complete)
 - 210 unique values
-- Use for: Market speed/competitiveness analysis
+- Lower values = hotter markets
+
+**pending_ratio** (FLOAT64)
+- Ratio metric (pending/active presumably)
+- Range: 0.0 to 8.0064
+- 2.70% nulls
+- 18,056 unique values (highly granular)
+- High values suggest strong buyer demand
+
+### Price Change Activity
 
 **price_increased_count** (INT64)
 - Listings with price increases
 - Range: 0 to 4,978
-- **54.41% nulls** - high null rate suggests this metric isn't tracked in all periods/markets
-- Use cautiously due to data quality
+- High null percentage: 55.50% in mm, 54.41% in yy comparisons
+- 801 unique values
+
+**price_increased_share** (FLOAT64)
+- Proportion of listings with price increases
+- Range: 0.0 to 0.3815 (0% to 38.15%)
+- No nulls in base metric
+- Indicates seller confidence
 
 **price_reduced_count** (FLOAT64)
 - Listings with price reductions
 - Range: 0 to 22,456
-- No nulls
-- Better coverage than price_increased_count
-- Use for: Seller desperation/market weakness indicators
-
-**price_increased_share** (FLOAT64)
-- Proportion of listings with price increases
-- Range: 0% to 38.15%
-- No nulls
-- Use for: Market strength indicator
+- 2,750 unique values
+- Lower null percentage (~11.5%) than price_increased metrics
 
 **price_reduced_share** (FLOAT64)
-- Proportion of listings with price reductions
-- Range: 0% to 66.67%
-- No nulls
-- Use for: Market weakness/inventory overhang indicator
+- Proportion with price reductions
+- Range: 0.0 to 0.6667 (0% to 66.67%)
+- No nulls in base metric
+- Counter-indicator to price_increased_share
 
-### Ratio & Efficiency Metrics
-
-**pending_ratio** (FLOAT64)
-- Pending listings / Active listings
-- Range: 0 to 8.0064
-- 2.70% nulls
-- Values >1 indicate strong demand exceeding supply
-- Use for: Market heat/competitiveness assessment
-
-### Property Size Metrics
-
-**median_square_feet** (FLOAT64)
-- Median property size
-- Range: 892 to 6,000 sq ft
-- No nulls
-- 2,075 unique values
-- Use for: Property size analysis, market characterization
-
-### Change Metrics Pattern
-
-All metrics with **_mm** suffix: Month-over-month change (10.81% nulls typically)
-All metrics with **_yy** suffix: Year-over-year change (10.81% nulls typically)
-
-The consistent 10.81% null pattern suggests approximately 11,117 records represent either:
-- The first month of data (no prior period for _mm)
-- The first year of data (no prior year for _yy)
-
-### Quality Flag
+### Data Quality
 
 **quality_flag** (FLOAT64)
-- Binary indicator (0.0 or 1.0)
+- Binary quality indicator (0.0 or 1.0)
 - 10.81% nulls
-- Likely indicates data quality or completeness issues
-- Use for: Filtering reliable records
+- Appears to flag data quality issues
+- Values: null, 0.0 (good), 1.0 (potential issue)
 
-## Query Considerations
+## Table and Column Docs
 
-### Recommended Filtering Columns
-1. **cbsa_code/cbsa_title**: Specific metro analysis
-2. **householdrank**: Top N markets (e.g., TOP 50 metros)
-3. **quality_flag**: Filter for quality_flag = 0 or IS NULL depending on needs
-4. **median_listing_price**: Price range filters
-5. **active_listing_count**: Minimum inventory thresholds
+No table-level or column-level comments were provided in the schema.
 
-### Aggregation Opportunities
-1. **By market size**: GROUP BY householdrank ranges
-2. **By price tier**: Create price buckets from median_listing_price
-3. **By market performance**: Bucket metros by price_yy changes
-4. **By inventory levels**: Categorize by active_listing_count
+## Potential Query Considerations
 
-### Join Considerations
-- **cbsa_code** is the primary key for joining with other geographic datasets
-- No apparent foreign keys to other tables in this dataset
-- Time-based joins impossible due to null month_date_yyyymm
+### Good Filtering Columns
+- **cbsa_code/cbsa_title**: Filter by specific metro areas
+- **householdrank**: Filter by market size (e.g., top 50 metros)
+- **quality_flag**: Exclude low-quality data (WHERE quality_flag = 0.0 OR quality_flag IS NULL)
+- **median_days_on_market**: Identify hot/cold markets (e.g., < 30 days)
+- **pending_ratio**: High-demand markets (e.g., > 1.0)
+
+### Good Grouping/Aggregation Columns
+- **cbsa_code/cbsa_title**: Regional analysis
+- **householdrank**: Market tier analysis (bucketing ranks)
+- Price range buckets (CASE statements on median_listing_price)
+
+### Potential Join Keys
+- **cbsa_code**: Primary key for joining with other geographic datasets
+- Likely joins to demographic, economic, or geographic reference tables
 
 ### Data Quality Considerations
-1. **Critical**: month_date_yyyymm is entirely null - time-based queries impossible without external date context
-2. **High null rates** (54%+) for price_increased_count metrics - avoid or use cautiously
-3. **Consistent ~11% nulls** in change metrics indicate first-period records
-4. **pending_listing_count** has 2.70% nulls vs 0% for other counts
-5. Consider filtering WHERE quality_flag = 0.0 for analysis
+1. **Missing Time Dimension**: month_date_yyyymm is 100% null - queries requiring time filtering will need workarounds
+2. **Null Patterns**: mm/yy comparison fields have ~10-11% nulls (earliest periods)
+3. **Price Change Nulls**: price_increased metrics have >50% nulls - use with caution
+4. **Quality Flag**: Consider filtering WHERE quality_flag = 0 for reliable analysis
+5. **Extreme Values**: Some metrics show extreme ranges (e.g., price changes >400%) - may need outlier handling
+6. **Zero Counts**: Many count fields include 0 values, which is valid for small markets
 
-### Potential Analysis Queries
-1. **Market Rankings**: Top metros by price, inventory, days on market
-2. **Price Analysis**: Markets with highest/lowest prices per sq ft
-3. **Market Heat**: Using pending_ratio, days_on_market, price_reduced_share
-4. **Supply/Demand**: Active vs pending counts, new listing trends
-5. **Market Segments**: Small vs large metros (by householdrank)
+### Analytical Patterns
+- **Market Heat**: median_days_on_market (lower = hotter), pending_ratio (higher = hotter)
+- **Pricing Pressure**: Compare price_increased_share vs price_reduced_share
+- **Market Size**: Use householdrank or active_listing_count
+- **Affordability**: median_listing_price_per_square_foot for normalized comparisons
+- **Market Trends**: Use mm/yy fields for temporal analysis despite null values
 
 ## Keywords
 
-real estate, housing market, metro areas, CBSA, inventory, listings, median price, active listings, pending listings, days on market, price per square foot, market metrics, housing supply, housing demand, price changes, month over month, year over year, property listings, real estate analytics, metro statistics, market trends, price reductions, new listings, pending ratio, square footage, average price, market rankings, household rank, quality flag, time series, monthly data
-
-## Table and Column Documentation
-
-**Table Comment**: Not provided
-
-**Column Comments**: None provided for any columns
-
-The absence of formal documentation suggests this table would benefit from:
-- Clear definition of the measurement period each row represents
-- Explanation of quality_flag values
-- Documentation of null value patterns
-- Clarification of month_date_yyyymm population issues
-- Definition of householdrank methodology
+Real estate, housing market, inventory metrics, CBSA, metropolitan statistical area, metro area, listing prices, days on market, pending sales, active listings, new listings, price changes, market velocity, housing affordability, median home prices, price per square foot, market trends, housing inventory, real estate analytics, property listings, market analysis, geographic real estate data, US housing market, residential real estate

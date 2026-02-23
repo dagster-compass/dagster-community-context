@@ -22,218 +22,180 @@ columns:
 schema_hash: 942ae01f6861b9b9f63e3b0c99a821c2db446de299de149a365410555a5ba07e
 
 ---
-# Documentation Summary: stg_major_indices Table
+# Table Documentation: stg_major_indices
 
-## Overall Dataset Characteristics
+## Overview
 
-**Total Rows:** 17,543
+This table contains historical trading data for major market indices and ETFs, with **17,691 rows** of time-series financial data. The dataset appears to track daily price movements, volumes, and dividend information across 5 different securities (DIA, IWM, QQQ, SPY, and VIX.INDX) over approximately 3,577 unique trading days.
 
-**General Description:** This table contains historical daily trading data for major market indices and ETFs, including the S&P 500 (SPY), Russell 2000 (IWM), NASDAQ-100 (QQQ), Dow Jones (DIA), and VIX volatility index. The data represents approximately 3,545 unique trading dates with multiple securities tracked across each date.
+### General Data Quality
+- **High quality price data**: Core price fields (open, high, low, close) have 0% null values
+- **Inconsistent metadata**: Descriptive fields (name, exchange_code, asset_type, price_currency) are 93.63% null
+- **Adjusted values present significant nulls**: All adj_* fields show 26.52% null values
+- **Volume data**: 6.94% null in base volume field
 
-**Data Quality Observations:**
-- Core price data (open, high, low, close) has 100% completeness with no nulls
-- Significant null patterns exist for adjusted price columns (~27% nulls) and metadata fields (~94% nulls)
-- Volume data has moderate null percentage (6.88%)
-- All records have a consistent split_factor of 1.0, indicating no stock splits in this dataset
-- Date range spans multiple years of market data (2013-2024 visible in samples)
+The data appears to be from two different source systems or time periods, with older records lacking metadata fields.
 
-**Notable Patterns:**
-- The dataset appears to transition between two data formats: older records lack metadata (name, exchange_code, asset_type) while newer records have adjusted price columns
-- Price ranges vary significantly by security (9.01 to 689.7), reflecting different index/ETF price levels
-- Dividend values are predominantly 0.0 with occasional dividend payments up to 1.966
+---
 
 ## Column Details
 
-### Price Columns
+### Price Fields (Core Trading Data)
 
-**open (FLOAT64)**
-- Opening price for the trading day
-- 100% complete, no nulls
-- Range: 9.01 to 688.72
-- 13,236 unique values indicating high granularity
-- Used for: Daily price analysis, gap detection, trend analysis
+**open** (FLOAT64)
+- Opening price for the trading period
+- Range: $9.01 to $697.05
+- No nulls, excellent data quality
+- 13,355 unique values indicating granular price movements
 
-**high (FLOAT64)**
-- Highest price reached during the trading day
-- 100% complete, no nulls
-- Range: 9.31 to 689.7
-- 13,617 unique values (highest among price columns)
-- Used for: Price range analysis, volatility calculations, resistance levels
+**high** (FLOAT64)
+- Highest price during the trading period
+- Range: $9.31 to $697.84
+- No nulls, complete coverage
+- 13,729 unique values
 
-**low (FLOAT64)**
-- Lowest price reached during the trading day
-- 100% complete, no nulls
-- Range: 8.56 to 684.83
-- 13,437 unique values
-- Used for: Price range analysis, support levels, volatility calculations
+**low** (FLOAT64)
+- Lowest price during the trading period
+- Range: $8.56 to $693.94
+- No nulls, complete coverage
+- 13,551 unique values
 
-**close (FLOAT64)**
-- Closing price for the trading day
-- 100% complete, no nulls
-- Range: 9.14 to 689.17
-- 13,298 unique values
-- Used for: Time series analysis, returns calculation, end-of-day valuations
+**close** (FLOAT64)
+- Closing price for the trading period
+- Range: $9.14 to $695.49
+- No nulls, critical field for analysis
+- 13,417 unique values
 
-### Adjusted Price Columns
+### Volume and Trading Activity
 
-**adj_open (FLOAT64)**
-- Split and dividend-adjusted opening price
-- 26.63% null values (4,671 records)
-- Range: 51.99 to 688.72
-- Nulls indicate older records or specific data collection periods
+**volume** (FLOAT64)
+- Trading volume for the period
+- Range: 0 to 507.2 million
+- 6.94% nulls (1,228 records)
+- High variability suggests different securities with varying liquidity
 
-**adj_high (FLOAT64)**
-- Split and dividend-adjusted high price
-- 26.63% null values
-- Range: 52.35 to 689.7
-- 12,575 unique values
-- Used for: Long-term historical comparisons accounting for corporate actions
+**adj_volume** (FLOAT64)
+- Split-adjusted trading volume
+- Range: 611,600 to 507.2 million
+- 26.52% nulls (4,693 records)
+- Available for more recent data
 
-**adj_low (FLOAT64)**
-- Split and dividend-adjusted low price
-- 26.63% null values
-- Range: 51.77 to 684.83
-- 12,582 unique values
+### Adjusted Price Fields
 
-**adj_close (FLOAT64)**
-- Split and dividend-adjusted closing price
-- 100% complete, no nulls
-- Range: 9.14 to 689.17
-- 15,103 unique values (highest unique count, indicating decimal precision)
-- Most important for historical returns analysis
+**adj_open**, **adj_high**, **adj_low**, **adj_close** (FLOAT64)
+- Split and dividend-adjusted prices
+- All show 26.52% null values (4,693 records)
+- Ranges similar to unadjusted prices
+- Critical for long-term price comparisons and returns analysis
 
-### Volume Columns
+### Corporate Actions
 
-**volume (FLOAT64)**
-- Raw trading volume
-- 6.88% null values (1,207 records)
-- Range: 0.0 to 507,244,281
-- Includes zero-volume days
-- Used for: Liquidity analysis, trading activity patterns
+**dividend** (FLOAT64)
+- Dividend payments per share
+- Range: $0.00 to $1.993
+- 331 unique values, predominantly $0.00
+- No nulls, indicating explicit tracking of dividend events
 
-**adj_volume (FLOAT64)**
-- Split-adjusted volume
-- 26.63% null values (same pattern as adjusted prices)
-- Range: 611,600 to 507,244,300
-- 12,840 unique values
-
-### Corporate Action Columns
-
-**dividend (FLOAT64)**
-- Dividend amount paid
-- 100% complete
-- 329 unique values
-- Range: 0.0 to 1.966
-- Predominantly 0.0 (most days have no dividend)
-- Common non-zero values include: 0.07958, 0.08588, 0.11195, 0.11283, etc.
-- Used for: Total return calculations, income analysis
-
-**split_factor (FLOAT64)**
+**split_factor** (FLOAT64)
 - Stock split multiplier
-- 100% complete
-- Only 1 unique value: 1.0
-- Indicates no stock splits occurred in this dataset period
+- **Single value**: 1.0 across all records
+- No stock splits recorded in this dataset
+- No nulls
 
-### Identifier Columns
+### Security Identifiers
 
-**symbol (STRING)**
-- Trading ticker symbol
-- 100% complete, no nulls
-- 5 unique values: DIA, IWM, QQQ, SPY, VIX.INDX
-- Primary key component (along with date)
-- Used for: Filtering specific indices, grouping by security
+**symbol** (STRING)
+- Ticker symbol for the security
+- 5 unique values: **DIA, IWM, QQQ, SPY, VIX.INDX**
+- No nulls, primary identifier
+- VIX.INDX represents volatility index, others are ETFs
 
-**exchange (STRING)**
-- Exchange abbreviation code
-- 100% complete, no nulls
-- 3 unique values: ARCX (NYSE Arca), INDX (Index), XNAS (NASDAQ)
-- Used for: Exchange-based analysis, data validation
+**exchange** (STRING)
+- Exchange where security trades
+- 3 unique values: **ARCX** (NYSE Arca), **INDX** (Index), **XNAS** (NASDAQ)
+- No nulls
+- Maps to security types
 
-**date (DATE)**
-- Trading date
-- 100% complete, no nulls
-- 3,545 unique dates
-- Primary key component (along with symbol)
-- Used for: Time series queries, date range filtering, trend analysis
+### Security Metadata (Sparse)
 
-### Metadata Columns (Sparse)
-
-**name (STRING)**
+**name** (STRING)
 - Full name of the security
-- 94.30% null values (16,542 nulls)
-- 4 unique non-null values:
-  - ISHARES RUSSELL 2000 ETF
-  - Invesco QQQ Trust Series 1
-  - SPDR Dow Jones Industrial Average ETF
-  - SPDR S&P 500 ETF Trust
-- Metadata appears only for recent records
+- 93.63% nulls
+- 4 known values:
+  - "ISHARES RUSSELL 2000 ETF"
+  - "Invesco QQQ Trust Series 1"
+  - "SPDR Dow Jones Industrial Average ETF"
+  - "SPDR S&P 500 ETF Trust"
 
-**exchange_code (STRING)**
-- Detailed exchange name
-- 94.30% null values
-- 2 unique values: NASDAQ, NYSE ARCA
-- Limited utility due to high null percentage
+**exchange_code** (STRING)
+- Detailed exchange identifier
+- 93.63% nulls
+- Values: "NASDAQ", "NYSE ARCA"
 
-**asset_type (STRING)**
-- Type of security
-- 94.30% null values
-- Only 1 unique value: ETF
-- All non-null records are ETFs
-
-**price_currency (STRING)**
+**price_currency** (STRING)
 - Currency denomination
-- 94.30% null values
-- 2 unique values: USD, usd (inconsistent casing)
-- All are USD-denominated when present
+- 93.63% nulls
+- Values: "USD", "usd" (inconsistent casing)
 
-## Potential Query Considerations
+**asset_type** (STRING)
+- Type of financial instrument
+- 93.63% nulls
+- Single known value: "ETF"
 
-### Good Filtering Columns:
-- **symbol**: Most common filter (5 distinct securities)
-- **date**: Essential for time-based queries (range filters, specific dates)
-- **exchange**: Useful for exchange-specific analysis
-- **dividend > 0**: To find dividend payment dates
+### Temporal
 
-### Good Grouping/Aggregation Columns:
-- **symbol**: For per-security analysis
-- **DATE_TRUNC(date, MONTH/YEAR)**: For monthly/yearly aggregations
-- **exchange**: For exchange-level statistics
-- **EXTRACT(YEAR FROM date)**: For year-over-year comparisons
+**date** (DATE)
+- Trading date
+- 3,577 unique dates
+- No nulls, complete time coverage
+- Spans multiple years based on sample data (2012-2025)
 
-### Potential Join Keys:
-- **(symbol, date)**: Composite primary key for joining with other market data
-- **symbol**: For joining with security master tables
-- **date**: For joining with economic indicators or calendar tables
+---
 
-### Data Quality Considerations:
+## Query Considerations
 
-1. **Null Handling Strategy**: 
-   - Use `close` instead of `adj_close` for recent data completeness
-   - Prefer `volume` over `adj_volume` for broader coverage
-   - Avoid metadata columns (name, exchange_code, etc.) unless recent data only
+### Recommended for Filtering
+- **date**: Time-range queries, trend analysis
+- **symbol**: Security-specific analysis (5 distinct values)
+- **exchange**: Group by market venue
+- **dividend** > 0: Identify dividend payment dates
 
-2. **Date Range Awareness**:
-   - Adjusted price columns became available at a specific point in time
-   - Consider using COALESCE(adj_close, close) for queries spanning both periods
+### Recommended for Grouping/Aggregation
+- **symbol**: Compare performance across indices/ETFs
+- **date** (by month/quarter/year): Time-series aggregations
+- **exchange**: Market venue analysis
 
-3. **Volume Anomalies**:
-   - Zero-volume records exist (possibly for indices vs ETFs)
-   - VIX.INDX may have different volume characteristics as an index
+### Potential Join Keys
+- **(symbol, date)**: Composite key for joining with other financial data
+- **symbol**: Join with security master tables
+- **date**: Join with economic indicators, market events
 
-4. **Price Scale Differences**:
-   - VIX ranges much lower (9-30 typical) vs ETFs (100-600+)
-   - Apply security-specific filters when doing cross-security analysis
+### Data Quality Considerations for Queries
 
-5. **Consistency Issues**:
-   - price_currency has inconsistent casing (USD vs usd)
-   - Consider uppercasing for comparisons
+1. **Use adjusted prices for historical analysis**: The adj_* fields account for splits/dividends but have 26.52% nulls. Consider filtering WHERE adj_close IS NOT NULL for accurate returns.
+
+2. **Metadata fields unreliable**: The 93.63% null rate for name, exchange_code, asset_type means these should only be used for recent data or expect nulls in results.
+
+3. **Volume considerations**: 6.94% null volume may affect liquidity analysis. VIX.INDX (volatility index) may not have traditional volume data.
+
+4. **Split factor constant**: Since split_factor = 1.0 for all records, no splits occurred. Don't need to account for split adjustments beyond provided adj_* fields.
+
+5. **Date continuity**: Check for gaps in date series by symbol as weekends/holidays create natural breaks.
+
+6. **Price validation**: Ensure high >= low and close between high/low for data quality checks.
+
+---
 
 ## Keywords
 
-Market data, stock prices, ETF data, S&P 500, SPY, Russell 2000, IWM, NASDAQ-100, QQQ, Dow Jones, DIA, VIX, volatility index, daily prices, OHLC data, open high low close, trading volume, adjusted prices, dividends, split factor, time series data, financial data, market indices, NYSE Arca, NASDAQ exchange, historical prices, stock market analysis, technical analysis, price history, trading data, securities data
+Financial data, stock market, ETF, indices, time series, trading data, OHLCV (Open-High-Low-Close-Volume), adjusted prices, dividends, stock splits, DIA, SPY, QQQ, IWM, VIX, volatility index, NASDAQ, NYSE ARCA, daily prices, market data, securities, ticker symbols, historical prices, trading volume, economic data, market indices, S&P 500, Dow Jones, Russell 2000, NASDAQ-100, volatility
+
+---
 
 ## Table and Column Documentation
 
-**Table Comment**: Not provided in the analysis report.
+### Table Comment
+*No table-level comment provided in the analysis report.*
 
-**Column Comments**: No column-level comments were provided in the analysis report. The column names follow standard financial data conventions where OHLC represents Open-High-Low-Close pricing, and "adj_" prefix indicates corporate action adjustments.
+### Column Comments
+*No column-level comments were provided in the analysis report. All column descriptions above are derived from data analysis rather than explicit documentation.*

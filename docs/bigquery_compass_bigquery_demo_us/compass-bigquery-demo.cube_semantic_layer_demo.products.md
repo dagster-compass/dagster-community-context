@@ -7,114 +7,98 @@ columns:
 schema_hash: fb3b60337ab24821d62c1c9c4c909ea6357ccb36b4026c88122915554134a42b
 
 ---
-# Table Summary: compass-bigquery-demo.cube_semantic_layer_demo.products
+# Products Table Documentation Summary
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 100
+- **Total Rows**: 100 records
 - **Data Quality**: Excellent - no null values detected in any column
-- **Dataset Type**: Product catalog/inventory table
-- **Time Range**: Products created between 2017-08-01 and 2022-09-09 (approximately 5 years)
-- **Key Pattern**: This appears to be a sample/demo dataset with synthetic product names (e.g., "Handcrafted Frozen Table", "Sleek Soft Chicken") following a pattern of [Adjective] [Material] [Object]
+- **Time Range**: Created dates span from 2016 to 2024 (approximately 8 years)
+- **Data Type**: This appears to be a product catalog table with synthetic/demo data (evidenced by whimsical product names like "Gorgeous Cotton Sausages")
+- **Distribution**: Products are distributed across 10 distinct categories with 100 unique IDs
 
 ## Column Details
 
-### **id** (INT64)
-- **Type**: Integer, Primary Key
-- **Range**: 1 to 100
-- **Nulls**: 0%
-- **Uniqueness**: 100% unique (all 100 values are distinct)
-- **Use Case**: Primary key for joins, filtering specific products
+### id (INT64)
+- **Purpose**: Primary key/unique identifier
+- **Range**: 1 to 100 (sequential)
+- **Characteristics**: 
+  - No nulls (0.00%)
+  - 100 unique values (one per row)
+  - Complete sequential coverage
+  - Integer type suitable for joins and indexing
 
-### **name** (STRING)
-- **Type**: Text string
-- **Nulls**: 0%
-- **Uniqueness**: 62 unique values out of 100 rows (62% unique)
-- **Pattern**: Descriptive product names following format: [Adjective] [Material/Type] [Item]
-- **Examples**: "Handcrafted Frozen Table", "Sleek Soft Chicken", "Practical Plastic Chair"
-- **Note**: 38 duplicate names exist, suggesting some products share the same name
-- **Use Case**: Text search, display purposes, potential grouping (though duplicates exist)
+### name (STRING)
+- **Purpose**: Product name/title
+- **Characteristics**:
+  - No nulls (0.00%)
+  - 62 unique values (indicates some duplicate names across the 100 products)
+  - Pattern: Follows format of "[Adjective] [Material] [Noun]" (e.g., "Sleek Metal Shirt")
+  - Text data suitable for search and display purposes
 
-### **product_category** (STRING)
-- **Type**: Categorical string
-- **Nulls**: 0%
-- **Uniqueness**: 10 distinct categories
-- **Complete Category List**: Beauty, Clothing, Computers, Electronics, Home, Jewellery, Phones, Sports, Toys, Watches
-- **Distribution**: Appears relatively balanced across categories
-- **Use Case**: Excellent for filtering, grouping, and aggregation operations
+### product_category (STRING)
+- **Purpose**: Product classification/categorization
+- **Characteristics**:
+  - No nulls (0.00%)
+  - 10 distinct categories
+  - **Complete Category List**: Beauty, Clothing, Computers, Electronics, Home, Jewellery, Phones, Sports, Toys, Watches
+  - Evenly distributed (approximately 10 products per category)
+  - Ideal for grouping and filtering operations
 
-### **created_at** (TIMESTAMP)
-- **Type**: Timestamp with timezone (UTC)
-- **Nulls**: 0%
-- **Uniqueness**: 100% unique (each product has distinct creation timestamp)
-- **Range**: 2017-08-01 to 2022-09-09 (5+ years span)
-- **Precision**: Microsecond precision
-- **Use Case**: Time-based filtering, temporal analysis, ordering by creation date
+### created_at (TIMESTAMP)
+- **Purpose**: Product creation/registration timestamp
+- **Characteristics**:
+  - No nulls (0.00%)
+  - 100 unique timestamps (one per product)
+  - **Time Range**: 2016-04-10 to 2024-10-13
+  - Includes timezone information (UTC +00:00)
+  - Full timestamp precision with microseconds
+  - Suitable for time-based analysis and filtering
 
-## Potential Query Considerations
+## Query Considerations
 
-### **Good for Filtering:**
-- `product_category` - Clean categorical data, perfect for WHERE clauses
-- `id` - Primary key for exact lookups
-- `created_at` - Temporal filtering (date ranges, year/month/day extraction)
+### Optimal Filtering Columns
+- **product_category**: Excellent for WHERE clauses (10 distinct values, categorical data)
+- **created_at**: Good for date range filters (e.g., products created in specific years/months)
+- **id**: Perfect for specific record lookups (primary key)
 
-### **Good for Grouping/Aggregation:**
-- `product_category` - 10 well-defined categories for GROUP BY operations
-- `created_at` - Can extract year, month, quarter for temporal aggregations
-- `name` - Possible but consider 38% duplication rate
+### Grouping/Aggregation Opportunities
+- **product_category**: Primary grouping dimension for category-level analysis
+- **created_at**: Can be used with date functions (YEAR, MONTH, DATE) for temporal grouping
+- **Examples**: 
+  - Count of products per category
+  - Products created per year/month
+  - Category distribution over time
 
-### **Potential Join Keys:**
-- `id` - Primary key, likely used to join with related tables (e.g., orders, inventory, pricing)
+### Join Key Capabilities
+- **id**: Primary key - likely used to join with other tables (orders, inventory, line_items, etc.)
+- Expected foreign key relationships in related tables: `product_id`, `products.id`
 
-### **Data Quality Considerations:**
-
-1. **Duplicate Product Names**: 38 products share names with others - queries filtering by name may return multiple rows
-2. **Synthetic Data**: Product names appear generated/synthetic rather than real products
-3. **No Price/Stock Data**: This table only contains basic product metadata
-4. **Complete Data**: Zero nulls means no special null handling required in queries
-5. **Time Distribution**: Products created over 5 years - consider date-based filtering for recent products
+### Data Quality Considerations
+- **No missing data**: All columns have 100% completeness - no special null handling needed
+- **Duplicate names**: Only 62 unique names for 100 products - queries filtering by name alone may return multiple products
+- **Synthetic data**: Whimsical product names suggest this is demo/test data rather than production data
+- **Sequential IDs**: ID range exactly matches row count (1-100), suggesting no deleted records
+- **Category consistency**: Standardized category names (proper capitalization, consistent spelling)
 
 ## Keywords
 
-products, product catalog, inventory, e-commerce, product categories, Beauty, Clothing, Computers, Electronics, Home, Jewellery, Phones, Sports, Toys, Watches, created_at, timestamp, product_id, product_name, categorical data, demo dataset, cube semantic layer, BigQuery
+products, product catalog, e-commerce, inventory, product categories, merchandise, items, goods, SKU, product master, demo data, sample data, beauty products, clothing, computers, electronics, home goods, jewellery, phones, sports equipment, toys, watches, product creation date, timestamp, product ID, product name, category analysis, product segmentation
 
-## Table and Column Documentation
+## Table and Column Docs
 
 **Table Comment**: Not provided
 
-**Column Comments**: 
-- **id**: Not provided
-- **name**: Not provided
-- **product_category**: Not provided
-- **created_at**: Not provided
+**Column Comments**: Not provided
 
 ---
 
-**Summary**: This is a clean, well-structured product catalog table with 100 products across 10 categories. It's ideal for demonstration purposes with zero null values and consistent data quality. The table supports product categorization, temporal analysis, and can serve as a dimension table in larger data models. The synthetic nature of product names and even distribution suggests this is a demo/test dataset for the Cube semantic layer.
+## Additional Notes
 
-## cubes:
-  - name: products
-    sql: SELECT * FROM products
-    public: false
+This appears to be a demonstration/sample dataset for the Cube semantic layer, likely used for testing analytics queries and dashboard functionality. The data structure is clean and well-suited for:
+- Category-based product analysis
+- Time-series analysis of product creation
+- Basic product catalog queries
+- Join operations with transactional tables (orders, sales, etc.)
 
-    dimensions:
-      - name: id
-        sql: id
-        type: number
-        primary_key: true
-
-      - name: name
-        sql: name
-        type: string
-
-      - name: created_at
-        sql: "{CUBE}.created_at::TIMESTAMP"
-        type: time
-
-      - name: product_category
-        sql: product_category
-        type: string
-
-    measures:
-      - name: count
-        type: count
+The absence of columns like price, stock quantity, or status suggests this table focuses on core product identification and may be joined with separate tables for pricing, inventory, and sales data.

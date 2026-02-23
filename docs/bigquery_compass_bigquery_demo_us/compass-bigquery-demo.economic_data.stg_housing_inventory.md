@@ -17,136 +17,144 @@ schema_hash: 951d30c6ad8d6b9d116890873c46d330cd18caa34d234c0b324531b9519652f5
 
 ## Overall Dataset Characteristics
 
-- **Total Rows**: 2,156
-- **Data Quality**: Excellent - no null values across all columns (0.00% null percentage throughout)
-- **Temporal Coverage**: Quarterly data spanning from 1999-Q1 to 2021-Q4 (105 unique quarters)
-- **Geographic Scope**: United States national-level data only (all records have `us = "1"`)
-- **Data Granularity**: Quarterly housing market statistics with both raw estimates and rates
-- **Table Purpose**: Staging table containing housing inventory and occupancy statistics from US economic data
+**Dataset Size:** 2,176 rows
 
-### Notable Patterns
-- Contains both seasonally adjusted and non-seasonally adjusted data
-- Includes error margins for certain metrics (indicated by `error_data` flag)
-- Data is organized by different housing unit types and vacancy/occupancy statuses
-- Mix of absolute counts (ESTIMATE) and percentage rates (RATE)
+**Data Quality:** High quality dataset with no null values across any columns. All fields are fully populated, indicating clean, well-maintained data.
+
+**Time Period Coverage:** Quarterly data spanning from 1999-Q1 through approximately 2016 (105 unique quarters)
+
+**Geographic Scope:** United States national-level data only (us="1" for all records)
+
+**Data Structure:** This is a time-series dataset tracking various housing inventory metrics and rates across different categories. The data appears to be sourced from official housing statistics (likely Census Bureau's Housing Vacancy Survey).
 
 ## Column Details
 
+### **category_code** (STRING)
+- **Type:** Categorical identifier
+- **Values:** ESTIMATE (actual measurements) or RATE (calculated percentages)
+- **Nulls:** None (0%)
+- **Usage:** Distinguishes between absolute counts and percentage-based metrics
+
 ### **time_slot_id** (STRING)
-- **Purpose**: Time slot identifier (appears to be a constant placeholder)
-- **Value**: Always "0" (single unique value)
-- **Query Use**: Not useful for filtering or grouping
+- **Type:** Fixed identifier
+- **Values:** Always "0"
+- **Nulls:** None (0%)
+- **Usage:** Appears to be a technical field with no variation; may be unused or placeholder
 
 ### **seasonally_adj** (STRING)
-- **Values**: "no" or "yes"
-- **Purpose**: Indicates whether data is seasonally adjusted
-- **Query Use**: Important filter for consistent time-series comparisons
-- **Pattern**: Both seasonal and non-seasonal versions of metrics exist
+- **Type:** Boolean indicator
+- **Values:** "yes" or "no"
+- **Nulls:** None (0%)
+- **Usage:** Indicates whether data has been seasonally adjusted to remove cyclical patterns
 
 ### **data_type_code** (STRING)
-- **Unique Values**: 21 distinct codes
-- **Sample Codes**: 
-  - OCC (Occupied Units)
-  - OWNOCC (Owner Occupied)
-  - RENT (For Rent)
-  - HOR (Homeownership Rate)
-  - HVR (Homeowner Vacancy Rate)
-  - RVR (Rental Vacancy Rate)
-  - OFFMAR (Off Market)
-- **Query Use**: Primary dimension for filtering specific housing metrics
-- **Purpose**: Categorizes the type of housing statistic
-
-### **category_code** (STRING)
-- **Values**: "ESTIMATE" or "RATE"
-- **Purpose**: Distinguishes between absolute counts and percentage rates
-- **Query Use**: Critical filter to separate magnitude from proportion metrics
-- **Distribution**: Most data appears to be ESTIMATE category
-
-### **us** (STRING)
-- **Value**: Always "1"
-- **Purpose**: Geographic identifier (US national level)
-- **Query Use**: Not useful for filtering (constant value)
-- **Note**: May indicate potential for state/regional data in other tables
+- **Type:** Metric identifier code
+- **Unique Values:** 21 distinct codes
+- **Sample Codes:** OCC (Occupied), HOR (Homeownership Rate), HVR (Homeowner Vacancy Rate), RVR (Rental Vacancy Rate), OFFMAR (Off Market), URE, YRVAC, RNTSLD
+- **Nulls:** None (0%)
+- **Usage:** Primary classification for different housing metrics; essential for filtering specific data types
 
 ### **cell_value** (STRING)
-- **Data Type**: Numeric stored as STRING
-- **Unique Values**: 313 distinct values
-- **Range**: From decimals like "0.5" to large numbers like "127704"
-- **Units**: Varies by data_type_code (thousands of units for estimates, percentages for rates)
-- **Query Considerations**: Requires CAST to numeric for mathematical operations
-- **Purpose**: The actual measurement value
-
-### **time** (STRING)
-- **Format**: "YYYY-Qn" (e.g., "1999-Q1", "2021-Q4")
-- **Unique Values**: 105 quarters
-- **Range**: 1999-Q1 to 2021-Q4 (23 years of quarterly data)
-- **Query Use**: Primary time dimension for trend analysis and filtering
-- **Note**: Stored as STRING, may need parsing for date operations
+- **Type:** Numeric data stored as string
+- **Unique Values:** 317 distinct values
+- **Range:** Values vary from small rates (likely single digits for percentages) to large counts (up to 119,129 for total occupied units)
+- **Nulls:** None (0%)
+- **Usage:** The actual measurement value; requires casting to numeric type for calculations
 
 ### **error_data** (STRING)
-- **Values**: "no" or "yes"
-- **Purpose**: Flags whether the record represents error/margin data
-- **Query Use**: Filter to exclude error records when analyzing actual values
-- **Pattern**: Separate error records exist for metrics with uncertainty measures
+- **Type:** Boolean indicator
+- **Values:** "yes" or "no"
+- **Nulls:** None (0%)
+- **Usage:** Flags whether the row represents error margin data (important for statistical accuracy)
+
+### **time** (STRING)
+- **Type:** Temporal identifier
+- **Format:** YYYY-Q# (e.g., "2005-Q2", "2013-Q3")
+- **Unique Values:** 105 quarters
+- **Range:** 1999-Q1 through ~2016
+- **Nulls:** None (0%)
+- **Usage:** Primary time dimension for time-series analysis; requires parsing for date operations
+
+### **us** (STRING)
+- **Type:** Geographic identifier
+- **Values:** Always "1"
+- **Nulls:** None (0%)
+- **Usage:** Indicates national-level data; no variation (may support future state-level data)
 
 ### **series_name** (STRING)
-- **Unique Values**: 21 descriptive names
-- **Sample Names**:
+- **Type:** Descriptive label
+- **Unique Values:** 21 distinct series
+- **Sample Names:** 
+  - "Homeownership Rate"
+  - "Homeowner Vacancy Rate"
+  - "Rental Vacancy Rate"
   - "Total Occupied housing Units"
   - "Owner Occupied Units"
-  - "Homeownership Rate"
-  - "Rental Vacancy Rate"
-  - "Vacant Housing Units For Rent"
-- **Purpose**: Human-readable description of the metric
-- **Query Use**: User-friendly alternative to data_type_code for filtering
-- **Comment**: Contains typos (e.g., "housing" not capitalized in some names)
+  - "Held Off the Market Vacant Housing Units"
+  - "Year-Round Vacant Housing Units"
+- **Nulls:** None (0%)
+- **Usage:** Human-readable description of the metric; useful for reporting and display
 
 ### **plot_grouping** (STRING)
-- **Unique Values**: 5 categories
-- **Values**:
-  - "Total Housing Units"
-  - "Occupied Inventory"
-  - "Vacant Inventory"
-  - "Rates"
-  - "Error"
-- **Purpose**: High-level categorization for visualization and reporting
-- **Query Use**: Useful for aggregating related metrics
+- **Type:** Categorical grouping
+- **Unique Values:** 5 categories
+- **Values:**
+  - "Error" (error margins)
+  - "Occupied Inventory" (occupied housing metrics)
+  - "Rates" (percentage-based metrics)
+  - "Total Housing Units" (aggregate counts)
+  - "Vacant Inventory" (vacant housing metrics)
+- **Nulls:** None (0%)
+- **Usage:** High-level categorization for organizing visualizations and reports
 
 ## Potential Query Considerations
 
-### Good Columns for Filtering
-1. **time**: Filter by specific quarters or date ranges
-2. **data_type_code**: Select specific housing metrics
-3. **seasonally_adj**: Choose adjusted vs unadjusted data
-4. **error_data**: Exclude error records (WHERE error_data = 'no')
-5. **category_code**: Separate estimates from rates
-6. **plot_grouping**: Group by broad categories
+### **Excellent Filtering Columns:**
+- **time**: Filter by specific quarters or date ranges for time-series analysis
+- **data_type_code**: Select specific metrics (e.g., only homeownership rates)
+- **plot_grouping**: Filter by broad category (e.g., all vacancy metrics)
+- **seasonally_adj**: Separate seasonally adjusted from non-adjusted data
+- **error_data**: Exclude error margin rows when analyzing point estimates
+- **category_code**: Filter for rates vs. estimates
 
-### Good Columns for Grouping/Aggregation
-1. **time**: Time-series analysis, trend identification
-2. **series_name**: Group by metric type
-3. **plot_grouping**: High-level category summaries
-4. **seasonally_adj**: Compare adjusted vs non-adjusted trends
-5. **data_type_code**: Aggregate by specific metric types
+### **Good for Grouping/Aggregation:**
+- **time**: Group by quarter for time-series trends
+- **plot_grouping**: Aggregate related metrics together
+- **seasonally_adj**: Compare adjusted vs. non-adjusted trends
+- **data_type_code**: Group by metric type for comprehensive analysis
 
-### Join Considerations
-- **time**: Could join to other economic tables by quarter
-- **us**: Could join to geographic tables (though currently US-only)
-- No obvious primary key; combination of (time, data_type_code, seasonally_adj, error_data) likely forms unique record
+### **Key Metrics (data_type_code values):**
+- **OCC**: Total occupied housing units (absolute count)
+- **HOR**: Homeownership rate (percentage)
+- **HVR**: Homeowner vacancy rate (percentage)
+- **RVR**: Rental vacancy rate (percentage)
 
-### Data Quality Considerations
-1. **Type Conversion**: `cell_value` must be cast to numeric for calculations
-2. **Error Records**: Always filter error_data appropriately
-3. **Mixed Units**: Be aware that cell_value units vary by metric type
-4. **Time Parsing**: May need to extract year/quarter from time string
-5. **Constant Columns**: `time_slot_id` and `us` provide no variation
+### **Data Quality Considerations:**
+1. **cell_value is STRING**: Must cast to FLOAT64 or INT64 for mathematical operations
+2. **time is STRING**: Parse to DATE or TIMESTAMP for temporal operations
+3. **Mixed units**: Some values are counts (thousands of units), others are percentages—check category_code and series_name
+4. **Error rows**: Filter out error_data='yes' unless specifically analyzing margins of error
+5. **No nulls**: No need for null handling, but always validate numeric conversions
+6. **Seasonality**: Consider filtering by seasonally_adj based on analysis needs
+
+### **Common Query Patterns:**
+- Time-series trend analysis (GROUP BY time)
+- Comparing rates vs. estimates (filter by category_code)
+- Vacancy analysis (filter plot_grouping = 'Vacant Inventory')
+- Homeownership trends (filter data_type_code = 'HOR')
+- Quarter-over-quarter changes (self-join on time with LAG functions)
+
+### **Potential Relationships:**
+- No obvious foreign keys to other tables
+- Self-joinable on time for period-over-period comparisons
+- Could potentially join to geographic tables if expanded beyond national data
 
 ## Keywords
 
-housing inventory, housing statistics, vacancy rates, homeownership, occupied units, rental vacancy, quarterly data, economic data, US housing market, seasonally adjusted, housing units, owner occupied, renter occupied, vacant housing, off market, housing census, quarterly housing statistics, time series housing data, housing occupancy rates, housing trends
+housing inventory, vacancy rates, homeownership rate, occupied units, vacant units, quarterly data, time series, Census data, real estate statistics, housing stock, rental vacancy, homeowner vacancy, seasonal adjustment, US housing market, housing units, off-market inventory, year-round vacant, occasional use, economic indicators, housing survey, 1999-2016
 
-## Table and Column Documentation
+## Table and Column Docs
 
-**Table Comment**: Not provided in the analysis report.
+**Table Comment:** Not provided
 
-**Column Comments**: No column-level comments were provided in the analysis report. The column names and data suggest this is a standardized economic dataset, likely sourced from US Census Bureau Housing Vacancy Survey or similar official statistics.
+**Column Comments:** None provided for any columns

@@ -9,152 +9,161 @@ columns:
 schema_hash: 17b7a7e19d49d4928b28d7aee79c2599fa3a70e8d7187e98275be5a200105e29
 
 ---
-# Table Summary: fred_monthly_diff
+# Comprehensive Data Summary: FRED Monthly Difference Table
 
 ## Overall Dataset Characteristics
 
-**Dataset Size:** 85,491 rows
+**Total Rows:** 85,646
 
-**Purpose:** This table contains monthly economic time series data from FRED (Federal Reserve Economic Data), with calculated period-over-period differences. The data spans from 1913 to at least 2022, covering approximately 109 years of economic indicators.
+**Dataset Type:** Economic time series data from the Federal Reserve Economic Data (FRED) database, tracking month-over-month changes across various economic indicators.
+
+**Time Range:** Historical data spanning from 1913 to present (approximately 1,474 unique months)
 
 **Data Quality:** 
-- Excellent overall quality with minimal null values (only 0.16% nulls in period_diff column)
-- All core columns (date, data_source, series_name, series_code, value) are complete with 0% nulls
-- Data includes both actual measurements and imputed values (backward filled, forward filled, interpolated)
+- Excellent overall data quality with minimal null values
+- Only the `period_diff` column shows any null values (0.16%, or ~137 rows)
+- Multiple data filling methodologies employed (Actual, Backward Filled, Forward Filled, Interpolated) to ensure data completeness
+- Well-structured with consistent timestamp formatting
 
 **Notable Patterns:**
-- 136 unique economic series tracked over 1,474 distinct monthly timestamps
-- Average of ~63 rows per month (85,491 / 1,474), suggesting not all series cover the full time range
-- Value ranges are extremely wide (-136K to 111+ trillion), indicating diverse metric types (rates, percentages, absolute counts, dollar amounts)
-- Four distinct data source types indicate sophisticated gap-filling methodology
+- Contains 134-136 distinct economic series covering various categories (interest rates, housing, employment, inflation, monetary policy, etc.)
+- The `period_diff` column captures month-over-month changes, making this particularly useful for trend analysis
+- Wide value ranges indicating diverse economic metrics (from percentage rates to absolute dollar amounts)
 
 ## Column Details
 
-### date (TIMESTAMP)
-- **Type:** Timestamp with timezone (UTC)
-- **Range:** 1913-01-01 to at least 2022-06-01
-- **Completeness:** 100% (no nulls)
-- **Cardinality:** 1,474 unique dates (monthly granularity)
-- **Pattern:** First day of each month (consistent YYYY-MM-01 format)
-- **Usage Notes:** Primary temporal dimension for time series analysis
-
-### data_source (STRING)
-- **Type:** Categorical string
-- **Completeness:** 100% (no nulls)
-- **Values:** 
-  - "Actual" (observed/measured data)
-  - "Backward Filled" (imputed using previous values)
-  - "Forward Filled" (imputed using future values)
-  - "Interpolated" (calculated between known values)
-- **Distribution:** Actual values predominate in samples
-- **Usage Notes:** Critical for filtering based on data quality requirements; use to exclude imputed data if needed
-
 ### series_name (STRING)
-- **Type:** Descriptive text
-- **Completeness:** 100% (no nulls)
-- **Cardinality:** 134 unique series
-- **Examples:**
-  - Interest rates (Treasury rates, Federal Funds, mortgage rates)
-  - Inflation measures (Breakeven Inflation Rate)
-  - Yield curve indicators (10Y-2Y spread, 10Y-3M spread)
-  - Employment metrics (Unemployed)
-  - Price indices (CPI, PPI)
-  - Banking metrics (Business Loans)
-- **Usage Notes:** Human-readable names for economic indicators; use for reporting and filtering
+**Purpose:** Human-readable description of the economic indicator
+
+**Characteristics:**
+- 134 unique series names
+- No null values (100% populated)
+- Categories include:
+  - Interest rates and treasury yields (1-Year, 10-Year Treasury rates, mortgage rates)
+  - Inflation metrics (Breakeven Inflation Rates)
+  - Yield curve indicators (Treasury maturity spreads)
+  - Housing metrics (mortgage rates, permits, prices)
+  - Labor market data (participation rates)
+  - Monetary aggregates (M1 Money Stock)
+
+**Query Considerations:** Ideal for filtering by specific economic indicators; useful for user-friendly result displays
 
 ### series_code (STRING)
-- **Type:** FRED series identifier
-- **Completeness:** 100% (no nulls)
-- **Cardinality:** 136 unique codes (slightly more than series_names)
-- **Format:** Alphanumeric codes (e.g., FEDFUNDS, UNEMPLOY, CPIFABSL)
-- **Examples:** A191RL1Q225SBEA, AAA10Y, BAMLC0A0CM, BUSLOANS, CDSP
-- **Usage Notes:** Official FRED identifiers; use for precise filtering and joining with external FRED data
+**Purpose:** FRED standardized identifier for each economic series
+
+**Characteristics:**
+- 136 unique codes (slightly more than series names, suggesting some naming variations)
+- No null values
+- Examples: CIVPART, PCECC96, PERMIT, MSPUS, PSAVERT, EMRATIO
+- Alphanumeric codes of varying lengths
+
+**Query Considerations:** Primary identifier for precise series selection; essential for joins with other FRED datasets
+
+### date (TIMESTAMP)
+**Purpose:** Month reference date for each observation
+
+**Characteristics:**
+- 1,474 unique monthly timestamps
+- Spans from January 1913 to recent data
+- Formatted as first day of each month (e.g., "1913-01-01 00:00:00+00:00")
+- Timezone-aware (UTC indicated by +00:00)
+- No null values
+
+**Query Considerations:** 
+- Critical for time-based filtering and ordering
+- Ideal for time series analysis, trend identification, and period comparisons
+- Can be used for date range filtering, monthly/yearly aggregations
+- Extract functions (YEAR, MONTH) would be useful for grouping
+
+### data_source (STRING)
+**Purpose:** Indicates methodology used to generate the data point
+
+**Characteristics:**
+- 4 distinct values:
+  - **Actual:** Original reported data
+  - **Backward Filled:** Missing values filled using previous observations
+  - **Forward Filled:** Missing values filled using future observations
+  - **Interpolated:** Missing values estimated between known points
+- No null values
+- Distribution varies by series and time period
+
+**Query Considerations:** 
+- Important for data quality filtering (e.g., excluding filled/interpolated values)
+- Useful for understanding data reliability in queries
+- Should be considered when performing statistical analysis
 
 ### value (FLOAT64)
-- **Type:** Numeric (double precision floating point)
-- **Completeness:** 100% (no nulls)
-- **Range:** -136,419 to 111,252,997,846,886 (extremely wide range)
-- **Cardinality:** 30,942 unique values
-- **Examples:** 5.45 (likely %), 113,282 (possibly thousands), 218.86 (possibly index)
-- **Scale Considerations:** 
-  - Percentages (rates): typically 0-20
-  - Indices: typically 100-300
-  - Absolute counts: thousands to millions
-  - Dollar amounts: potentially billions to trillions
-- **Usage Notes:** Mixed units require understanding of each series; avoid aggregating across different series types
+**Purpose:** The actual measurement value for the economic indicator at the given date
+
+**Characteristics:**
+- 30,997 unique values
+- Extremely wide range: -136,419.0 to 110,982,661,180,013.0
+- Scale varies dramatically by series (percentages vs. absolute dollar amounts)
+- No null values
+- Examples: 7.2 (likely percentage), 1,638.0 (possibly index value), 1,680.63 (precise measurement)
+
+**Query Considerations:**
+- Essential for aggregation functions (AVG, SUM, MIN, MAX)
+- Requires series context for meaningful interpretation
+- May need normalization or filtering by series type for cross-series comparisons
+- Large range suggests need for careful handling of outliers
 
 ### period_diff (FLOAT64)
-- **Type:** Numeric (double precision floating point)
-- **Completeness:** 99.84% (0.16% nulls - likely first observations per series)
-- **Range:** -4,523,792,316,262 to 12,249,177,969,308
-- **Cardinality:** 9,073 unique values
-- **Purpose:** Month-over-month change in value
-- **Examples:** 0.16, 0.0, 0.21, 0.5, -0.2
-- **Null Pattern:** Expected nulls for first period of each time series
-- **Usage Notes:** Pre-calculated difference; useful for trend analysis without needing LAG functions
+**Purpose:** Month-over-month change in the value
+
+**Characteristics:**
+- 9,083 unique values
+- 0.16% null values (~137 rows, likely first observations for each series)
+- Range: -4,432,974,813,784.89 to 12,227,714,229,744.7
+- Represents calculated differences between consecutive months
+- Examples: 12.0, 0.09, 0.24, 6.18, -54.0, 0.7, -1,469.5
+
+**Query Considerations:**
+- Key metric for trend analysis and momentum indicators
+- Null values likely represent series start dates (no prior period for comparison)
+- Useful for identifying growth rates, volatility, and turning points
+- Consider filtering out nulls when calculating statistics
 
 ## Potential Query Considerations
 
-### Good Filtering Columns:
-1. **series_code / series_name:** Filter to specific economic indicators
-2. **date:** Time-based filtering (date ranges, specific months/years)
-3. **data_source:** Filter by data quality (e.g., `WHERE data_source = 'Actual'`)
-4. **value ranges:** Filter extreme values or specific thresholds
+### Optimal Filtering Columns:
+1. **series_code/series_name:** Filter to specific economic indicators
+2. **date:** Time range selections, recent data queries
+3. **data_source:** Quality-based filtering (actual vs. interpolated)
+4. **period_diff:** Identifying significant changes (WHERE period_diff > threshold)
 
-### Good Grouping/Aggregation Columns:
-1. **date:** Time series aggregations (monthly, quarterly, yearly trends)
-2. **series_code / series_name:** Aggregate statistics per indicator
-3. **data_source:** Compare actual vs imputed data quality
-4. **EXTRACT(YEAR FROM date):** Annual aggregations
-5. **EXTRACT(MONTH FROM date):** Seasonal patterns
+### Grouping/Aggregation Opportunities:
+1. **By series:** Analyze individual economic indicators over time
+2. **By date periods:** Monthly, quarterly, yearly aggregations using date extraction
+3. **By data_source:** Compare reliability of different data methodologies
+4. **Cross-series analysis:** Compare multiple indicators within time windows
 
 ### Potential Join Keys:
-- **series_code:** Join with FRED metadata tables
-- **date:** Join with other temporal economic data
-- **Composite key (series_code, date):** Unique identifier for specific observations
+1. **series_code:** Primary key for joining with other FRED metadata tables
+2. **date:** Time-based joins with other temporal economic datasets
+3. **Composite key (series_code + date):** Unique record identifier
 
 ### Data Quality Considerations:
+1. **Scale normalization:** Value ranges differ dramatically by series; normalize for cross-series comparisons
+2. **Null handling:** period_diff nulls indicate series start dates
+3. **Data source awareness:** Consider filtering by "Actual" for most reliable analysis
+4. **Time series completeness:** Use data_source to identify gaps vs. filled values
+5. **Outlier detection:** Extreme values in both value and period_diff columns may need validation
 
-1. **Scale Normalization:** Values span 15+ orders of magnitude; percentages, indices, and absolute values require separate handling
-2. **Missing Data Handling:** 
-   - Consider filtering `data_source != 'Actual'` for analysis requiring real observations
-   - period_diff nulls indicate series start points
-3. **Time Series Gaps:** Not all series cover full date range; check data availability per series
-4. **Outlier Detection:** Extreme values may be legitimate (e.g., GDP in trillions) or errors
-5. **Rate vs Level:** Mix of rate measures (%) and level measures (absolute values)
-6. **Seasonal Adjustments:** Unknown if data is seasonally adjusted; may need to account for seasonality
-
-### Recommended Query Patterns:
-
-1. **Single Series Analysis:**
-   ```sql
-   WHERE series_code = 'FEDFUNDS' 
-   AND data_source = 'Actual'
-   ORDER BY date
-   ```
-
-2. **Multiple Series Comparison:**
-   ```sql
-   WHERE series_code IN ('FEDFUNDS', 'UNEMPLOY')
-   PIVOT on series_name
-   ```
-
-3. **Trend Analysis:**
-   ```sql
-   SELECT EXTRACT(YEAR FROM date), AVG(value)
-   GROUP BY series_code, year
-   ```
-
-4. **Recent Data:**
-   ```sql
-   WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
-   ```
+### Common Query Patterns:
+- Time series analysis for specific indicators
+- Period-over-period change analysis using period_diff
+- Multi-indicator comparisons across same time periods
+- Trend identification (consecutive positive/negative period_diff)
+- Historical data retrieval for backtesting economic models
+- Volatility analysis using period_diff standard deviations
 
 ## Keywords
-FRED, Federal Reserve, economic data, time series, monthly data, interest rates, inflation, unemployment, CPI, PPI, Treasury rates, Federal Funds Rate, mortgage rates, yield curve, economic indicators, financial data, macroeconomic data, period difference, month-over-month change, backward fill, forward fill, interpolation, data imputation
+
+FRED, Federal Reserve Economic Data, economic indicators, time series, monthly data, interest rates, treasury rates, inflation, housing data, employment statistics, labor force, mortgage rates, monetary policy, yield curve, economic trends, period over period, month over month change, M1 money supply, GDP, consumer spending, building permits, producer price index, housing prices, participation rate, breakeven inflation, treasury maturity, forward rates, economic analysis, financial metrics, macroeconomic data
 
 ## Table and Column Documentation
 
-**Table Comment:** Not provided
+**Table Comment:** Not provided in the source analysis.
 
-**Column Comments:** Not provided
+**Column Comments:** No column-level comments were provided in the source analysis.
